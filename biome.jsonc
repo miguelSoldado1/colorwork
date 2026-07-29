@@ -1,4 +1,27 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/biome/core", "ultracite/biome/react"]
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"],
+  "formatter": {
+    "lineWidth": 120
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "sortBareImports": true,
+            "groups": [
+              {
+                "type": false
+              },
+              {
+                "type": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
 }
