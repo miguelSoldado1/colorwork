@@ -249,10 +249,10 @@ export function createColoringBoard({
     context.fillStyle = "#252938";
     context.fillRect(visibleBoard.x, visibleBoard.y, visibleBoard.width, visibleBoard.height);
     drawVisibleLayer(selectionLayer);
+    drawGrid();
     drawVisibleLayer(paintedLayer);
 
     drawNumbers();
-    drawGrid();
 
     context.strokeStyle = "#596078";
     context.lineWidth = 2;
