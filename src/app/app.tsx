@@ -68,22 +68,22 @@ export function App() {
   }
 
   return (
-    <main className="relative h-svh overflow-hidden bg-paper p-3 text-ink sm:p-5">
+    <main className="relative h-svh overflow-hidden bg-background p-3 text-foreground sm:p-5">
       <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4">
-        <header className="flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-panel/90 px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.22)] backdrop-blur">
+        <header className="flex min-w-0 items-center justify-between gap-4 rounded-lg border border-border bg-card/90 px-4 py-3 text-card-foreground shadow-[0_8px_32px_rgba(0,0,0,0.22)] backdrop-blur">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet text-ink shadow-[0_3px_0_#5148a8]">
+            <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground shadow-[0_3px_0_#5148a8]">
               <Brush aria-hidden height={24} width={24} />
             </span>
             <div className="min-w-0">
-              <p className="text-faint text-xs uppercase tracking-[0.16em]">Color Byte</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-[0.16em]">Color Byte</p>
               <h1 className="truncate text-lg leading-none sm:text-xl">{puzzle.name}</h1>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
             <button
-              className="inline-flex h-11 items-center gap-2 rounded-xl border border-ink/10 px-3 text-faint transition hover:border-violet/50 hover:bg-violet/10 hover:text-ink focus-visible:outline-2 focus-visible:outline-violet focus-visible:outline-offset-2 sm:px-4"
+              className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-3 text-muted-foreground transition hover:border-primary/50 hover:bg-accent/10 hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 sm:px-4"
               onClick={() => fileInputRef.current?.click()}
               type="button"
             >
@@ -99,7 +99,7 @@ export function App() {
 
         {importError ? (
           <p
-            className="absolute top-20 left-1/2 z-10 -translate-x-1/2 rounded-xl border border-ink/10 bg-panel px-4 py-3 text-sm shadow-xl"
+            className="absolute top-20 left-1/2 z-10 -translate-x-1/2 rounded-md border border-border bg-card px-4 py-3 text-card-foreground text-sm shadow-xl"
             role="alert"
           >
             {importError}
@@ -107,7 +107,7 @@ export function App() {
         ) : null}
 
         <div className="flex min-h-0 gap-3 sm:gap-4">
-          <aside className="scrollbar-none max-h-full min-h-0 self-center overflow-y-auto overscroll-contain rounded-2xl border border-ink/10 bg-panel/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
+          <aside className="scrollbar-none max-h-full min-h-0 self-center overflow-y-auto overscroll-contain rounded-lg border border-border bg-card/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
             <ToolPicker
               numbersVisible={showNumbers}
               onSelect={setSelectedTool}
@@ -132,7 +132,7 @@ export function App() {
 
         <div className="flex min-w-0 items-end justify-between gap-3">
           <BoardOverview canvasRef={overviewCanvasRef} />
-          <aside className="scrollbar-none flex max-w-full overflow-x-auto rounded-2xl border border-ink/10 bg-panel/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
+          <aside className="scrollbar-none flex max-w-full overflow-x-auto rounded-lg border border-border bg-card/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
             <Palette onSelect={setSelectedColor} puzzle={puzzle} selectedColor={selectedColor} summary={summary} />
           </aside>
         </div>

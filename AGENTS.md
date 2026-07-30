@@ -18,7 +18,7 @@
 
 ## Styling
 
-- Use the semantic Tailwind colors defined in `src/styles/index.css`: `paper`, `board`, `panel`, `violet`, `ink`, and `faint`.
+- Use the shadcn-style semantic Tailwind colors defined in `src/styles/index.css`; reserve `canvas` for the coloring surface.
 - Do not introduce Tailwind's generic color palette into the game interface unless a new semantic token is deliberately added first.
 - Preserve accessible labels, pressed states, focus states, and touch-friendly control sizes.
 

@@ -15,13 +15,13 @@ export function ProgressDisplay({ summary }: ProgressDisplayProps) {
       className="flex min-w-0 items-center gap-2 sm:gap-3"
       role="status"
     >
-      <div className="h-2 min-w-8 flex-1 overflow-hidden rounded-full bg-ink/10">
+      <div className="h-2 min-w-8 flex-1 overflow-hidden rounded-full bg-foreground/10">
         <div
-          className="h-full rounded-full bg-violet transition-[width] duration-200"
+          className="h-full rounded-full bg-primary transition-[width] duration-200"
           style={{ width: `${progressWidth}%` }}
         />
       </div>
-      <span className="shrink-0 text-right text-ink text-xs tabular-nums sm:text-sm">
+      <span className="shrink-0 text-right text-foreground text-xs tabular-nums sm:text-sm">
         {paintedCount} / {totalPixels}
       </span>
     </div>

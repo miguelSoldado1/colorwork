@@ -17,12 +17,12 @@ export function PaletteColor({ color, colorIndex, onSelect, painted, selected, t
       <button
         aria-label={`Color ${colorIndex + 1}: ${painted} of ${total} cells painted`}
         aria-pressed={selected}
-        className="group grid size-12 shrink-0 place-items-center rounded-xl border border-ink/10 bg-ink/5 transition-[transform,border-color,background-color] hover:-translate-y-0.5 hover:bg-ink/10 focus-visible:outline-3 focus-visible:outline-violet focus-visible:outline-offset-2 aria-pressed:border-ink/70 aria-pressed:bg-ink/15"
+        className="group grid size-12 shrink-0 place-items-center rounded-md border border-border bg-foreground/5 transition-[transform,border-color,background-color] hover:-translate-y-0.5 hover:bg-foreground/10 focus-visible:outline-3 focus-visible:outline-ring focus-visible:outline-offset-2 aria-pressed:border-foreground/70 aria-pressed:bg-foreground/15"
         onClick={() => onSelect(colorIndex)}
         type="button"
       >
         <span
-          className="grid size-8 place-items-center rounded-lg border border-paper/25 font-bold text-paper text-sm shadow-inner"
+          className="grid size-8 place-items-center rounded-sm border border-background/25 font-bold text-background text-sm shadow-inner"
           style={{ backgroundColor: color }}
         >
           {complete ? <Check aria-hidden height={18} width={18} /> : colorIndex + 1}

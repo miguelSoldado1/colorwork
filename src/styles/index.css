@@ -1,17 +1,35 @@
 @import "tailwindcss";
 @import "@fontsource/pixelify-sans/400.css";
 @import "@fontsource/pixelify-sans/600.css";
-@import "@fontsource-variable/inter";
 
-@theme {
+@theme static {
   --font-pixel: "Pixelify Sans", monospace;
-  --font-sans: "Inter Variable", sans-serif;
-  --color-paper: #0b0d14;
-  --color-board: #11141e;
-  --color-panel: #191c29;
-  --color-violet: #7668e8;
-  --color-ink: #f0edff;
-  --color-faint: #989caf;
+  --color-background: oklch(16.0433% 0.01524 272.199);
+  --color-foreground: oklch(95.37% 0.02422 293.589);
+  --color-card: oklch(22.9685% 0.02565 274.171);
+  --color-card-foreground: oklch(95.37% 0.02422 293.589);
+  --color-primary: oklch(59.629% 0.18662 284.159);
+  --color-primary-foreground: oklch(95.37% 0.02422 293.589);
+  --color-secondary: oklch(37.0991% 0.03339 273.2);
+  --color-secondary-foreground: oklch(95.37% 0.02422 293.589);
+  --color-muted: oklch(28.381% 0.02822 272.904);
+  --color-muted-foreground: oklch(69.572% 0.02809 276.21);
+  --color-accent: oklch(59.629% 0.18662 284.159);
+  --color-accent-foreground: oklch(95.37% 0.02422 293.589);
+  --color-destructive: oklch(62.5565% 0.19334 23.026);
+  --color-destructive-foreground: oklch(95.37% 0.02422 293.589);
+  --color-border: oklch(95.37% 0.02422 293.589 / 10%);
+  --color-input: oklch(95.37% 0.02422 293.589 / 10%);
+  --color-ring: oklch(59.629% 0.18662 284.159);
+  --color-canvas: oklch(19.3099% 0.02085 271.423);
+  --radius-sm: calc(var(--radius) - 0.25rem);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 0.25rem);
+  --radius-xl: calc(var(--radius) + 0.75rem);
+}
+
+:root {
+  --radius: 0.75rem;
 }
 
 @layer base {
@@ -22,7 +40,7 @@
   html {
     font-family: var(--font-pixel);
     color-scheme: dark;
-    background: var(--color-paper);
+    background: var(--color-background);
   }
 
   body {

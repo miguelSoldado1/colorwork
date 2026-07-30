@@ -13,7 +13,7 @@ export function ToolButton({ children, label, onClick, pressed, selected = press
     <button
       aria-label={label}
       aria-pressed={pressed}
-      className="grid size-12 shrink-0 place-items-center rounded-xl border border-ink/10 bg-ink/5 text-faint transition-colors hover:bg-ink/10 hover:text-ink focus-visible:outline-3 focus-visible:outline-violet focus-visible:outline-offset-2 data-[selected=true]:border-violet data-[selected=true]:bg-violet data-[selected=true]:text-ink"
+      className="grid size-12 shrink-0 place-items-center rounded-md border border-border bg-foreground/5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-3 focus-visible:outline-ring focus-visible:outline-offset-2 data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground"
       data-selected={selected}
       onClick={onClick}
       title={label}

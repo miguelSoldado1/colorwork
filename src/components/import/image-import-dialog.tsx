@@ -115,21 +115,21 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
   return (
     <dialog
       aria-labelledby="import-title"
-      className="m-auto max-h-[calc(100svh-2rem)] w-[min(46rem,calc(100%-2rem))] overflow-y-auto rounded-3xl border border-ink/15 bg-panel p-0 text-ink shadow-[0_28px_100px_rgba(0,0,0,0.72)] backdrop:bg-paper/80 backdrop:backdrop-blur-sm"
+      className="m-auto max-h-[calc(100svh-2rem)] w-[min(46rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-foreground/15 bg-card p-0 text-card-foreground shadow-[0_28px_100px_rgba(0,0,0,0.72)] backdrop:bg-background/80 backdrop:backdrop-blur-sm"
       onCancel={onCancel}
       ref={dialogRef}
     >
-      <div className="border-ink/10 border-b px-5 py-4 sm:px-6">
+      <div className="border-border border-b px-5 py-4 sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-faint text-xs uppercase tracking-[0.16em]">New puzzle</p>
+            <p className="text-muted-foreground text-xs uppercase tracking-[0.16em]">New puzzle</p>
             <h2 className="mt-1 text-2xl" id="import-title">
               Tune your pixel grid
             </h2>
           </div>
           <button
             aria-label="Cancel image import"
-            className="grid size-11 shrink-0 place-items-center rounded-xl text-faint transition hover:bg-ink/8 hover:text-ink focus-visible:outline-2 focus-visible:outline-violet focus-visible:outline-offset-2"
+            className="grid size-11 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-foreground/8 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
             onClick={onCancel}
             type="button"
           >
@@ -139,24 +139,24 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
       </div>
 
       <div className="grid gap-6 p-5 sm:grid-cols-[minmax(0,1fr)_17rem] sm:p-6">
-        <div className="flex min-h-56 items-center justify-center overflow-hidden rounded-2xl border border-ink/10 bg-[linear-gradient(45deg,rgba(255,255,255,.025)_25%,transparent_25%),linear-gradient(-45deg,rgba(255,255,255,.025)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,rgba(255,255,255,.025)_75%),linear-gradient(-45deg,transparent_75%,rgba(255,255,255,.025)_75%)] bg-board bg-position-[0_0,0_8px,8px_-8px,-8px_0] bg-size-[16px_16px] p-4">
+        <div className="flex min-h-56 items-center justify-center overflow-hidden rounded-lg border border-border bg-[linear-gradient(45deg,rgba(255,255,255,.025)_25%,transparent_25%),linear-gradient(-45deg,rgba(255,255,255,.025)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,rgba(255,255,255,.025)_75%),linear-gradient(-45deg,transparent_75%,rgba(255,255,255,.025)_75%)] bg-canvas bg-position-[0_0,0_8px,8px_-8px,-8px_0] bg-size-[16px_16px] p-4">
           {puzzle ? (
             <canvas
               aria-label="Processed pixel art preview"
-              className="h-auto max-h-[50svh] w-full bg-board [image-rendering:pixelated]"
+              className="h-auto max-h-[50svh] w-full bg-canvas [image-rendering:pixelated]"
               ref={previewRef}
               role="img"
             />
           ) : (
-            <p className="text-faint text-sm">{processingError || "Building preview…"}</p>
+            <p className="text-muted-foreground text-sm">{processingError || "Building preview…"}</p>
           )}
         </div>
 
         <div className="flex flex-col gap-5">
           <label className="grid gap-2 text-sm">
-            <span className="text-faint">Puzzle name</span>
+            <span className="text-muted-foreground">Puzzle name</span>
             <input
-              className="h-11 rounded-xl border border-ink/10 bg-paper px-3 text-ink outline-none transition focus:border-violet focus:ring-2 focus:ring-violet/25"
+              className="h-11 rounded-md border border-input bg-background px-3 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
               maxLength={60}
               onChange={(event) => setName(event.target.value)}
               value={name}
@@ -164,13 +164,13 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
           </label>
 
           <fieldset>
-            <legend className="mb-2 text-faint text-sm">Grid size</legend>
+            <legend className="mb-2 text-muted-foreground text-sm">Grid size</legend>
             <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
               <NumberField label="Width" max={MAX_GRID_SIZE} min={MIN_GRID_SIZE} onChange={updateWidth} value={width} />
               <button
                 aria-label={dimensionsLinked ? "Unlock aspect ratio" : "Lock aspect ratio"}
                 aria-pressed={dimensionsLinked}
-                className="mb-0.5 grid size-10 place-items-center rounded-xl text-faint transition hover:bg-ink/8 hover:text-ink focus-visible:outline-2 focus-visible:outline-violet focus-visible:outline-offset-2"
+                className="mb-0.5 grid size-10 place-items-center rounded-md text-muted-foreground transition hover:bg-foreground/8 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
                 onClick={() => setDimensionsLinked((linked) => !linked)}
                 type="button"
               >
@@ -188,19 +188,19 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
                 value={height}
               />
             </div>
-            <p className="mt-2 text-faint text-xs">
+            <p className="mt-2 text-muted-foreground text-xs">
               Source: {source.width} × {source.height}px
             </p>
           </fieldset>
 
           <label className="grid gap-2 text-sm">
-            <span className="flex items-center justify-between gap-3 text-faint">
+            <span className="flex items-center justify-between gap-3 text-muted-foreground">
               <span>Palette colors</span>
-              <strong className="text-ink">{paletteSize}</strong>
+              <strong className="text-foreground">{paletteSize}</strong>
             </span>
             <input
               aria-label="Palette colors"
-              className="h-6 w-full accent-violet"
+              className="h-6 w-full accent-primary"
               disabled={paletteMaximum === MIN_PALETTE_SIZE}
               max={paletteMaximum}
               min={MIN_PALETTE_SIZE}
@@ -208,18 +208,20 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
               type="range"
               value={paletteSize}
             />
-            <span className="text-faint text-xs">
+            <span className="text-muted-foreground text-xs">
               Detected {source.detectedColorCount.toLocaleString()}{" "}
               {source.detectedColorCount === 1 ? "color" : "colors"} at the initial grid size.
             </span>
           </label>
 
           <div>
-            <p className="mb-2 text-faint text-sm">Generated palette {puzzle ? `(${puzzle.palette.length})` : ""}</p>
+            <p className="mb-2 text-muted-foreground text-sm">
+              Generated palette {puzzle ? `(${puzzle.palette.length})` : ""}
+            </p>
             <div className="flex min-h-8 flex-wrap gap-1.5">
               {puzzle?.palette.map((color) => (
                 <span
-                  className="size-7 rounded-lg border border-ink/15 shadow-inner"
+                  className="size-7 rounded-sm border border-foreground/15 shadow-inner"
                   key={color}
                   style={{ backgroundColor: color }}
                   title={color}
@@ -228,22 +230,22 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
             </div>
           </div>
 
-          <p className="mt-auto text-faint text-xs">
+          <p className="mt-auto text-muted-foreground text-xs">
             {(width * height).toLocaleString()} cells · {source.fileName}
           </p>
         </div>
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-ink/10 border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+      <div className="flex flex-col-reverse gap-3 border-border border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
         <button
-          className="h-11 rounded-xl px-4 text-faint transition hover:bg-ink/8 hover:text-ink focus-visible:outline-2 focus-visible:outline-violet focus-visible:outline-offset-2"
+          className="h-11 rounded-md px-4 text-muted-foreground transition hover:bg-foreground/8 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
           onClick={onCancel}
           type="button"
         >
           Cancel
         </button>
         <button
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-violet px-5 text-ink shadow-[0_3px_0_#5148a8] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-violet focus-visible:outline-offset-2 active:translate-y-0.5 active:shadow-none disabled:cursor-wait disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-primary-foreground shadow-[0_3px_0_#5148a8] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-0.5 active:shadow-none disabled:cursor-wait disabled:opacity-50"
           disabled={!puzzle}
           onClick={confirmPuzzle}
           type="button"
@@ -266,10 +268,10 @@ interface NumberFieldProps {
 
 function NumberField({ label, max, min, onChange, value }: NumberFieldProps) {
   return (
-    <label className="grid gap-1.5 text-faint text-xs">
+    <label className="grid gap-1.5 text-muted-foreground text-xs">
       {label}
       <input
-        className="h-10 min-w-0 rounded-xl border border-ink/10 bg-paper px-2.5 text-center text-ink outline-none transition focus:border-violet focus:ring-2 focus:ring-violet/25"
+        className="h-10 min-w-0 rounded-md border border-input bg-background px-2.5 text-center text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
         max={max}
         min={min}
         onChange={(event) => onChange(event.target.valueAsNumber)}

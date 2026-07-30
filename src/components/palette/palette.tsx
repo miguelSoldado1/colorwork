@@ -16,11 +16,11 @@ export function Palette({ onSelect, puzzle, selectedColor, summary }: PalettePro
     <div>
       <div
         aria-label={`${painted} pixels painted, ${total} pixels total for color ${selectedColor + 1}`}
-        className="mb-1.5 flex items-center justify-center gap-2 px-1 text-faint text-sm tabular-nums"
+        className="mb-1.5 flex items-center justify-center gap-2 px-1 text-muted-foreground text-sm tabular-nums"
         role="status"
       >
         <span>{painted.toLocaleString()} painted</span>
-        <span aria-hidden className="text-faint/40">
+        <span aria-hidden className="text-muted-foreground/40">
           |
         </span>
         <span>{total.toLocaleString()} total</span>

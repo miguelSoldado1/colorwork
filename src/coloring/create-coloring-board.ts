@@ -39,6 +39,10 @@ export function createColoringBoard({
 }: CreateColoringBoardOptions) {
   const context = getCanvasContext(canvas, { alpha: false });
   const overviewContext = getCanvasContext(overviewCanvas, { alpha: false });
+  const theme = getColoringTheme(canvas);
+  const foregroundRgba = resolveCssColor(theme.foreground);
+  const secondaryRgba = resolveCssColor(theme.secondary);
+  const translucentForeground = withAlpha(foregroundRgba, 0.12);
 
   // Puzzle-sized bitmap layers keep per-pixel work out of the main display canvas.
   const totalByColor = countTargetPixelsByColor(puzzle);
@@ -102,7 +106,7 @@ export function createColoringBoard({
     selectionImage.data.fill(0);
     for (let index = 0; index < puzzle.targetPixels.length; index += 1) {
       if (puzzle.targetPixels[index] === selectedColor && progress.paintedPixels[index] === UNPAINTED_PIXEL) {
-        writePaintedPixel(selectionImage.data, index, [58, 63, 82, 255]);
+        writePaintedPixel(selectionImage.data, index, secondaryRgba);
       }
     }
     selectionContext.putImageData(selectionImage, 0, 0);
@@ -241,12 +245,12 @@ export function createColoringBoard({
     context.imageSmoothingEnabled = false;
     const renderStartedAt = performance.now();
 
-    context.fillStyle = "#11141e";
+    context.fillStyle = theme.canvas;
     context.fillRect(0, 0, bounds.width, bounds.height);
 
     const visibleCells = getVisibleCells();
     const visibleBoard = getVisibleBoardBounds(visibleCells);
-    context.fillStyle = "#252938";
+    context.fillStyle = theme.muted;
     context.fillRect(visibleBoard.x, visibleBoard.y, visibleBoard.width, visibleBoard.height);
     drawVisibleLayer(selectionLayer);
     drawGrid();
@@ -279,7 +283,7 @@ export function createColoringBoard({
 
     overviewContext.setTransform(dpr, 0, 0, dpr, 0, 0);
     overviewContext.imageSmoothingEnabled = false;
-    overviewContext.fillStyle = "#252938";
+    overviewContext.fillStyle = theme.muted;
     overviewContext.fillRect(0, 0, bounds.width, bounds.height);
     overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
     overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
@@ -298,9 +302,9 @@ export function createColoringBoard({
     const visibleWidth = ((worldRight - worldLeft) / puzzle.width) * bounds.width;
     const visibleHeight = ((worldBottom - worldTop) / puzzle.height) * bounds.height;
 
-    overviewContext.fillStyle = "rgba(255, 255, 255, 0.12)";
+    overviewContext.fillStyle = translucentForeground;
     overviewContext.fillRect(viewportX, viewportY, visibleWidth, visibleHeight);
-    overviewContext.strokeStyle = "#ffffff";
+    overviewContext.strokeStyle = theme.foreground;
     overviewContext.lineWidth = 2;
     overviewContext.strokeRect(
       viewportX + 1,
@@ -381,7 +385,7 @@ export function createColoringBoard({
         if (progress.paintedPixels[index] !== UNPAINTED_PIXEL) {
           continue;
         }
-        context.fillStyle = puzzle.targetPixels[index] === selectedColor ? "#ffffff" : "#9ea3b8";
+        context.fillStyle = puzzle.targetPixels[index] === selectedColor ? theme.foreground : theme.mutedForeground;
         context.fillText(
           String(puzzle.targetPixels[index] + 1),
           x + (column + 0.5) * cellSize,
@@ -398,7 +402,7 @@ export function createColoringBoard({
     }
 
     context.beginPath();
-    context.strokeStyle = "rgba(235, 232, 255, 0.12)";
+    context.strokeStyle = translucentForeground;
     context.lineWidth = 1;
     const visibleCells = getVisibleCells();
     const { endX, endY, startX, startY } = visibleCells;
@@ -704,6 +708,34 @@ export function createColoringBoard({
 }
 
 // Low-level canvas and pixel helpers.
+function getColoringTheme(element: HTMLElement) {
+  const styles = getComputedStyle(element);
+  const getColor = (name: string) => styles.getPropertyValue(`--color-${name}`).trim();
+
+  return {
+    canvas: getColor("canvas"),
+    foreground: getColor("foreground"),
+    muted: getColor("muted"),
+    mutedForeground: getColor("muted-foreground"),
+    secondary: getColor("secondary"),
+  };
+}
+
+function resolveCssColor(color: string) {
+  const colorCanvas = document.createElement("canvas");
+  colorCanvas.width = 1;
+  colorCanvas.height = 1;
+  const context = getCanvasContext(colorCanvas, { willReadFrequently: true });
+  context.fillStyle = color;
+  context.fillRect(0, 0, 1, 1);
+  const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+  return [red, green, blue, alpha] as const;
+}
+
+function withAlpha([red, green, blue]: ReturnType<typeof resolveCssColor>, alpha: number) {
+  return `rgb(${red} ${green} ${blue} / ${alpha})`;
+}
+
 function parseHexColor(color: string) {
   return [
     Number.parseInt(color.slice(1, 3), 16),
