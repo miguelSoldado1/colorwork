@@ -1,24 +1,70 @@
 import { Brush } from "pixelarticons/react/Brush";
+import { Image2Plus } from "pixelarticons/react/Image2Plus";
 import { useRef, useState } from "react";
+import { countRenderedImageColors, getRecommendedGridSize } from "@/coloring/import-image";
 import { createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
+import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { testPuzzle } from "@/puzzles/test-puzzle";
-import type { ColoringTool } from "@/coloring/types";
+import type { ChangeEvent } from "react";
+import type { ImageImportSource } from "@/coloring/import-image";
+import type { ColoringTool, PuzzleDefinition } from "@/coloring/types";
 
 export function App() {
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [puzzle, setPuzzle] = useState<PuzzleDefinition>(testPuzzle);
   const [selectedColor, setSelectedColor] = useState(1);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [showNumbers, setShowNumbers] = useState(true);
-  const [progress] = useState(() => createPuzzleProgress(testPuzzle));
+  const [progress, setProgress] = useState(() => createPuzzleProgress(testPuzzle));
   const [summary, setSummary] = useState(() => createProgressSummary(testPuzzle, progress));
+  const [importSource, setImportSource] = useState<ImageImportSource | null>(null);
+  const [importError, setImportError] = useState("");
 
   function toggleNumbers() {
     setShowNumbers((visible) => !visible);
+  }
+
+  async function selectImage(event: ChangeEvent<HTMLInputElement>) {
+    const [file] = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (!file) {
+      return;
+    }
+
+    setImportError("");
+    try {
+      const bitmap = await createImageBitmap(file);
+      const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height);
+      setImportSource({
+        bitmap,
+        detectedColorCount: countRenderedImageColors(bitmap, recommendedSize.width, recommendedSize.height),
+        fileName: file.name,
+        height: bitmap.height,
+        width: bitmap.width,
+      });
+    } catch {
+      setImportError("That image could not be opened. Try a PNG, JPG, or WebP file.");
+    }
+  }
+
+  function closeImporter() {
+    importSource?.bitmap.close();
+    setImportSource(null);
+  }
+
+  function useImportedPuzzle(nextPuzzle: PuzzleDefinition) {
+    const nextProgress = createPuzzleProgress(nextPuzzle);
+    setPuzzle(nextPuzzle);
+    setProgress(nextProgress);
+    setSummary(createProgressSummary(nextPuzzle, nextProgress));
+    setSelectedColor(0);
+    closeImporter();
   }
 
   return (
@@ -31,16 +77,37 @@ export function App() {
             </span>
             <div className="min-w-0">
               <p className="text-faint text-xs uppercase tracking-[0.16em]">Color Byte</p>
-              <h1 className="truncate text-lg leading-none sm:text-xl">Aurora valley</h1>
+              <h1 className="truncate text-lg leading-none sm:text-xl">{puzzle.name}</h1>
             </div>
           </div>
-          <div className="w-28 sm:w-52">
-            <ProgressDisplay summary={summary} />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
+            <button
+              className="inline-flex h-11 items-center gap-2 rounded-xl border border-ink/10 px-3 text-faint transition hover:border-violet/50 hover:bg-violet/10 hover:text-ink focus-visible:outline-2 focus-visible:outline-violet focus-visible:outline-offset-2 sm:px-4"
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+            >
+              <Image2Plus aria-hidden height={20} width={20} />
+              <span className="hidden sm:inline">Import art</span>
+              <span className="sr-only sm:hidden">Import art</span>
+            </button>
+            <div className="w-24 sm:w-52">
+              <ProgressDisplay summary={summary} />
+            </div>
           </div>
         </header>
 
+        {importError ? (
+          <p
+            className="absolute top-20 left-1/2 z-10 -translate-x-1/2 rounded-xl border border-ink/10 bg-panel px-4 py-3 text-sm shadow-xl"
+            role="alert"
+          >
+            {importError}
+          </p>
+        ) : null}
+
         <div className="flex min-h-0 gap-3 sm:gap-4">
-          <aside className="max-h-full min-h-0 self-center overflow-y-auto overscroll-contain rounded-2xl border border-ink/10 bg-panel/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <aside className="scrollbar-none max-h-full min-h-0 self-center overflow-y-auto overscroll-contain rounded-2xl border border-ink/10 bg-panel/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
             <ToolPicker
               numbersVisible={showNumbers}
               onSelect={setSelectedTool}
@@ -55,7 +122,7 @@ export function App() {
               onSelectColor={setSelectedColor}
               overviewCanvasRef={overviewCanvasRef}
               progress={progress}
-              puzzle={testPuzzle}
+              puzzle={puzzle}
               selectedColor={selectedColor}
               showNumbers={showNumbers}
               tool={selectedTool}
@@ -66,10 +133,13 @@ export function App() {
         <div className="flex min-w-0 items-end justify-between gap-3">
           <BoardOverview canvasRef={overviewCanvasRef} />
           <aside className="scrollbar-none flex max-w-full overflow-x-auto rounded-2xl border border-ink/10 bg-panel/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
-            <Palette onSelect={setSelectedColor} puzzle={testPuzzle} selectedColor={selectedColor} summary={summary} />
+            <Palette onSelect={setSelectedColor} puzzle={puzzle} selectedColor={selectedColor} summary={summary} />
           </aside>
         </div>
       </div>
+      {importSource ? (
+        <ImageImportDialog onCancel={closeImporter} onConfirm={useImportedPuzzle} source={importSource} />
+      ) : null}
     </main>
   );
 }

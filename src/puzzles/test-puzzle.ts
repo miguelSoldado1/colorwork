@@ -73,6 +73,7 @@ for (let treeIndex = 0; treeIndex < 18; treeIndex += 1) {
 export const testPuzzle = {
   height,
   id: "aurora-valley",
+  name: "Aurora valley",
   palette: ["#172044", "#29376f", "#f4d477", "#705b86", "#b9ccdc", "#2f6f62", "#12363e", "#62c6a5"],
   targetPixels,
   width,

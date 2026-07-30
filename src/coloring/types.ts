@@ -1,6 +1,7 @@
 export interface PuzzleDefinition {
   height: number;
   id: string;
+  name: string;
   palette: readonly string[];
   targetPixels: Uint8Array;
   width: number;
