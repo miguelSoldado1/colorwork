@@ -550,6 +550,18 @@ export function createColoringBoard({
     onSelectColor(puzzle.targetPixels[cell.y * puzzle.width + cell.x]);
   }
 
+  function beginPaintingPointer(event: PointerEvent, cell: Cell) {
+    if (selectedTool === "bucket") {
+      fillConnectedArea(cell);
+    } else {
+      paintCell(cell);
+    }
+
+    activePointerId = event.pointerId;
+    previousCell = cell;
+    canvas.setPointerCapture(event.pointerId);
+  }
+
   function handlePointerDown(event: PointerEvent) {
     if (activePointerId !== undefined) {
       return;
@@ -588,14 +600,7 @@ export function createColoringBoard({
       zoomAt(zoomFactor, event.clientX - bounds.left, event.clientY - bounds.top);
       return;
     }
-    if (selectedTool === "bucket") {
-      fillConnectedArea(cell);
-      return;
-    }
-    activePointerId = event.pointerId;
-    previousCell = cell;
-    canvas.setPointerCapture(event.pointerId);
-    paintCell(cell);
+    beginPaintingPointer(event, cell);
   }
 
   function handlePointerMove(event: PointerEvent) {
