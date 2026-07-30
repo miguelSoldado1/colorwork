@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run --config tests/vitest.config.ts",
+    "test:watch": "vitest --config tests/vitest.config.ts",
     "preview": "vite preview",
     "check": "ultracite check",
     "fix": "ultracite fix"
@@ -30,6 +32,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "typescript": "~6",
     "ultracite": "7.9.4",
-    "vite": "^8"
+    "vite": "^8",
+    "vitest": "^4.1.10"
   }
 }

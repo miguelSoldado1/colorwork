@@ -2,6 +2,7 @@ import type { PuzzleDefinition } from "./types";
 
 const DEFAULT_GRID_LIMIT = 160;
 const TRANSPARENT_PIXEL_COLOR = "#11141e";
+const MAX_INDEXED_COLORS = 255;
 const FILE_EXTENSION_PATTERN = /\.[^.]+$/;
 const FILE_NAME_SEPARATOR_PATTERN = /[-_]+/g;
 const PUZZLE_ID_CHARACTER_PATTERN = /[^a-z0-9]+/g;
@@ -19,6 +20,11 @@ interface ColorBucket {
   population: number;
 }
 
+interface QuantizedPalette {
+  colorIndexes: Map<number, number>;
+  colors: WeightedColor[];
+}
+
 export interface ImageImportSource {
   bitmap: ImageBitmap;
   detectedColorCount: number;
@@ -32,6 +38,11 @@ export interface ImageImportOptions {
   name: string;
   paletteSize: number;
   width: number;
+}
+
+export interface IndexedPixelData {
+  palette: string[];
+  targetPixels: Uint8Array;
 }
 
 // Import defaults and source metadata.
@@ -55,34 +66,44 @@ export function getImportName(fileName: string) {
 
 export function countRenderedImageColors(bitmap: ImageBitmap, width: number, height: number) {
   const data = renderImage(bitmap, width, height);
-  const colors = new Set<number>();
-
-  for (let index = 0; index < data.length; index += 4) {
-    colors.add(data[index] * 65_536 + data[index + 1] * 256 + data[index + 2]);
-  }
-
-  return colors.size;
+  return countPixelColors(data);
 }
 
 // Rasterize the source and turn its colors into a canvas-ready puzzle definition.
 export function createPuzzleFromImage(source: ImageImportSource, options: ImageImportOptions): PuzzleDefinition {
   const data = renderImage(source.bitmap, options.width, options.height);
-  const colors = collectColors(data);
-  // Preserve exact source colors until the requested palette is smaller than the source palette.
-  const paletteColors =
-    colors.length <= options.paletteSize
-      ? colors.toSorted((left, right) => right.count - left.count)
-      : createQuantizedPalette(colors, options.paletteSize);
-  const targetPixels = mapPixelsToPalette(data, paletteColors);
+  const indexedPixels = createIndexedPixelData(data, options.paletteSize);
 
   return {
     height: options.height,
     id: createPuzzleId(options.name),
     name: options.name.trim() || "Custom puzzle",
-    palette: paletteColors.map(toHexColor),
-    targetPixels,
+    ...indexedPixels,
     width: options.width,
   };
+}
+
+export function createIndexedPixelData(data: Uint8ClampedArray, paletteSize: number): IndexedPixelData {
+  validatePixelData(data);
+  if (!(Number.isInteger(paletteSize) && paletteSize >= 1 && paletteSize <= MAX_INDEXED_COLORS)) {
+    throw new RangeError(`Palette size must be an integer between 1 and ${MAX_INDEXED_COLORS}.`);
+  }
+
+  const colors = collectColors(data);
+  // Preserve exact source colors until the requested palette is smaller than the source palette.
+  const quantizedPalette = colors.length <= paletteSize ? undefined : createQuantizedPalette(colors, paletteSize);
+  const paletteColors = quantizedPalette?.colors ?? colors.toSorted((left, right) => right.count - left.count);
+  const targetPixels = mapPixelsToPalette(data, paletteColors, quantizedPalette?.colorIndexes);
+
+  return {
+    palette: paletteColors.map(toHexColor),
+    targetPixels,
+  };
+}
+
+export function countPixelColors(data: Uint8ClampedArray) {
+  validatePixelData(data);
+  return collectColors(data).length;
 }
 
 // Render at the logical grid size with crisp sampling and a paintable color behind transparency.
@@ -107,7 +128,7 @@ function collectColors(data: Uint8ClampedArray) {
   const counts = new Map<number, number>();
 
   for (let index = 0; index < data.length; index += 4) {
-    const key = data[index] * 65_536 + data[index + 1] * 256 + data[index + 2];
+    const key = toColorKey(data[index], data[index + 1], data[index + 2]);
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
 
@@ -150,7 +171,19 @@ function createQuantizedPalette(colors: WeightedColor[], paletteSize: number) {
     buckets.push(...splitBucket(bucket));
   }
 
-  return buckets.map(averageBucket).toSorted((left, right) => right.count - left.count);
+  const sortedBuckets = buckets.toSorted((left, right) => right.population - left.population);
+  const colorIndexes = new Map<number, number>();
+
+  for (let paletteIndex = 0; paletteIndex < sortedBuckets.length; paletteIndex += 1) {
+    for (const color of sortedBuckets[paletteIndex].colors) {
+      colorIndexes.set(toColorKey(color.red, color.green, color.blue), paletteIndex);
+    }
+  }
+
+  return {
+    colorIndexes,
+    colors: sortedBuckets.map(averageBucket),
+  } satisfies QuantizedPalette;
 }
 
 function getColorRange(colors: WeightedColor[]) {
@@ -225,15 +258,18 @@ function averageBucket(bucket: ColorBucket): WeightedColor {
 }
 
 // Cache each source color's nearest palette match while producing the row-major pixel array.
-function mapPixelsToPalette(data: Uint8ClampedArray, palette: WeightedColor[]) {
+function mapPixelsToPalette(
+  data: Uint8ClampedArray,
+  palette: WeightedColor[],
+  colorIndexes = new Map<number, number>()
+) {
   const targetPixels = new Uint8Array(data.length / 4);
-  const colorIndexes = new Map<number, number>();
 
   for (let pixelIndex = 0, dataIndex = 0; dataIndex < data.length; pixelIndex += 1, dataIndex += 4) {
     const red = data[dataIndex];
     const green = data[dataIndex + 1];
     const blue = data[dataIndex + 2];
-    const key = red * 65_536 + green * 256 + blue;
+    const key = toColorKey(red, green, blue);
     let closestIndex = colorIndexes.get(key);
 
     if (closestIndex === undefined) {
@@ -261,6 +297,10 @@ function mapPixelsToPalette(data: Uint8ClampedArray, palette: WeightedColor[]) {
   return targetPixels;
 }
 
+function toColorKey(red: number, green: number, blue: number) {
+  return red * 65_536 + green * 256 + blue;
+}
+
 function sumPopulation(colors: WeightedColor[]) {
   let population = 0;
   for (const color of colors) {
@@ -278,4 +318,10 @@ function toHexColor(color: WeightedColor) {
 function createPuzzleId(name: string) {
   const slug = name.toLowerCase().replaceAll(PUZZLE_ID_CHARACTER_PATTERN, "-").replace(PUZZLE_ID_EDGE_PATTERN, "");
   return `${slug || "custom-puzzle"}-${Date.now().toString(36)}`;
+}
+
+function validatePixelData(data: Uint8ClampedArray) {
+  if (data.length === 0 || data.length % 4 !== 0) {
+    throw new RangeError("Pixel data must contain one or more complete RGBA pixels.");
+  }
 }
