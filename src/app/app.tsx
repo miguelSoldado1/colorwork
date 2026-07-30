@@ -10,7 +10,7 @@ import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { Button } from "@/components/ui/button";
-import { testPuzzle } from "@/puzzles/test-puzzle";
+import { napoleonDynamitePuzzle } from "@/puzzles/napoleon-dynamite-puzzle";
 import type { ChangeEvent } from "react";
 import type { ImageImportSource } from "@/coloring/import-image";
 import type { ColoringTool, PuzzleDefinition } from "@/coloring/types";
@@ -18,12 +18,12 @@ import type { ColoringTool, PuzzleDefinition } from "@/coloring/types";
 export function App() {
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [puzzle, setPuzzle] = useState<PuzzleDefinition>(testPuzzle);
-  const [selectedColor, setSelectedColor] = useState(1);
+  const [puzzle, setPuzzle] = useState<PuzzleDefinition>(napoleonDynamitePuzzle);
+  const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [showNumbers, setShowNumbers] = useState(true);
-  const [progress, setProgress] = useState(() => createPuzzleProgress(testPuzzle));
-  const [summary, setSummary] = useState(() => createProgressSummary(testPuzzle, progress));
+  const [progress, setProgress] = useState(() => createPuzzleProgress(napoleonDynamitePuzzle));
+  const [summary, setSummary] = useState(() => createProgressSummary(napoleonDynamitePuzzle, progress));
   const [importSource, setImportSource] = useState<ImageImportSource | null>(null);
   const [importError, setImportError] = useState("");
 
