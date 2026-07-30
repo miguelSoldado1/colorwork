@@ -49,7 +49,7 @@ export function App() {
             />
           </aside>
 
-          <section className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border border-ink/10 bg-board shadow-[0_18px_60px_rgba(0,0,0,0.3)]">
+          <section className="min-h-0 min-w-0 flex-1 overflow-hidden">
             <ColoringBoard
               onProgress={setSummary}
               onSelectColor={setSelectedColor}

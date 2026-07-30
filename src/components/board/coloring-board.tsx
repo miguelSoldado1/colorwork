@@ -24,17 +24,27 @@ export function ColoringBoard({
   showNumbers,
   tool,
 }: ColoringBoardProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<ReturnType<typeof createColoringBoard> | null>(null);
 
   useEffect(() => {
+    const container = containerRef.current;
     const canvas = canvasRef.current;
     const overviewCanvas = overviewCanvasRef.current;
-    if (!(canvas && overviewCanvas)) {
+    if (!(canvas && container && overviewCanvas)) {
       return;
     }
 
-    const controller = createColoringBoard({ canvas, onProgress, onSelectColor, overviewCanvas, progress, puzzle });
+    const controller = createColoringBoard({
+      canvas,
+      container,
+      onProgress,
+      onSelectColor,
+      overviewCanvas,
+      progress,
+      puzzle,
+    });
     controllerRef.current = controller;
 
     return () => {
@@ -56,11 +66,13 @@ export function ColoringBoard({
   }, [tool]);
 
   return (
-    <canvas
-      aria-label="Color-by-number puzzle. Choose a tool and interact with cells on the board."
-      className="h-full min-h-0 w-full touch-none select-none"
-      ref={canvasRef}
-      role="img"
-    />
+    <div className="grid h-full min-h-0 w-full min-w-0 place-items-center" ref={containerRef}>
+      <canvas
+        aria-label="Color-by-number puzzle. Choose a tool and interact with cells on the board."
+        className="block max-h-full max-w-full touch-none select-none rounded-2xl bg-board shadow-[0_18px_60px_rgba(0,0,0,0.3)] ring-1 ring-ink/10"
+        ref={canvasRef}
+        role="img"
+      />
+    </div>
   );
 }

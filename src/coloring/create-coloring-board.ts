@@ -3,6 +3,7 @@ import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } 
 
 interface CreateColoringBoardOptions {
   canvas: HTMLCanvasElement;
+  container: HTMLElement;
   onProgress: (summary: ProgressSummary) => void;
   onSelectColor: (colorIndex: number) => void;
   overviewCanvas: HTMLCanvasElement;
@@ -25,9 +26,11 @@ const GRID_THRESHOLD = 7;
 const MAX_ZOOM = 32;
 const MIN_ZOOM = 1;
 const ZOOM_STEP = 1.8;
+const CELL_EDGE_EPSILON = 0.000_001;
 
 export function createColoringBoard({
   canvas,
+  container,
   overviewCanvas,
   puzzle,
   progress,
@@ -82,9 +85,12 @@ export function createColoringBoard({
   let cameraY = puzzle.height / 2;
   let viewportWidth = 1;
   let viewportHeight = 1;
+  let availableViewportWidth = 1;
+  let availableViewportHeight = 1;
   let fitScale = 1;
   let zoom = 1;
   let showNumbers = true;
+  let cameraIsSettled = true;
   let frameId: number | undefined;
   let progressFrameId: number | undefined;
   let activePointerId: number | undefined;
@@ -104,24 +110,45 @@ export function createColoringBoard({
 
   // Camera and viewport geometry.
   function resize() {
-    const bounds = canvas.getBoundingClientRect();
+    const bounds = container.getBoundingClientRect();
+    availableViewportWidth = Math.max(1, bounds.width);
+    availableViewportHeight = Math.max(1, bounds.height);
+    fitScale = Math.min(
+      Math.max(1, availableViewportWidth - 32) / puzzle.width,
+      Math.max(1, availableViewportHeight - 32) / puzzle.height
+    );
+    resizeCanvasViewport();
+    updateGeometry();
+    if (cameraIsSettled) {
+      snapCameraToGrid();
+    }
+
+    scheduleRender();
+  }
+
+  function resizeCanvasViewport() {
+    const cellSize = fitScale * zoom;
+    const zoomedViewportWidth = Math.min(availableViewportWidth, puzzle.width * cellSize);
+    const zoomedViewportHeight = Math.min(availableViewportHeight, puzzle.height * cellSize);
+    viewportWidth =
+      zoom === MIN_ZOOM
+        ? availableViewportWidth
+        : Math.max(cellSize, Math.floor(zoomedViewportWidth / cellSize + CELL_EDGE_EPSILON) * cellSize);
+    viewportHeight =
+      zoom === MIN_ZOOM
+        ? availableViewportHeight
+        : Math.max(cellSize, Math.floor(zoomedViewportHeight / cellSize + CELL_EDGE_EPSILON) * cellSize);
+    canvas.style.width = `${viewportWidth}px`;
+    canvas.style.height = `${viewportHeight}px`;
+
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    const displayWidth = Math.max(1, Math.round(bounds.width * dpr));
-    const displayHeight = Math.max(1, Math.round(bounds.height * dpr));
+    const displayWidth = Math.max(1, Math.round(viewportWidth * dpr));
+    const displayHeight = Math.max(1, Math.round(viewportHeight * dpr));
 
     if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
       canvas.width = displayWidth;
       canvas.height = displayHeight;
     }
-
-    viewportWidth = bounds.width;
-    viewportHeight = bounds.height;
-    const availableWidth = Math.max(1, viewportWidth - 32);
-    const availableHeight = Math.max(1, viewportHeight - 32);
-    fitScale = Math.min(availableWidth / puzzle.width, availableHeight / puzzle.height);
-    updateGeometry();
-
-    scheduleRender();
   }
 
   function updateGeometry() {
@@ -147,19 +174,41 @@ export function createColoringBoard({
     };
   }
 
+  function snapCameraToGrid() {
+    const { cellSize, height, width, x, y } = geometry;
+
+    if (width > viewportWidth) {
+      const snappedX = Math.round(x / cellSize) * cellSize;
+      cameraX = (viewportWidth / 2 - snappedX) / cellSize;
+    }
+    if (height > viewportHeight) {
+      const snappedY = Math.round(y / cellSize) * cellSize;
+      cameraY = (viewportHeight / 2 - snappedY) / cellSize;
+    }
+
+    updateGeometry();
+  }
+
   function zoomAt(factor: number, screenX = viewportWidth / 2, screenY = viewportHeight / 2) {
     const worldX = (screenX - geometry.x) / geometry.cellSize;
     const worldY = (screenY - geometry.y) / geometry.cellSize;
+    const previousViewportWidth = viewportWidth;
+    const previousViewportHeight = viewportHeight;
     const nextZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * factor));
     if (nextZoom === zoom) {
       return;
     }
 
     zoom = nextZoom;
+    resizeCanvasViewport();
+    const resizedScreenX = screenX + (viewportWidth - previousViewportWidth) / 2;
+    const resizedScreenY = screenY + (viewportHeight - previousViewportHeight) / 2;
     const nextCellSize = fitScale * zoom;
-    cameraX = worldX - (screenX - viewportWidth / 2) / nextCellSize;
-    cameraY = worldY - (screenY - viewportHeight / 2) / nextCellSize;
+    cameraX = worldX - (resizedScreenX - viewportWidth / 2) / nextCellSize;
+    cameraY = worldY - (resizedScreenY - viewportHeight / 2) / nextCellSize;
     updateGeometry();
+    snapCameraToGrid();
+    cameraIsSettled = true;
     scheduleRender();
   }
 
@@ -195,8 +244,10 @@ export function createColoringBoard({
     context.fillStyle = "#11141e";
     context.fillRect(0, 0, bounds.width, bounds.height);
 
+    const visibleCells = getVisibleCells();
+    const visibleBoard = getVisibleBoardBounds(visibleCells);
     context.fillStyle = "#252938";
-    context.fillRect(x, y, width, height);
+    context.fillRect(visibleBoard.x, visibleBoard.y, visibleBoard.width, visibleBoard.height);
     drawVisibleLayer(selectionLayer);
     drawVisibleLayer(paintedLayer);
 
@@ -233,10 +284,15 @@ export function createColoringBoard({
     overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
     overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
 
-    const worldLeft = Math.max(0, -geometry.x / geometry.cellSize);
-    const worldTop = Math.max(0, -geometry.y / geometry.cellSize);
-    const worldRight = Math.min(puzzle.width, (viewportWidth - geometry.x) / geometry.cellSize);
-    const worldBottom = Math.min(puzzle.height, (viewportHeight - geometry.y) / geometry.cellSize);
+    const visibleCells = getVisibleCells();
+    const worldLeft = cameraIsSettled ? visibleCells.startX : Math.max(0, -geometry.x / geometry.cellSize);
+    const worldTop = cameraIsSettled ? visibleCells.startY : Math.max(0, -geometry.y / geometry.cellSize);
+    const worldRight = cameraIsSettled
+      ? visibleCells.endX
+      : Math.min(puzzle.width, (viewportWidth - geometry.x) / geometry.cellSize);
+    const worldBottom = cameraIsSettled
+      ? visibleCells.endY
+      : Math.min(puzzle.height, (viewportHeight - geometry.y) / geometry.cellSize);
     const viewportX = (worldLeft / puzzle.width) * bounds.width;
     const viewportY = (worldTop / puzzle.height) * bounds.height;
     const visibleWidth = ((worldRight - worldLeft) / puzzle.width) * bounds.width;
@@ -256,11 +312,34 @@ export function createColoringBoard({
 
   function getVisibleCells() {
     const { cellSize, x, y } = geometry;
+    const visibleRight = (viewportWidth - x) / cellSize;
+    const visibleBottom = (viewportHeight - y) / cellSize;
     return {
-      endX: Math.min(puzzle.width, Math.ceil((viewportWidth - x) / cellSize)),
-      endY: Math.min(puzzle.height, Math.ceil((viewportHeight - y) / cellSize)),
-      startX: Math.max(0, Math.floor(-x / cellSize)),
-      startY: Math.max(0, Math.floor(-y / cellSize)),
+      endX: Math.min(
+        puzzle.width,
+        cameraIsSettled ? Math.floor(visibleRight + CELL_EDGE_EPSILON) : Math.ceil(visibleRight - CELL_EDGE_EPSILON)
+      ),
+      endY: Math.min(
+        puzzle.height,
+        cameraIsSettled ? Math.floor(visibleBottom + CELL_EDGE_EPSILON) : Math.ceil(visibleBottom - CELL_EDGE_EPSILON)
+      ),
+      startX: Math.max(
+        0,
+        cameraIsSettled ? Math.ceil(-x / cellSize - CELL_EDGE_EPSILON) : Math.floor(-x / cellSize + CELL_EDGE_EPSILON)
+      ),
+      startY: Math.max(
+        0,
+        cameraIsSettled ? Math.ceil(-y / cellSize - CELL_EDGE_EPSILON) : Math.floor(-y / cellSize + CELL_EDGE_EPSILON)
+      ),
+    };
+  }
+
+  function getVisibleBoardBounds({ endX, endY, startX, startY }: ReturnType<typeof getVisibleCells>) {
+    return {
+      height: (endY - startY) * geometry.cellSize,
+      width: (endX - startX) * geometry.cellSize,
+      x: geometry.x + startX * geometry.cellSize,
+      y: geometry.y + startY * geometry.cellSize,
     };
   }
 
@@ -313,7 +392,7 @@ export function createColoringBoard({
   }
 
   function drawGrid() {
-    const { cellSize, height, width, x, y } = geometry;
+    const { cellSize, x, y } = geometry;
     if (cellSize < GRID_THRESHOLD) {
       return;
     }
@@ -321,16 +400,18 @@ export function createColoringBoard({
     context.beginPath();
     context.strokeStyle = "rgba(235, 232, 255, 0.12)";
     context.lineWidth = 1;
-    const { endX, endY, startX, startY } = getVisibleCells();
+    const visibleCells = getVisibleCells();
+    const { endX, endY, startX, startY } = visibleCells;
+    const visibleBoard = getVisibleBoardBounds(visibleCells);
     for (let column = startX; column <= endX; column += 1) {
       const lineX = x + column * cellSize + 0.5;
-      context.moveTo(lineX, y);
-      context.lineTo(lineX, y + height);
+      context.moveTo(lineX, visibleBoard.y);
+      context.lineTo(lineX, visibleBoard.y + visibleBoard.height);
     }
     for (let row = startY; row <= endY; row += 1) {
       const lineY = y + row * cellSize + 0.5;
-      context.moveTo(x, lineY);
-      context.lineTo(x + width, lineY);
+      context.moveTo(visibleBoard.x, lineY);
+      context.lineTo(visibleBoard.x + visibleBoard.width, lineY);
     }
     context.stroke();
   }
@@ -351,6 +432,12 @@ export function createColoringBoard({
 
     if (x < 0 || x >= puzzle.width || y < 0 || y >= puzzle.height) {
       return;
+    }
+    if (cameraIsSettled) {
+      const { endX, endY, startX, startY } = getVisibleCells();
+      if (x < startX || x >= endX || y < startY || y >= endY) {
+        return;
+      }
     }
 
     return { x, y };
@@ -479,6 +566,7 @@ export function createColoringBoard({
 
     if (selectedTool === "pan") {
       event.preventDefault();
+      cameraIsSettled = false;
       activePointerId = event.pointerId;
       previousPointerPosition = { x: event.clientX, y: event.clientY };
       canvas.setPointerCapture(event.pointerId);
@@ -543,6 +631,11 @@ export function createColoringBoard({
     if (event.pointerId !== activePointerId) {
       return;
     }
+    if (selectedTool === "pan") {
+      snapCameraToGrid();
+      cameraIsSettled = true;
+      scheduleRender();
+    }
     activePointerId = undefined;
     previousCell = undefined;
     previousPointerPosition = undefined;
@@ -566,7 +659,7 @@ export function createColoringBoard({
 
   // Attach browser events and expose the small imperative API used by React.
   const resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(canvas);
+  resizeObserver.observe(container);
   canvas.addEventListener("pointerdown", handlePointerDown);
   canvas.addEventListener("pointermove", handlePointerMove);
   canvas.addEventListener("pointerup", finishPointer);
