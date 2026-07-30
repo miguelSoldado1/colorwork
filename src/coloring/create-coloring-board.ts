@@ -110,6 +110,7 @@ export function createColoringBoard({
   let frameId: number | undefined;
   let progressFrameId: number | undefined;
   let activePointerId: number | undefined;
+  let activeOverviewPointerId: number | undefined;
   let previousCell: Cell | undefined;
   let previousPointerPosition: PointerPosition | undefined;
   let destroyed = false;
@@ -613,6 +614,55 @@ export function createColoringBoard({
     onSelectColor(puzzle.targetPixels[cell.y * puzzle.width + cell.x]);
   }
 
+  function panFromOverview(event: PointerEvent) {
+    const bounds = overviewCanvas.getBoundingClientRect();
+    if (bounds.width <= 0 || bounds.height <= 0) {
+      return;
+    }
+
+    const normalizedX = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+    const normalizedY = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
+    cameraX = normalizedX * puzzle.width;
+    cameraY = normalizedY * puzzle.height;
+    updateGeometry();
+    scheduleRender();
+  }
+
+  function handleOverviewPointerDown(event: PointerEvent) {
+    if (event.button !== 0 || activePointerId !== undefined || activeOverviewPointerId !== undefined) {
+      return;
+    }
+
+    event.preventDefault();
+    cameraIsSettled = false;
+    activeOverviewPointerId = event.pointerId;
+    overviewCanvas.setPointerCapture(event.pointerId);
+    overviewCanvas.style.cursor = "grabbing";
+    panFromOverview(event);
+  }
+
+  function handleOverviewPointerMove(event: PointerEvent) {
+    if (event.pointerId !== activeOverviewPointerId) {
+      return;
+    }
+    panFromOverview(event);
+  }
+
+  function finishOverviewPointer(event: PointerEvent) {
+    if (event.pointerId !== activeOverviewPointerId) {
+      return;
+    }
+
+    snapCameraToGrid();
+    cameraIsSettled = true;
+    activeOverviewPointerId = undefined;
+    overviewCanvas.style.cursor = "grab";
+    scheduleRender();
+    if (overviewCanvas.hasPointerCapture(event.pointerId)) {
+      overviewCanvas.releasePointerCapture(event.pointerId);
+    }
+  }
+
   function beginPaintingPointer(event: PointerEvent, cell: Cell) {
     if (selectedTool === "bucket") {
       fillConnectedArea(cell);
@@ -626,7 +676,7 @@ export function createColoringBoard({
   }
 
   function handlePointerDown(event: PointerEvent) {
-    if (activePointerId !== undefined) {
+    if (activePointerId !== undefined || activeOverviewPointerId !== undefined) {
       return;
     }
 
@@ -733,6 +783,11 @@ export function createColoringBoard({
   canvas.addEventListener("pointermove", handlePointerMove);
   canvas.addEventListener("pointerup", finishPointer);
   canvas.addEventListener("pointercancel", finishPointer);
+  overviewCanvas.addEventListener("pointerdown", handleOverviewPointerDown);
+  overviewCanvas.addEventListener("pointermove", handleOverviewPointerMove);
+  overviewCanvas.addEventListener("pointerup", finishOverviewPointer);
+  overviewCanvas.addEventListener("pointercancel", finishOverviewPointer);
+  overviewCanvas.style.cursor = "grab";
   updateCursor();
   rebuildSelectionLayer();
   resize();
@@ -745,6 +800,10 @@ export function createColoringBoard({
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", finishPointer);
       canvas.removeEventListener("pointercancel", finishPointer);
+      overviewCanvas.removeEventListener("pointerdown", handleOverviewPointerDown);
+      overviewCanvas.removeEventListener("pointermove", handleOverviewPointerMove);
+      overviewCanvas.removeEventListener("pointerup", finishOverviewPointer);
+      overviewCanvas.removeEventListener("pointercancel", finishOverviewPointer);
       if (frameId !== undefined) {
         cancelAnimationFrame(frameId);
       }

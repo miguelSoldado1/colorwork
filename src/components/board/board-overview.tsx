@@ -30,8 +30,8 @@ export function BoardOverview({ canvasRef, puzzleHeight, puzzleWidth }: BoardOve
 
   return (
     <canvas
-      aria-label="Puzzle overview showing the current visible area"
-      className="block h-(--overview-height) w-(--overview-width) shrink-0 rounded-md border border-border bg-canvas sm:h-(--overview-height-sm) sm:w-(--overview-width-sm)"
+      aria-label="Puzzle overview showing the current visible area. Click or drag to pan the board."
+      className="block h-(--overview-height) w-(--overview-width) shrink-0 touch-none select-none rounded-md border border-border bg-canvas sm:h-(--overview-height-sm) sm:w-(--overview-width-sm)"
       height={puzzleHeight}
       ref={canvasRef}
       role="img"

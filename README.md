@@ -14,7 +14,7 @@ A browser-based pixel color-by-number prototype built with React, Vite, TypeScri
 - Middle-click a cell to select its color without switching tools.
 - Use the eye button to show or hide cell numbers without hiding the selected-color highlight.
 
-The bottom-left minimap shows the target in muted grayscale, overlays completed pixels in their actual colors, and marks the current viewport.
+The bottom-left minimap shows the target in muted grayscale, overlays completed pixels in their actual colors, and marks the current viewport. Click or drag the minimap to pan the board directly.
 
 ## Architecture
 
