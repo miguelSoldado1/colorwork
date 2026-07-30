@@ -128,7 +128,7 @@ export function App() {
         </div>
 
         <div className="flex min-w-0 items-end justify-between gap-3">
-          <BoardOverview canvasRef={overviewCanvasRef} />
+          <BoardOverview canvasRef={overviewCanvasRef} puzzleHeight={puzzle.height} puzzleWidth={puzzle.width} />
           <aside className="scrollbar-none flex max-w-full overflow-x-auto rounded-lg border border-border bg-card/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
             <Palette onSelect={setSelectedColor} puzzle={puzzle} selectedColor={selectedColor} summary={summary} />
           </aside>

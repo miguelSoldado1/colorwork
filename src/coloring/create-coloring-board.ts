@@ -41,8 +41,10 @@ export function createColoringBoard({
   const overviewContext = getCanvasContext(overviewCanvas, { alpha: false });
   const theme = getColoringTheme(canvas);
   const foregroundRgba = resolveCssColor(theme.foreground);
+  const primaryRgba = resolveCssColor(theme.primary);
   const secondaryRgba = resolveCssColor(theme.secondary);
   const translucentForeground = withAlpha(foregroundRgba, 0.12);
+  const translucentPrimary = withAlpha(primaryRgba, 0.1);
 
   // Puzzle-sized bitmap layers keep per-pixel work out of the main display canvas.
   const totalByColor = countTargetPixelsByColor(puzzle);
@@ -302,16 +304,18 @@ export function createColoringBoard({
     const visibleWidth = ((worldRight - worldLeft) / puzzle.width) * bounds.width;
     const visibleHeight = ((worldBottom - worldTop) / puzzle.height) * bounds.height;
 
-    overviewContext.fillStyle = translucentForeground;
+    overviewContext.fillStyle = translucentPrimary;
     overviewContext.fillRect(viewportX, viewportY, visibleWidth, visibleHeight);
-    overviewContext.strokeStyle = theme.foreground;
+
+    const outlineInset = Math.min(2, visibleWidth / 2, visibleHeight / 2);
+    const outlineWidth = Math.max(0, visibleWidth - outlineInset * 2);
+    const outlineHeight = Math.max(0, visibleHeight - outlineInset * 2);
+    overviewContext.strokeStyle = theme.canvas;
+    overviewContext.lineWidth = 4;
+    overviewContext.strokeRect(viewportX + outlineInset, viewportY + outlineInset, outlineWidth, outlineHeight);
+    overviewContext.strokeStyle = theme.primary;
     overviewContext.lineWidth = 2;
-    overviewContext.strokeRect(
-      viewportX + 1,
-      viewportY + 1,
-      Math.max(0, visibleWidth - 2),
-      Math.max(0, visibleHeight - 2)
-    );
+    overviewContext.strokeRect(viewportX + outlineInset, viewportY + outlineInset, outlineWidth, outlineHeight);
   }
 
   function getVisibleCells() {
@@ -669,6 +673,7 @@ export function createColoringBoard({
   // Attach browser events and expose the small imperative API used by React.
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(container);
+  resizeObserver.observe(overviewCanvas);
   canvas.addEventListener("pointerdown", handlePointerDown);
   canvas.addEventListener("pointermove", handlePointerMove);
   canvas.addEventListener("pointerup", finishPointer);
@@ -717,6 +722,7 @@ function getColoringTheme(element: HTMLElement) {
     foreground: getColor("foreground"),
     muted: getColor("muted"),
     mutedForeground: getColor("muted-foreground"),
+    primary: getColor("primary"),
     secondary: getColor("secondary"),
   };
 }
