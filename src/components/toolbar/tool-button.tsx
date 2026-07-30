@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
 
 interface ToolButtonProps {
@@ -10,16 +11,17 @@ interface ToolButtonProps {
 
 export function ToolButton({ children, label, onClick, pressed, selected = pressed }: ToolButtonProps) {
   return (
-    <button
+    <Button
       aria-label={label}
       aria-pressed={pressed}
-      className="grid size-12 shrink-0 place-items-center rounded-md border border-border bg-foreground/5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-3 focus-visible:outline-ring focus-visible:outline-offset-2 data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground"
+      className="shrink-0 data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground"
       data-selected={selected}
       onClick={onClick}
+      size="icon"
       title={label}
-      type="button"
+      variant="secondary"
     >
       {children}
-    </button>
+    </Button>
   );
 }

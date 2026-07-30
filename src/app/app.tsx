@@ -9,6 +9,7 @@ import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
+import { Button } from "@/components/ui/button";
 import { testPuzzle } from "@/puzzles/test-puzzle";
 import type { ChangeEvent } from "react";
 import type { ImageImportSource } from "@/coloring/import-image";
@@ -82,15 +83,11 @@ export function App() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
-            <button
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-border px-3 text-muted-foreground transition hover:border-primary/50 hover:bg-accent/10 hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 sm:px-4"
-              onClick={() => fileInputRef.current?.click()}
-              type="button"
-            >
+            <Button className="sm:px-4" onClick={() => fileInputRef.current?.click()} size="compact" variant="outline">
               <Image2Plus aria-hidden height={20} width={20} />
               <span className="hidden sm:inline">Import art</span>
               <span className="sr-only sm:hidden">Import art</span>
-            </button>
+            </Button>
             <div className="w-24 sm:w-52">
               <ProgressDisplay summary={summary} />
             </div>

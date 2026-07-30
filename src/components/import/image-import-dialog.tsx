@@ -9,6 +9,7 @@ import {
   getRecommendedGridSize,
   type ImageImportSource,
 } from "@/coloring/import-image";
+import { Button } from "@/components/ui/button";
 import type { PuzzleDefinition } from "@/coloring/types";
 
 const MIN_GRID_SIZE = 1;
@@ -127,14 +128,9 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
               Tune your pixel grid
             </h2>
           </div>
-          <button
-            aria-label="Cancel image import"
-            className="grid size-11 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-foreground/8 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
-            onClick={onCancel}
-            type="button"
-          >
+          <Button aria-label="Cancel image import" className="shrink-0" onClick={onCancel} size="icon" variant="ghost">
             <Close aria-hidden height={22} width={22} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -167,19 +163,20 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
             <legend className="mb-2 text-muted-foreground text-sm">Grid size</legend>
             <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
               <NumberField label="Width" max={MAX_GRID_SIZE} min={MIN_GRID_SIZE} onChange={updateWidth} value={width} />
-              <button
+              <Button
                 aria-label={dimensionsLinked ? "Unlock aspect ratio" : "Lock aspect ratio"}
                 aria-pressed={dimensionsLinked}
-                className="mb-0.5 grid size-10 place-items-center rounded-md text-muted-foreground transition hover:bg-foreground/8 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+                className="mb-0.5"
                 onClick={() => setDimensionsLinked((linked) => !linked)}
-                type="button"
+                size="icon"
+                variant="ghost"
               >
                 {dimensionsLinked ? (
                   <Link aria-hidden height={19} width={19} />
                 ) : (
                   <Unlink aria-hidden height={19} width={19} />
                 )}
-              </button>
+              </Button>
               <NumberField
                 label="Height"
                 max={MAX_GRID_SIZE}
@@ -237,22 +234,13 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
       </div>
 
       <div className="flex flex-col-reverse gap-3 border-border border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
-        <button
-          className="h-11 rounded-md px-4 text-muted-foreground transition hover:bg-foreground/8 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
-          onClick={onCancel}
-          type="button"
-        >
+        <Button onClick={onCancel} variant="ghost">
           Cancel
-        </button>
-        <button
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-primary-foreground shadow-[0_3px_0_#5148a8] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-0.5 active:shadow-none disabled:cursor-wait disabled:opacity-50"
-          disabled={!puzzle}
-          onClick={confirmPuzzle}
-          type="button"
-        >
+        </Button>
+        <Button disabled={!puzzle} onClick={confirmPuzzle} variant="primary">
           <Check aria-hidden height={19} width={19} />
           Use this puzzle
-        </button>
+        </Button>
       </div>
     </dialog>
   );
