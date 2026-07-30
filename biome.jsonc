@@ -4,6 +4,14 @@
   "formatter": {
     "lineWidth": 120
   },
+  "linter": {
+    "rules": {
+      "performance": {
+        // React Compiler stabilizes JSX callbacks where doing so is useful.
+        "noJsxPropsBind": "off"
+      }
+    }
+  },
   "assist": {
     "actions": {
       "source": {

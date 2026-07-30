@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@import "@fontsource/pixelify-sans/400.css";
+@import "@fontsource/pixelify-sans/600.css";
+@import "@fontsource-variable/inter";
+
+@theme {
+  --font-pixel: "Pixelify Sans", monospace;
+  --font-sans: "Inter Variable", sans-serif;
+  --color-paper: #0b0d14;
+  --color-board: #11141e;
+  --color-panel: #191c29;
+  --color-violet: #7668e8;
+  --color-ink: #f0edff;
+  --color-faint: #989caf;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: var(--font-pixel);
+    color-scheme: dark;
+    background: var(--color-paper);
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  button {
+    font: inherit;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
