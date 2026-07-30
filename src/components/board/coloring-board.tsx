@@ -75,7 +75,7 @@ export function ColoringBoard({
     <div className="grid h-full min-h-0 w-full min-w-0 place-items-center" ref={containerRef}>
       <canvas
         aria-label="Color-by-number puzzle. Choose a tool and interact with cells on the board."
-        className="block max-h-full max-w-full touch-none select-none rounded-lg bg-canvas shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border"
+        className="block max-h-full max-w-full touch-none select-none bg-canvas shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border"
         ref={canvasRef}
         role="img"
       />

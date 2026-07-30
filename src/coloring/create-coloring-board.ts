@@ -138,10 +138,7 @@ export function createColoringBoard({
     const bounds = container.getBoundingClientRect();
     availableViewportWidth = Math.max(1, bounds.width);
     availableViewportHeight = Math.max(1, bounds.height);
-    fitScale = Math.min(
-      Math.max(1, availableViewportWidth - 32) / puzzle.width,
-      Math.max(1, availableViewportHeight - 32) / puzzle.height
-    );
+    fitScale = Math.min(availableViewportWidth / puzzle.width, availableViewportHeight / puzzle.height);
     resizeCanvasViewport();
     updateGeometry();
     if (cameraIsSettled) {
@@ -155,14 +152,8 @@ export function createColoringBoard({
     const cellSize = fitScale * zoom;
     const zoomedViewportWidth = Math.min(availableViewportWidth, puzzle.width * cellSize);
     const zoomedViewportHeight = Math.min(availableViewportHeight, puzzle.height * cellSize);
-    viewportWidth =
-      zoom === MIN_ZOOM
-        ? availableViewportWidth
-        : Math.max(cellSize, Math.floor(zoomedViewportWidth / cellSize + CELL_EDGE_EPSILON) * cellSize);
-    viewportHeight =
-      zoom === MIN_ZOOM
-        ? availableViewportHeight
-        : Math.max(cellSize, Math.floor(zoomedViewportHeight / cellSize + CELL_EDGE_EPSILON) * cellSize);
+    viewportWidth = Math.max(cellSize, Math.floor(zoomedViewportWidth / cellSize + CELL_EDGE_EPSILON) * cellSize);
+    viewportHeight = Math.max(cellSize, Math.floor(zoomedViewportHeight / cellSize + CELL_EDGE_EPSILON) * cellSize);
     canvas.style.width = `${viewportWidth}px`;
     canvas.style.height = `${viewportHeight}px`;
 
