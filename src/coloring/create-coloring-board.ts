@@ -22,7 +22,7 @@ interface PointerPosition {
 }
 
 const NUMBER_THRESHOLD = 12;
-const GRID_THRESHOLD = 7;
+const GRID_THRESHOLD = 5;
 const MAX_ZOOM = 32;
 const MIN_ZOOM = 1;
 const ZOOM_STEP = 1.8;
