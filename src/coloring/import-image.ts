@@ -1,6 +1,6 @@
 import type { PuzzleDefinition } from "./types";
 
-const DEFAULT_GRID_LIMIT = 160;
+const DEFAULT_GRID_LIMIT = 256;
 const TRANSPARENT_PIXEL_COLOR = "#11141e";
 const MAX_INDEXED_COLORS = 255;
 const FILE_EXTENSION_PATTERN = /\.[^.]+$/;
