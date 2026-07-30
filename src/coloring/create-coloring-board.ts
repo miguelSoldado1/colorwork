@@ -1,6 +1,15 @@
 import { createNumberGlyphAtlas } from "./number-glyphs";
-import { countTargetPixelsByColor, createProgressSummary, UNPAINTED_PIXEL } from "./progress";
-import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "./types";
+import {
+  countTargetPixelsByColor,
+  createProgressSummary,
+  UNPAINTED_PIXEL,
+} from "./progress";
+import type {
+  ColoringTool,
+  ProgressSummary,
+  PuzzleDefinition,
+  PuzzleProgress,
+} from "./types";
 
 interface CreateColoringBoardOptions {
   canvas: HTMLCanvasElement;
@@ -22,9 +31,20 @@ interface PointerPosition {
   y: number;
 }
 
+interface PinchGesture {
+  center: PointerPosition;
+  distance: number;
+}
+
+interface PendingTouch {
+  cell: Cell | undefined;
+  start: PointerPosition;
+}
+
 const GRID_THRESHOLD = 5;
 const MAX_ZOOM = 32;
 const MIN_ZOOM = 1;
+const TOUCH_PAINT_THRESHOLD = 6;
 const ZOOM_STEP = 1.8;
 const CELL_EDGE_EPSILON = 0.000_001;
 
@@ -48,7 +68,9 @@ export function createColoringBoard({
     selected: theme.foreground,
     unselected: theme.mutedForeground,
   });
-  const maximumNumberSpriteWidth = Math.max(...numberGlyphAtlas.sprites.map((sprite) => sprite.width));
+  const maximumNumberSpriteWidth = Math.max(
+    ...numberGlyphAtlas.sprites.map((sprite) => sprite.width),
+  );
 
   // Puzzle-sized bitmap layers keep per-pixel work out of the main display canvas.
   const totalByColor = countTargetPixelsByColor(puzzle);
@@ -56,23 +78,35 @@ export function createColoringBoard({
   paintedLayer.width = puzzle.width;
   paintedLayer.height = puzzle.height;
   const paintedContext = getCanvasContext(paintedLayer);
-  const paintedImage = paintedContext.createImageData(puzzle.width, puzzle.height);
+  const paintedImage = paintedContext.createImageData(
+    puzzle.width,
+    puzzle.height,
+  );
   const paletteRgba = puzzle.palette.map(parseHexColor);
   const overviewBaseLayer = document.createElement("canvas");
   overviewBaseLayer.width = puzzle.width;
   overviewBaseLayer.height = puzzle.height;
   const overviewBaseContext = getCanvasContext(overviewBaseLayer);
-  const overviewBaseImage = overviewBaseContext.createImageData(puzzle.width, puzzle.height);
+  const overviewBaseImage = overviewBaseContext.createImageData(
+    puzzle.width,
+    puzzle.height,
+  );
   const selectionLayer = document.createElement("canvas");
   selectionLayer.width = puzzle.width;
   selectionLayer.height = puzzle.height;
   const selectionContext = getCanvasContext(selectionLayer);
-  const selectionImage = selectionContext.createImageData(puzzle.width, puzzle.height);
+  const selectionImage = selectionContext.createImageData(
+    puzzle.width,
+    puzzle.height,
+  );
   const missingLayer = document.createElement("canvas");
   missingLayer.width = puzzle.width;
   missingLayer.height = puzzle.height;
   const missingContext = getCanvasContext(missingLayer);
-  const missingImage = missingContext.createImageData(puzzle.width, puzzle.height);
+  const missingImage = missingContext.createImageData(
+    puzzle.width,
+    puzzle.height,
+  );
 
   // Build the static grayscale overview and restore any existing painted pixels.
   for (let index = 0; index < puzzle.targetPixels.length; index += 1) {
@@ -95,7 +129,13 @@ export function createColoringBoard({
   // Mutable interaction state stays inside this controller rather than React.
   let selectedColor = 0;
   let selectedTool: ColoringTool = "pencil";
-  let geometry = { cellSize: 1, height: puzzle.height, width: puzzle.width, x: 0, y: 0 };
+  let geometry = {
+    cellSize: 1,
+    height: puzzle.height,
+    width: puzzle.width,
+    x: 0,
+    y: 0,
+  };
   let cameraX = puzzle.width / 2;
   let cameraY = puzzle.height / 2;
   let viewportWidth = 1;
@@ -111,6 +151,10 @@ export function createColoringBoard({
   let progressFrameId: number | undefined;
   let activePointerId: number | undefined;
   let activeOverviewPointerId: number | undefined;
+  const activeTouchPointers = new Map<number, PointerPosition>();
+  let pendingTouch: PendingTouch | undefined;
+  let pinchGesture: PinchGesture | undefined;
+  let touchGestureWasPinch = false;
   let previousCell: Cell | undefined;
   let previousPointerPosition: PointerPosition | undefined;
   let destroyed = false;
@@ -138,7 +182,10 @@ export function createColoringBoard({
     const bounds = container.getBoundingClientRect();
     availableViewportWidth = Math.max(1, bounds.width);
     availableViewportHeight = Math.max(1, bounds.height);
-    fitScale = Math.min(availableViewportWidth / puzzle.width, availableViewportHeight / puzzle.height);
+    fitScale = Math.min(
+      availableViewportWidth / puzzle.width,
+      availableViewportHeight / puzzle.height,
+    );
     resizeCanvasViewport();
     updateGeometry();
     if (cameraIsSettled) {
@@ -150,10 +197,23 @@ export function createColoringBoard({
 
   function resizeCanvasViewport() {
     const cellSize = fitScale * zoom;
-    const zoomedViewportWidth = Math.min(availableViewportWidth, puzzle.width * cellSize);
-    const zoomedViewportHeight = Math.min(availableViewportHeight, puzzle.height * cellSize);
-    viewportWidth = Math.max(cellSize, Math.floor(zoomedViewportWidth / cellSize + CELL_EDGE_EPSILON) * cellSize);
-    viewportHeight = Math.max(cellSize, Math.floor(zoomedViewportHeight / cellSize + CELL_EDGE_EPSILON) * cellSize);
+    const zoomedViewportWidth = Math.min(
+      availableViewportWidth,
+      puzzle.width * cellSize,
+    );
+    const zoomedViewportHeight = Math.min(
+      availableViewportHeight,
+      puzzle.height * cellSize,
+    );
+    viewportWidth = Math.max(
+      cellSize,
+      Math.floor(zoomedViewportWidth / cellSize + CELL_EDGE_EPSILON) * cellSize,
+    );
+    viewportHeight = Math.max(
+      cellSize,
+      Math.floor(zoomedViewportHeight / cellSize + CELL_EDGE_EPSILON) *
+        cellSize,
+    );
     canvas.style.width = `${viewportWidth}px`;
     canvas.style.height = `${viewportHeight}px`;
 
@@ -175,11 +235,17 @@ export function createColoringBoard({
     cameraX =
       halfVisibleWidth >= puzzle.width / 2
         ? puzzle.width / 2
-        : Math.min(puzzle.width - halfVisibleWidth, Math.max(halfVisibleWidth, cameraX));
+        : Math.min(
+            puzzle.width - halfVisibleWidth,
+            Math.max(halfVisibleWidth, cameraX),
+          );
     cameraY =
       halfVisibleHeight >= puzzle.height / 2
         ? puzzle.height / 2
-        : Math.min(puzzle.height - halfVisibleHeight, Math.max(halfVisibleHeight, cameraY));
+        : Math.min(
+            puzzle.height - halfVisibleHeight,
+            Math.max(halfVisibleHeight, cameraY),
+          );
 
     geometry = {
       cellSize,
@@ -205,7 +271,11 @@ export function createColoringBoard({
     updateGeometry();
   }
 
-  function zoomAt(factor: number, screenX = viewportWidth / 2, screenY = viewportHeight / 2) {
+  function zoomAt(
+    factor: number,
+    screenX = viewportWidth / 2,
+    screenY = viewportHeight / 2,
+  ) {
     const worldX = (screenX - geometry.x) / geometry.cellSize;
     const worldY = (screenY - geometry.y) / geometry.cellSize;
     const previousViewportWidth = viewportWidth;
@@ -217,14 +287,61 @@ export function createColoringBoard({
 
     zoom = nextZoom;
     resizeCanvasViewport();
-    const resizedScreenX = screenX + (viewportWidth - previousViewportWidth) / 2;
-    const resizedScreenY = screenY + (viewportHeight - previousViewportHeight) / 2;
+    const resizedScreenX =
+      screenX + (viewportWidth - previousViewportWidth) / 2;
+    const resizedScreenY =
+      screenY + (viewportHeight - previousViewportHeight) / 2;
     const nextCellSize = fitScale * zoom;
     cameraX = worldX - (resizedScreenX - viewportWidth / 2) / nextCellSize;
     cameraY = worldY - (resizedScreenY - viewportHeight / 2) / nextCellSize;
     updateGeometry();
     snapCameraToGrid();
     cameraIsSettled = true;
+    scheduleRender();
+  }
+
+  function getPinchGesture() {
+    const [first, second] = [...activeTouchPointers.values()];
+    if (!(first && second)) {
+      return;
+    }
+
+    return {
+      center: {
+        x: (first.x + second.x) / 2,
+        y: (first.y + second.y) / 2,
+      },
+      distance: Math.hypot(second.x - first.x, second.y - first.y),
+    };
+  }
+
+  function updatePinch(nextGesture: PinchGesture) {
+    if (!pinchGesture) {
+      pinchGesture = nextGesture;
+      return;
+    }
+
+    const bounds = canvas.getBoundingClientRect();
+    const previousScreenX = pinchGesture.center.x - bounds.left;
+    const previousScreenY = pinchGesture.center.y - bounds.top;
+    const worldX = (previousScreenX - geometry.x) / geometry.cellSize;
+    const worldY = (previousScreenY - geometry.y) / geometry.cellSize;
+    const factor =
+      pinchGesture.distance > 0
+        ? nextGesture.distance / pinchGesture.distance
+        : 1;
+
+    zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * factor));
+    resizeCanvasViewport();
+
+    const resizedBounds = canvas.getBoundingClientRect();
+    const nextScreenX = nextGesture.center.x - resizedBounds.left;
+    const nextScreenY = nextGesture.center.y - resizedBounds.top;
+    const nextCellSize = fitScale * zoom;
+    cameraX = worldX - (nextScreenX - viewportWidth / 2) / nextCellSize;
+    cameraY = worldY - (nextScreenY - viewportHeight / 2) / nextCellSize;
+    updateGeometry();
+    pinchGesture = nextGesture;
     scheduleRender();
   }
 
@@ -263,7 +380,12 @@ export function createColoringBoard({
     const visibleCells = getVisibleCells();
     const visibleBoard = getVisibleBoardBounds(visibleCells);
     context.fillStyle = theme.muted;
-    context.fillRect(visibleBoard.x, visibleBoard.y, visibleBoard.width, visibleBoard.height);
+    context.fillRect(
+      visibleBoard.x,
+      visibleBoard.y,
+      visibleBoard.width,
+      visibleBoard.height,
+    );
     if (highlightMissing) {
       context.globalAlpha = 0.38;
       drawVisibleLayer(paintedLayer);
@@ -296,7 +418,10 @@ export function createColoringBoard({
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
     const displayWidth = Math.max(1, Math.round(bounds.width * dpr));
     const displayHeight = Math.max(1, Math.round(bounds.height * dpr));
-    if (overviewCanvas.width !== displayWidth || overviewCanvas.height !== displayHeight) {
+    if (
+      overviewCanvas.width !== displayWidth ||
+      overviewCanvas.height !== displayHeight
+    ) {
       overviewCanvas.width = displayWidth;
       overviewCanvas.height = displayHeight;
     }
@@ -307,30 +432,72 @@ export function createColoringBoard({
     overviewContext.fillRect(0, 0, bounds.width, bounds.height);
     if (highlightMissing) {
       overviewContext.globalAlpha = 0.16;
-      overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.drawImage(
+        overviewBaseLayer,
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+      );
       overviewContext.globalAlpha = 0.38;
-      overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.drawImage(
+        paintedLayer,
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+      );
       overviewContext.globalAlpha = 1;
-      overviewContext.drawImage(missingLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.drawImage(
+        missingLayer,
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+      );
     } else {
       overviewContext.globalAlpha = 1;
-      overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
-      overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.drawImage(
+        overviewBaseLayer,
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+      );
+      overviewContext.drawImage(
+        paintedLayer,
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+      );
     }
 
     const visibleCells = getVisibleCells();
-    const worldLeft = cameraIsSettled ? visibleCells.startX : Math.max(0, -geometry.x / geometry.cellSize);
-    const worldTop = cameraIsSettled ? visibleCells.startY : Math.max(0, -geometry.y / geometry.cellSize);
+    const worldLeft = cameraIsSettled
+      ? visibleCells.startX
+      : Math.max(0, -geometry.x / geometry.cellSize);
+    const worldTop = cameraIsSettled
+      ? visibleCells.startY
+      : Math.max(0, -geometry.y / geometry.cellSize);
     const worldRight = cameraIsSettled
       ? visibleCells.endX
-      : Math.min(puzzle.width, (viewportWidth - geometry.x) / geometry.cellSize);
+      : Math.min(
+          puzzle.width,
+          (viewportWidth - geometry.x) / geometry.cellSize,
+        );
     const worldBottom = cameraIsSettled
       ? visibleCells.endY
-      : Math.min(puzzle.height, (viewportHeight - geometry.y) / geometry.cellSize);
+      : Math.min(
+          puzzle.height,
+          (viewportHeight - geometry.y) / geometry.cellSize,
+        );
     const viewportX = (worldLeft / puzzle.width) * bounds.width;
     const viewportY = (worldTop / puzzle.height) * bounds.height;
-    const visibleWidth = ((worldRight - worldLeft) / puzzle.width) * bounds.width;
-    const visibleHeight = ((worldBottom - worldTop) / puzzle.height) * bounds.height;
+    const visibleWidth =
+      ((worldRight - worldLeft) / puzzle.width) * bounds.width;
+    const visibleHeight =
+      ((worldBottom - worldTop) / puzzle.height) * bounds.height;
 
     // The viewport marker sits on top of the artwork, so it stays neutral: a dark stroke under a
     // light one reads against any puzzle, where a single accent hue would vanish into a matching image.
@@ -342,10 +509,20 @@ export function createColoringBoard({
     const outlineHeight = Math.max(0, visibleHeight - outlineInset * 2);
     overviewContext.strokeStyle = theme.canvas;
     overviewContext.lineWidth = 4;
-    overviewContext.strokeRect(viewportX + outlineInset, viewportY + outlineInset, outlineWidth, outlineHeight);
+    overviewContext.strokeRect(
+      viewportX + outlineInset,
+      viewportY + outlineInset,
+      outlineWidth,
+      outlineHeight,
+    );
     overviewContext.strokeStyle = theme.foreground;
     overviewContext.lineWidth = 2;
-    overviewContext.strokeRect(viewportX + outlineInset, viewportY + outlineInset, outlineWidth, outlineHeight);
+    overviewContext.strokeRect(
+      viewportX + outlineInset,
+      viewportY + outlineInset,
+      outlineWidth,
+      outlineHeight,
+    );
   }
 
   function getVisibleCells() {
@@ -355,24 +532,37 @@ export function createColoringBoard({
     return {
       endX: Math.min(
         puzzle.width,
-        cameraIsSettled ? Math.floor(visibleRight + CELL_EDGE_EPSILON) : Math.ceil(visibleRight - CELL_EDGE_EPSILON)
+        cameraIsSettled
+          ? Math.floor(visibleRight + CELL_EDGE_EPSILON)
+          : Math.ceil(visibleRight - CELL_EDGE_EPSILON),
       ),
       endY: Math.min(
         puzzle.height,
-        cameraIsSettled ? Math.floor(visibleBottom + CELL_EDGE_EPSILON) : Math.ceil(visibleBottom - CELL_EDGE_EPSILON)
+        cameraIsSettled
+          ? Math.floor(visibleBottom + CELL_EDGE_EPSILON)
+          : Math.ceil(visibleBottom - CELL_EDGE_EPSILON),
       ),
       startX: Math.max(
         0,
-        cameraIsSettled ? Math.ceil(-x / cellSize - CELL_EDGE_EPSILON) : Math.floor(-x / cellSize + CELL_EDGE_EPSILON)
+        cameraIsSettled
+          ? Math.ceil(-x / cellSize - CELL_EDGE_EPSILON)
+          : Math.floor(-x / cellSize + CELL_EDGE_EPSILON),
       ),
       startY: Math.max(
         0,
-        cameraIsSettled ? Math.ceil(-y / cellSize - CELL_EDGE_EPSILON) : Math.floor(-y / cellSize + CELL_EDGE_EPSILON)
+        cameraIsSettled
+          ? Math.ceil(-y / cellSize - CELL_EDGE_EPSILON)
+          : Math.floor(-y / cellSize + CELL_EDGE_EPSILON),
       ),
     };
   }
 
-  function getVisibleBoardBounds({ endX, endY, startX, startY }: ReturnType<typeof getVisibleCells>) {
+  function getVisibleBoardBounds({
+    endX,
+    endY,
+    startX,
+    startY,
+  }: ReturnType<typeof getVisibleCells>) {
     return {
       height: (endY - startY) * geometry.cellSize,
       width: (endX - startX) * geometry.cellSize,
@@ -398,7 +588,7 @@ export function createColoringBoard({
       geometry.x + startX * geometry.cellSize,
       geometry.y + startY * geometry.cellSize,
       sourceWidth * geometry.cellSize,
-      sourceHeight * geometry.cellSize
+      sourceHeight * geometry.cellSize,
     );
   }
 
@@ -411,7 +601,7 @@ export function createColoringBoard({
     const { endX, endY, startX, startY } = getVisibleCells();
     const scale = Math.min(
       (cellSize * 0.5) / maximumNumberSpriteWidth,
-      (cellSize * 0.44) / numberGlyphAtlas.sprites[0].height
+      (cellSize * 0.44) / numberGlyphAtlas.sprites[0].height,
     );
     for (let row = startY; row < endY; row += 1) {
       for (let column = startX; column < endX; column += 1) {
@@ -432,7 +622,7 @@ export function createColoringBoard({
           x + (column + 0.5) * cellSize - width / 2,
           y + (row + 0.5) * cellSize - height / 2,
           width,
-          height
+          height,
         );
       }
     }
@@ -468,7 +658,12 @@ export function createColoringBoard({
     const bounds = canvas.getBoundingClientRect();
     const canvasX = event.clientX - bounds.left;
     const canvasY = event.clientY - bounds.top;
-    if (canvasX < 0 || canvasX >= bounds.width || canvasY < 0 || canvasY >= bounds.height) {
+    if (
+      canvasX < 0 ||
+      canvasX >= bounds.width ||
+      canvasY < 0 ||
+      canvasY >= bounds.height
+    ) {
       return;
     }
 
@@ -492,7 +687,10 @@ export function createColoringBoard({
 
   function paintCell(cell: Cell) {
     const index = cell.y * puzzle.width + cell.x;
-    if (puzzle.targetPixels[index] !== selectedColor || progress.paintedPixels[index] !== UNPAINTED_PIXEL) {
+    if (
+      puzzle.targetPixels[index] !== selectedColor ||
+      progress.paintedPixels[index] !== UNPAINTED_PIXEL
+    ) {
       return;
     }
 
@@ -511,7 +709,10 @@ export function createColoringBoard({
 
   function fillConnectedArea(start: Cell) {
     const startIndex = start.y * puzzle.width + start.x;
-    if (puzzle.targetPixels[startIndex] !== selectedColor || progress.paintedPixels[startIndex] !== UNPAINTED_PIXEL) {
+    if (
+      puzzle.targetPixels[startIndex] !== selectedColor ||
+      progress.paintedPixels[startIndex] !== UNPAINTED_PIXEL
+    ) {
       return;
     }
 
@@ -525,10 +726,18 @@ export function createColoringBoard({
     function enqueue(index: number) {
       const x = index % puzzle.width;
       const y = Math.floor(index / puzzle.width);
-      if (x < visibleCells.startX || x >= visibleCells.endX || y < visibleCells.startY || y >= visibleCells.endY) {
+      if (
+        x < visibleCells.startX ||
+        x >= visibleCells.endX ||
+        y < visibleCells.startY ||
+        y >= visibleCells.endY
+      ) {
         return;
       }
-      if (puzzle.targetPixels[index] !== selectedColor || progress.paintedPixels[index] !== UNPAINTED_PIXEL) {
+      if (
+        puzzle.targetPixels[index] !== selectedColor ||
+        progress.paintedPixels[index] !== UNPAINTED_PIXEL
+      ) {
         return;
       }
       progress.paintedPixels[index] = selectedColor;
@@ -611,8 +820,14 @@ export function createColoringBoard({
       return;
     }
 
-    const normalizedX = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
-    const normalizedY = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
+    const normalizedX = Math.min(
+      1,
+      Math.max(0, (event.clientX - bounds.left) / bounds.width),
+    );
+    const normalizedY = Math.min(
+      1,
+      Math.max(0, (event.clientY - bounds.top) / bounds.height),
+    );
     cameraX = normalizedX * puzzle.width;
     cameraY = normalizedY * puzzle.height;
     updateGeometry();
@@ -620,7 +835,11 @@ export function createColoringBoard({
   }
 
   function handleOverviewPointerDown(event: PointerEvent) {
-    if (event.button !== 0 || activePointerId !== undefined || activeOverviewPointerId !== undefined) {
+    if (
+      event.button !== 0 ||
+      activePointerId !== undefined ||
+      activeOverviewPointerId !== undefined
+    ) {
       return;
     }
 
@@ -666,8 +885,53 @@ export function createColoringBoard({
     canvas.setPointerCapture(event.pointerId);
   }
 
-  function handlePointerDown(event: PointerEvent) {
-    if (activePointerId !== undefined || activeOverviewPointerId !== undefined) {
+  function beginPinchGesture() {
+    const gesture = getPinchGesture();
+    if (!gesture) {
+      return;
+    }
+
+    activePointerId = undefined;
+    pendingTouch = undefined;
+    previousCell = undefined;
+    previousPointerPosition = undefined;
+    pinchGesture = gesture;
+    touchGestureWasPinch = true;
+    cameraIsSettled = false;
+    updateCursor();
+  }
+
+  function handleTouchPointerDown(event: PointerEvent) {
+    event.preventDefault();
+    activeTouchPointers.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    canvas.setPointerCapture(event.pointerId);
+
+    if (activeTouchPointers.size >= 2) {
+      beginPinchGesture();
+      return;
+    }
+    if (touchGestureWasPinch) {
+      return;
+    }
+
+    activePointerId = event.pointerId;
+    if (selectedTool === "pan") {
+      cameraIsSettled = false;
+      previousPointerPosition = { x: event.clientX, y: event.clientY };
+      canvas.style.cursor = "grabbing";
+    } else {
+      pendingTouch = {
+        cell: eventToCell(event),
+        start: { x: event.clientX, y: event.clientY },
+      };
+    }
+  }
+
+  function handleSinglePointerDown(event: PointerEvent) {
+    if (activePointerId !== undefined) {
       return;
     }
 
@@ -701,13 +965,114 @@ export function createColoringBoard({
     if (selectedTool === "zoom-in" || selectedTool === "zoom-out") {
       const bounds = canvas.getBoundingClientRect();
       const zoomFactor = selectedTool === "zoom-in" ? ZOOM_STEP : 1 / ZOOM_STEP;
-      zoomAt(zoomFactor, event.clientX - bounds.left, event.clientY - bounds.top);
+      zoomAt(
+        zoomFactor,
+        event.clientX - bounds.left,
+        event.clientY - bounds.top,
+      );
       return;
     }
     beginPaintingPointer(event, cell);
   }
 
+  function handlePointerDown(event: PointerEvent) {
+    if (activeOverviewPointerId !== undefined) {
+      return;
+    }
+    if (event.pointerType === "touch") {
+      if (activePointerId !== undefined && activeTouchPointers.size === 0) {
+        return;
+      }
+      handleTouchPointerDown(event);
+      return;
+    }
+    if (activeTouchPointers.size > 0) {
+      return;
+    }
+    handleSinglePointerDown(event);
+  }
+
+  function moveTouchPan(event: PointerEvent) {
+    if (selectedTool !== "pan" || !previousPointerPosition) {
+      return false;
+    }
+
+    const deltaX = event.clientX - previousPointerPosition.x;
+    const deltaY = event.clientY - previousPointerPosition.y;
+    cameraX -= deltaX / geometry.cellSize;
+    cameraY -= deltaY / geometry.cellSize;
+    previousPointerPosition = { x: event.clientX, y: event.clientY };
+    updateGeometry();
+    scheduleRender();
+    return true;
+  }
+
+  function movePendingPencil(event: PointerEvent) {
+    if (!pendingTouch || selectedTool !== "pencil") {
+      return;
+    }
+
+    const distance = Math.hypot(
+      event.clientX - pendingTouch.start.x,
+      event.clientY - pendingTouch.start.y,
+    );
+    if (distance < TOUCH_PAINT_THRESHOLD) {
+      return;
+    }
+
+    const startCell = pendingTouch.cell;
+    pendingTouch = undefined;
+    const cell = eventToCell(event);
+    if (!(startCell && cell)) {
+      previousCell = undefined;
+      return;
+    }
+    beginPaintingPointer(event, startCell);
+    paintLine(startCell, cell);
+    previousCell = cell;
+  }
+
+  function handleTouchPointerMove(event: PointerEvent) {
+    if (
+      event.pointerType !== "touch" ||
+      !activeTouchPointers.has(event.pointerId)
+    ) {
+      return false;
+    }
+
+    activeTouchPointers.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    if (pinchGesture) {
+      const nextGesture = getPinchGesture();
+      if (nextGesture) {
+        updatePinch(nextGesture);
+      }
+      return true;
+    }
+    if (touchGestureWasPinch) {
+      return true;
+    }
+    if (event.pointerId !== activePointerId) {
+      return true;
+    }
+    if (moveTouchPan(event)) {
+      return true;
+    }
+
+    if (pendingTouch) {
+      movePendingPencil(event);
+      return true;
+    }
+    return false;
+  }
+
   function handlePointerMove(event: PointerEvent) {
+    if (handleTouchPointerMove(event)) {
+      return;
+    }
+
     if (event.pointerId !== activePointerId) {
       return;
     }
@@ -736,10 +1101,70 @@ export function createColoringBoard({
     previousCell = cell;
   }
 
-  function finishPointer(event: PointerEvent) {
-    if (event.pointerId !== activePointerId) {
-      return;
+  function releasePointerCapture(event: PointerEvent) {
+    if (canvas.hasPointerCapture(event.pointerId)) {
+      canvas.releasePointerCapture(event.pointerId);
     }
+  }
+
+  function performPendingTouch(event: PointerEvent) {
+    const cell = eventToCell(event) ?? pendingTouch?.cell;
+    if (selectedTool === "picker") {
+      selectCellColor(event, cell);
+    } else if (selectedTool === "zoom-in" || selectedTool === "zoom-out") {
+      const bounds = canvas.getBoundingClientRect();
+      const zoomFactor = selectedTool === "zoom-in" ? ZOOM_STEP : 1 / ZOOM_STEP;
+      zoomAt(
+        zoomFactor,
+        event.clientX - bounds.left,
+        event.clientY - bounds.top,
+      );
+    } else if (cell && selectedTool === "bucket") {
+      fillConnectedArea(cell);
+    } else if (cell && selectedTool === "pencil") {
+      paintCell(cell);
+    }
+  }
+
+  function finishPinchPointer(event: PointerEvent) {
+    if (pinchGesture && activeTouchPointers.size >= 2) {
+      pinchGesture = getPinchGesture();
+    } else if (pinchGesture) {
+      pinchGesture = undefined;
+      snapCameraToGrid();
+      cameraIsSettled = true;
+      scheduleRender();
+    }
+    if (activeTouchPointers.size === 0) {
+      touchGestureWasPinch = false;
+    }
+    activePointerId = undefined;
+    pendingTouch = undefined;
+    releasePointerCapture(event);
+  }
+
+  function finishTouchPointer(event: PointerEvent) {
+    if (
+      event.pointerType !== "touch" ||
+      !activeTouchPointers.has(event.pointerId)
+    ) {
+      return false;
+    }
+
+    activeTouchPointers.delete(event.pointerId);
+    if (touchGestureWasPinch) {
+      finishPinchPointer(event);
+      return true;
+    }
+    if (event.pointerId !== activePointerId) {
+      releasePointerCapture(event);
+      return true;
+    }
+    if (pendingTouch && event.type === "pointerup") {
+      performPendingTouch(event);
+    }
+    pendingTouch = undefined;
+
     if (selectedTool === "pan") {
       snapCameraToGrid();
       cameraIsSettled = true;
@@ -749,9 +1174,29 @@ export function createColoringBoard({
     previousCell = undefined;
     previousPointerPosition = undefined;
     updateCursor();
-    if (canvas.hasPointerCapture(event.pointerId)) {
-      canvas.releasePointerCapture(event.pointerId);
+    releasePointerCapture(event);
+    return true;
+  }
+
+  function finishPointer(event: PointerEvent) {
+    if (finishTouchPointer(event)) {
+      return;
     }
+
+    if (event.pointerId !== activePointerId) {
+      return;
+    }
+
+    if (selectedTool === "pan") {
+      snapCameraToGrid();
+      cameraIsSettled = true;
+      scheduleRender();
+    }
+    activePointerId = undefined;
+    previousCell = undefined;
+    previousPointerPosition = undefined;
+    updateCursor();
+    releasePointerCapture(event);
   }
 
   function updateCursor() {
@@ -791,10 +1236,19 @@ export function createColoringBoard({
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", finishPointer);
       canvas.removeEventListener("pointercancel", finishPointer);
-      overviewCanvas.removeEventListener("pointerdown", handleOverviewPointerDown);
-      overviewCanvas.removeEventListener("pointermove", handleOverviewPointerMove);
+      overviewCanvas.removeEventListener(
+        "pointerdown",
+        handleOverviewPointerDown,
+      );
+      overviewCanvas.removeEventListener(
+        "pointermove",
+        handleOverviewPointerMove,
+      );
       overviewCanvas.removeEventListener("pointerup", finishOverviewPointer);
-      overviewCanvas.removeEventListener("pointercancel", finishOverviewPointer);
+      overviewCanvas.removeEventListener(
+        "pointercancel",
+        finishOverviewPointer,
+      );
       if (frameId !== undefined) {
         cancelAnimationFrame(frameId);
       }
@@ -825,7 +1279,9 @@ export function createColoringBoard({
 // Low-level canvas and pixel helpers.
 function getColoringTheme(element: HTMLElement) {
   const styles = getComputedStyle(element);
-  const getColor = (name: string) => styles.getPropertyValue(`--color-${name}`).trim();
+  function getColor(name: string) {
+    return styles.getPropertyValue(`--color-${name}`).trim();
+  }
 
   return {
     canvas: getColor("canvas"),
@@ -849,7 +1305,10 @@ function resolveCssColor(color: string) {
   return [red, green, blue, alpha] as const;
 }
 
-function withAlpha([red, green, blue]: ReturnType<typeof resolveCssColor>, alpha: number) {
+function withAlpha(
+  [red, green, blue]: ReturnType<typeof resolveCssColor>,
+  alpha: number,
+) {
   return `rgb(${red} ${green} ${blue} / ${alpha})`;
 }
 
@@ -865,7 +1324,7 @@ function parseHexColor(color: string) {
 function writePaintedPixel(
   data: Uint8ClampedArray,
   pixelIndex: number,
-  [red, green, blue, alpha]: readonly [number, number, number, number]
+  [red, green, blue, alpha]: readonly [number, number, number, number],
 ) {
   const offset = pixelIndex * 4;
   data[offset] = red;
@@ -878,7 +1337,10 @@ function clearPixel(data: Uint8ClampedArray, pixelIndex: number) {
   data.fill(0, pixelIndex * 4, pixelIndex * 4 + 4);
 }
 
-function getCanvasContext(canvas: HTMLCanvasElement, options?: CanvasRenderingContext2DSettings) {
+function getCanvasContext(
+  canvas: HTMLCanvasElement,
+  options?: CanvasRenderingContext2DSettings,
+) {
   const context = canvas.getContext("2d", options);
   if (!context) {
     throw new Error("Canvas 2D is not available in this browser.");
