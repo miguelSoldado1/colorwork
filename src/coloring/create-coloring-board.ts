@@ -44,7 +44,6 @@ export function createColoringBoard({
   const primaryRgba = resolveCssColor(theme.primary);
   const secondaryRgba = resolveCssColor(theme.secondary);
   const translucentForeground = withAlpha(foregroundRgba, 0.12);
-  const translucentPrimary = withAlpha(primaryRgba, 0.1);
   const numberGlyphAtlas = createNumberGlyphAtlas(puzzle.palette.length, {
     selected: theme.foreground,
     unselected: theme.mutedForeground,
@@ -287,7 +286,7 @@ export function createColoringBoard({
 
     drawNumbers();
 
-    context.strokeStyle = "#596078";
+    context.strokeStyle = theme.canvasEdge;
     context.lineWidth = 2;
     context.strokeRect(x - 1, y - 1, width + 2, height + 2);
     canvas.dataset.renderMs = (performance.now() - renderStartedAt).toFixed(2);
@@ -341,7 +340,9 @@ export function createColoringBoard({
     const visibleWidth = ((worldRight - worldLeft) / puzzle.width) * bounds.width;
     const visibleHeight = ((worldBottom - worldTop) / puzzle.height) * bounds.height;
 
-    overviewContext.fillStyle = translucentPrimary;
+    // The viewport marker sits on top of the artwork, so it stays neutral: a dark stroke under a
+    // light one reads against any puzzle, where a single accent hue would vanish into a matching image.
+    overviewContext.fillStyle = translucentForeground;
     overviewContext.fillRect(viewportX, viewportY, visibleWidth, visibleHeight);
 
     const outlineInset = Math.min(2, visibleWidth / 2, visibleHeight / 2);
@@ -350,7 +351,7 @@ export function createColoringBoard({
     overviewContext.strokeStyle = theme.canvas;
     overviewContext.lineWidth = 4;
     overviewContext.strokeRect(viewportX + outlineInset, viewportY + outlineInset, outlineWidth, outlineHeight);
-    overviewContext.strokeStyle = theme.primary;
+    overviewContext.strokeStyle = theme.foreground;
     overviewContext.lineWidth = 2;
     overviewContext.strokeRect(viewportX + outlineInset, viewportY + outlineInset, outlineWidth, outlineHeight);
   }
@@ -778,6 +779,7 @@ function getColoringTheme(element: HTMLElement) {
 
   return {
     canvas: getColor("canvas"),
+    canvasEdge: getColor("canvas-edge"),
     foreground: getColor("foreground"),
     muted: getColor("muted"),
     mutedForeground: getColor("muted-foreground"),

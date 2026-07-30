@@ -18,9 +18,12 @@
 
 ## Styling
 
-- Use the shadcn-style semantic Tailwind colors defined in `src/styles/index.css`; reserve `canvas` for the coloring surface.
-- Do not introduce Tailwind's generic color palette into the game interface unless a new semantic token is deliberately added first.
+- The interface chrome is deliberately near-colorless warm graphite so the puzzle artwork owns every saturated pixel on screen. The single accent is a muted sage sampled from the puzzle palette family; spend it only on selection, progress, and focus.
+- Use the shadcn-style semantic Tailwind colors defined in `src/styles/index.css`; reserve `canvas` for the coloring surface and `canvas-edge` for the board outline the Canvas controller strokes.
+- Do not introduce Tailwind's generic color palette into the game interface unless a new semantic token is deliberately added first. The one exception is ink computed against an arbitrary puzzle swatch, which no fixed token can serve.
+- Prefer hairline borders and tone steps over heavy drop shadows. The board canvas is the only element that should read as lifted.
 - Preserve accessible labels, pressed states, focus states, and touch-friendly control sizes.
+- The tool rail is a horizontal scrolling strip above the board on phones and a vertical rail beside it from `sm` up. Panels that hold overflowing content need `min-w-0`, or the grid and flex parents floor at `min-content` and clip instead of scrolling.
 
 ## Canvas behavior
 

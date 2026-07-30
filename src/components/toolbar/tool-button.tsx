@@ -6,16 +6,14 @@ interface ToolButtonProps {
   label: string;
   onClick: () => void;
   pressed: boolean;
-  selected?: boolean;
 }
 
-export function ToolButton({ children, label, onClick, pressed, selected = pressed }: ToolButtonProps) {
+export function ToolButton({ children, label, onClick, pressed }: ToolButtonProps) {
   return (
     <Button
       aria-label={label}
       aria-pressed={pressed}
-      className="shrink-0 data-[selected=true]:border-primary data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground"
-      data-selected={selected}
+      className="shrink-0 aria-pressed:border-primary/30 aria-pressed:bg-primary/12 aria-pressed:text-primary"
       onClick={onClick}
       size="icon"
       title={label}

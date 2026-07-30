@@ -74,42 +74,41 @@ export function App() {
   }
 
   return (
-    <main className="relative h-svh overflow-hidden bg-background p-3 text-foreground sm:p-5">
+    <main className="relative h-svh overflow-hidden p-3 text-foreground sm:p-5">
       <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4">
-        <header className="flex min-w-0 items-center justify-between gap-4 rounded-lg border border-border bg-card/90 px-4 py-3 text-card-foreground shadow-[0_8px_32px_rgba(0,0,0,0.22)] backdrop-blur">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground shadow-[0_3px_0_#5148a8]">
-              <Brush aria-hidden height={24} width={24} />
-            </span>
-            <div className="min-w-0">
-              <p className="text-muted-foreground text-xs uppercase tracking-[0.16em]">Color Byte</p>
-              <h1 className="truncate text-lg leading-none sm:text-xl">{puzzle.name}</h1>
-            </div>
+        <header className="flex min-w-0 items-end justify-between gap-4 border-border border-b px-1 pb-3 sm:pb-4">
+          <div className="min-w-0">
+            <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground/70 uppercase tracking-[0.24em]">
+              <Brush aria-hidden height={13} width={13} />
+              Color Byte
+            </p>
+            <h1 className="mt-1 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-3 sm:gap-5">
+            <div className="w-24 sm:w-56">
+              <ProgressDisplay summary={summary} />
+            </div>
             <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
             <Button className="sm:px-4" onClick={() => fileInputRef.current?.click()} size="compact" variant="outline">
               <Image2Plus aria-hidden height={20} width={20} />
               <span className="hidden sm:inline">Import art</span>
               <span className="sr-only sm:hidden">Import art</span>
             </Button>
-            <div className="w-24 sm:w-52">
-              <ProgressDisplay summary={summary} />
-            </div>
           </div>
         </header>
 
         {importError ? (
           <p
-            className="absolute top-20 left-1/2 z-10 -translate-x-1/2 rounded-md border border-border bg-card px-4 py-3 text-card-foreground text-sm shadow-xl"
+            className="absolute top-24 left-1/2 z-10 -translate-x-1/2 rounded-md border border-destructive/40 bg-card px-4 py-3 text-card-foreground text-sm shadow-xl"
             role="alert"
           >
             {importError}
           </p>
         ) : null}
 
-        <div className="flex min-h-0 gap-3 sm:gap-4">
-          <aside className="scrollbar-none max-h-full min-h-0 self-center overflow-y-auto overscroll-contain rounded-lg border border-border bg-card/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-h-0 min-w-0 flex-col gap-3 sm:flex-row sm:gap-4">
+          {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. */}
+          <aside className="scrollbar-none min-h-0 w-full min-w-0 self-start overflow-x-auto overscroll-contain rounded-xl border border-border bg-card/80 p-2 sm:max-h-full sm:w-auto sm:shrink-0 sm:self-center sm:overflow-y-auto">
             <ToolPicker
               highlightMissing={highlightMissing}
               numbersVisible={showNumbers}
@@ -135,12 +134,12 @@ export function App() {
           </section>
         </div>
 
-        <div className="flex min-w-0 items-end justify-between gap-3">
+        <aside className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card/80 p-2.5 sm:gap-5 sm:p-3">
           <BoardOverview canvasRef={overviewCanvasRef} puzzleHeight={puzzle.height} puzzleWidth={puzzle.width} />
-          <aside className="scrollbar-none flex max-w-full overflow-x-auto rounded-lg border border-border bg-card/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
+          <div className="min-w-0 flex-1">
             <Palette onSelect={setSelectedColor} puzzle={puzzle} selectedColor={selectedColor} summary={summary} />
-          </aside>
-        </div>
+          </div>
+        </aside>
       </div>
       {importSource ? (
         <ImageImportDialog onCancel={closeImporter} onConfirm={useImportedPuzzle} source={importSource} />

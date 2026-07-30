@@ -2,26 +2,31 @@
 @import "@fontsource/pixelify-sans/400.css";
 @import "@fontsource/pixelify-sans/600.css";
 
+/*
+ * Warm graphite chrome so the puzzle artwork owns every saturated pixel on screen.
+ * The accent is sampled from the puzzle palette family (sage) rather than imposed on it.
+ */
 @theme static {
   --font-pixel: "Pixelify Sans", monospace;
-  --color-background: oklch(16.0433% 0.01524 272.199);
-  --color-foreground: oklch(95.37% 0.02422 293.589);
-  --color-card: oklch(22.9685% 0.02565 274.171);
-  --color-card-foreground: oklch(95.37% 0.02422 293.589);
-  --color-primary: oklch(59.629% 0.18662 284.159);
-  --color-primary-foreground: oklch(95.37% 0.02422 293.589);
-  --color-secondary: oklch(37.0991% 0.03339 273.2);
-  --color-secondary-foreground: oklch(95.37% 0.02422 293.589);
-  --color-muted: oklch(28.381% 0.02822 272.904);
-  --color-muted-foreground: oklch(69.572% 0.02809 276.21);
-  --color-accent: oklch(59.629% 0.18662 284.159);
-  --color-accent-foreground: oklch(95.37% 0.02422 293.589);
-  --color-destructive: oklch(62.5565% 0.19334 23.026);
-  --color-destructive-foreground: oklch(95.37% 0.02422 293.589);
-  --color-border: oklch(95.37% 0.02422 293.589 / 10%);
-  --color-input: oklch(95.37% 0.02422 293.589 / 10%);
-  --color-ring: oklch(59.629% 0.18662 284.159);
-  --color-canvas: oklch(19.3099% 0.02085 271.423);
+  --color-background: oklch(15.5% 0.004 85);
+  --color-foreground: oklch(92.5% 0.008 85);
+  --color-card: oklch(20% 0.005 85);
+  --color-card-foreground: oklch(92.5% 0.008 85);
+  --color-primary: oklch(70% 0.068 152);
+  --color-primary-foreground: oklch(19% 0.022 152);
+  --color-secondary: oklch(33% 0.006 85);
+  --color-secondary-foreground: oklch(92.5% 0.008 85);
+  --color-muted: oklch(26.5% 0.006 85);
+  --color-muted-foreground: oklch(68% 0.01 85);
+  --color-accent: oklch(70% 0.068 152);
+  --color-accent-foreground: oklch(19% 0.022 152);
+  --color-destructive: oklch(60.5% 0.135 32);
+  --color-destructive-foreground: oklch(95% 0.012 60);
+  --color-border: oklch(92.5% 0.008 85 / 9%);
+  --color-input: oklch(92.5% 0.008 85 / 12%);
+  --color-ring: oklch(70% 0.068 152);
+  --color-canvas: oklch(17.5% 0.004 85);
+  --color-canvas-edge: oklch(38% 0.006 85);
   --radius-sm: calc(var(--radius) - 0.25rem);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 0.25rem);
@@ -29,7 +34,7 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.625rem;
 }
 
 @layer base {
@@ -40,7 +45,15 @@
   html {
     font-family: var(--font-pixel);
     color-scheme: dark;
-    background: var(--color-background);
+    /* A single soft pool of light behind the artwork, so the page has depth without color. */
+    background:
+      radial-gradient(
+        120% 90% at 50% 38%,
+        oklch(20.5% 0.005 85) 0%,
+        transparent 68%
+      ),
+      var(--color-background);
+    background-attachment: fixed;
   }
 
   body {
@@ -51,6 +64,14 @@
 
   button {
     font: inherit;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
