@@ -4,6 +4,7 @@ import type { RefObject } from "react";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 interface ColoringBoardProps {
+  highlightMissing: boolean;
   onProgress: (summary: ProgressSummary) => void;
   onSelectColor: (colorIndex: number) => void;
   overviewCanvasRef: RefObject<HTMLCanvasElement | null>;
@@ -15,6 +16,7 @@ interface ColoringBoardProps {
 }
 
 export function ColoringBoard({
+  highlightMissing,
   onProgress,
   onSelectColor,
   overviewCanvasRef,
@@ -60,6 +62,10 @@ export function ColoringBoard({
   useEffect(() => {
     controllerRef.current?.setShowNumbers(showNumbers);
   }, [showNumbers]);
+
+  useEffect(() => {
+    controllerRef.current?.setHighlightMissing(highlightMissing);
+  }, [highlightMissing]);
 
   useEffect(() => {
     controllerRef.current?.setTool(tool);

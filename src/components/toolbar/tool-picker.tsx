@@ -4,20 +4,31 @@ import { EyeOff } from "pixelarticons/react/EyeOff";
 import { Hand } from "pixelarticons/react/Hand";
 import { Pencil } from "pixelarticons/react/Pencil";
 import { Pipette } from "pixelarticons/react/Pipette";
+import { Target } from "pixelarticons/react/Target";
 import { ZoomIn } from "pixelarticons/react/ZoomIn";
 import { ZoomOut } from "pixelarticons/react/ZoomOut";
 import { ToolButton } from "./tool-button";
 import type { ColoringTool } from "@/coloring/types";
 
 interface ToolPickerProps {
+  highlightMissing: boolean;
   numbersVisible: boolean;
   onSelect: (tool: ColoringTool) => void;
+  onToggleMissing: () => void;
   onToggleNumbers: () => void;
   selectedTool: ColoringTool;
 }
 
-export function ToolPicker({ numbersVisible, onSelect, onToggleNumbers, selectedTool }: ToolPickerProps) {
+export function ToolPicker({
+  highlightMissing,
+  numbersVisible,
+  onSelect,
+  onToggleMissing,
+  onToggleNumbers,
+  selectedTool,
+}: ToolPickerProps) {
   const numbersLabel = numbersVisible ? "Hide color numbers" : "Show color numbers";
+  const missingLabel = highlightMissing ? "Stop highlighting missing cells" : "Highlight missing cells";
 
   return (
     <div aria-label="Board tools" aria-orientation="vertical" className="flex flex-col gap-2" role="toolbar">
@@ -41,6 +52,9 @@ export function ToolPicker({ numbersVisible, onSelect, onToggleNumbers, selected
       </ToolButton>
       <ToolButton label={numbersLabel} onClick={onToggleNumbers} pressed={numbersVisible} selected={false}>
         {numbersVisible ? <Eye aria-hidden height={24} width={24} /> : <EyeOff aria-hidden height={24} width={24} />}
+      </ToolButton>
+      <ToolButton label={missingLabel} onClick={onToggleMissing} pressed={highlightMissing}>
+        <Target aria-hidden height={24} width={24} />
       </ToolButton>
     </div>
   );

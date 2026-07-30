@@ -22,6 +22,7 @@ export function App() {
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [showNumbers, setShowNumbers] = useState(true);
+  const [highlightMissing, setHighlightMissing] = useState(false);
   const [progress, setProgress] = useState(() => createPuzzleProgress(napoleonDynamitePuzzle));
   const [summary, setSummary] = useState(() => createProgressSummary(napoleonDynamitePuzzle, progress));
   const [importSource, setImportSource] = useState<ImageImportSource | null>(null);
@@ -29,6 +30,10 @@ export function App() {
 
   function toggleNumbers() {
     setShowNumbers((visible) => !visible);
+  }
+
+  function toggleMissingHighlight() {
+    setHighlightMissing((highlighted) => !highlighted);
   }
 
   async function selectImage(event: ChangeEvent<HTMLInputElement>) {
@@ -106,8 +111,10 @@ export function App() {
         <div className="flex min-h-0 gap-3 sm:gap-4">
           <aside className="scrollbar-none max-h-full min-h-0 self-center overflow-y-auto overscroll-contain rounded-lg border border-border bg-card/95 p-2 shadow-[0_12px_42px_rgba(0,0,0,0.42)] backdrop-blur [&::-webkit-scrollbar]:hidden">
             <ToolPicker
+              highlightMissing={highlightMissing}
               numbersVisible={showNumbers}
               onSelect={setSelectedTool}
+              onToggleMissing={toggleMissingHighlight}
               onToggleNumbers={toggleNumbers}
               selectedTool={selectedTool}
             />
@@ -115,6 +122,7 @@ export function App() {
 
           <section className="min-h-0 min-w-0 flex-1 overflow-hidden">
             <ColoringBoard
+              highlightMissing={highlightMissing}
               onProgress={setSummary}
               onSelectColor={setSelectedColor}
               overviewCanvasRef={overviewCanvasRef}

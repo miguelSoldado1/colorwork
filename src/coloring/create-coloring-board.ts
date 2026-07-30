@@ -64,6 +64,11 @@ export function createColoringBoard({
   selectionLayer.height = puzzle.height;
   const selectionContext = getCanvasContext(selectionLayer);
   const selectionImage = selectionContext.createImageData(puzzle.width, puzzle.height);
+  const missingLayer = document.createElement("canvas");
+  missingLayer.width = puzzle.width;
+  missingLayer.height = puzzle.height;
+  const missingContext = getCanvasContext(missingLayer);
+  const missingImage = missingContext.createImageData(puzzle.width, puzzle.height);
 
   // Build the static grayscale overview and restore any existing painted pixels.
   for (let index = 0; index < puzzle.targetPixels.length; index += 1) {
@@ -96,6 +101,7 @@ export function createColoringBoard({
   let fitScale = 1;
   let zoom = 1;
   let showNumbers = true;
+  let highlightMissing = false;
   let cameraIsSettled = true;
   let frameId: number | undefined;
   let progressFrameId: number | undefined;
@@ -106,12 +112,20 @@ export function createColoringBoard({
 
   function rebuildSelectionLayer() {
     selectionImage.data.fill(0);
+    missingImage.data.fill(0);
     for (let index = 0; index < puzzle.targetPixels.length; index += 1) {
-      if (puzzle.targetPixels[index] === selectedColor && progress.paintedPixels[index] === UNPAINTED_PIXEL) {
+      if (progress.paintedPixels[index] !== UNPAINTED_PIXEL) {
+        continue;
+      }
+      if (puzzle.targetPixels[index] === selectedColor) {
         writePaintedPixel(selectionImage.data, index, secondaryRgba);
+        writePaintedPixel(missingImage.data, index, primaryRgba);
+      } else {
+        writePaintedPixel(missingImage.data, index, foregroundRgba);
       }
     }
     selectionContext.putImageData(selectionImage, 0, 0);
+    missingContext.putImageData(missingImage, 0, 0);
   }
 
   // Camera and viewport geometry.
@@ -254,9 +268,17 @@ export function createColoringBoard({
     const visibleBoard = getVisibleBoardBounds(visibleCells);
     context.fillStyle = theme.muted;
     context.fillRect(visibleBoard.x, visibleBoard.y, visibleBoard.width, visibleBoard.height);
-    drawVisibleLayer(selectionLayer);
-    drawGrid();
-    drawVisibleLayer(paintedLayer);
+    if (highlightMissing) {
+      context.globalAlpha = 0.38;
+      drawVisibleLayer(paintedLayer);
+      context.globalAlpha = 1;
+      drawVisibleLayer(missingLayer);
+      drawGrid();
+    } else {
+      drawVisibleLayer(selectionLayer);
+      drawGrid();
+      drawVisibleLayer(paintedLayer);
+    }
 
     drawNumbers();
 
@@ -287,8 +309,18 @@ export function createColoringBoard({
     overviewContext.imageSmoothingEnabled = false;
     overviewContext.fillStyle = theme.muted;
     overviewContext.fillRect(0, 0, bounds.width, bounds.height);
-    overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
-    overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
+    if (highlightMissing) {
+      overviewContext.globalAlpha = 0.16;
+      overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.globalAlpha = 0.38;
+      overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.globalAlpha = 1;
+      overviewContext.drawImage(missingLayer, 0, 0, bounds.width, bounds.height);
+    } else {
+      overviewContext.globalAlpha = 1;
+      overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
+    }
 
     const visibleCells = getVisibleCells();
     const worldLeft = cameraIsSettled ? visibleCells.startX : Math.max(0, -geometry.x / geometry.cellSize);
@@ -461,7 +493,11 @@ export function createColoringBoard({
     progress.paintedCount += 1;
     progress.paintedByColor[selectedColor] += 1;
     writePaintedPixel(paintedImage.data, index, paletteRgba[selectedColor]);
+    clearPixel(selectionImage.data, index);
+    clearPixel(missingImage.data, index);
     paintedContext.putImageData(paintedImage, 0, 0, cell.x, cell.y, 1, 1);
+    selectionContext.putImageData(selectionImage, 0, 0, cell.x, cell.y, 1, 1);
+    missingContext.putImageData(missingImage, 0, 0, cell.x, cell.y, 1, 1);
     scheduleRender();
     scheduleProgress();
   }
@@ -492,6 +528,8 @@ export function createColoringBoard({
       progress.paintedCount += 1;
       progress.paintedByColor[selectedColor] += 1;
       writePaintedPixel(paintedImage.data, index, paletteRgba[selectedColor]);
+      clearPixel(selectionImage.data, index);
+      clearPixel(missingImage.data, index);
       queue[queueEnd] = index;
       queueEnd += 1;
     }
@@ -517,6 +555,8 @@ export function createColoringBoard({
     }
 
     paintedContext.putImageData(paintedImage, 0, 0);
+    selectionContext.putImageData(selectionImage, 0, 0);
+    missingContext.putImageData(missingImage, 0, 0);
     scheduleRender();
     scheduleProgress();
   }
@@ -679,6 +719,7 @@ export function createColoringBoard({
   canvas.addEventListener("pointerup", finishPointer);
   canvas.addEventListener("pointercancel", finishPointer);
   updateCursor();
+  rebuildSelectionLayer();
   resize();
 
   return {
@@ -695,6 +736,10 @@ export function createColoringBoard({
       if (progressFrameId !== undefined) {
         cancelAnimationFrame(progressFrameId);
       }
+    },
+    setHighlightMissing(highlighted: boolean) {
+      highlightMissing = highlighted;
+      scheduleRender();
     },
     setSelectedColor(colorIndex: number) {
       selectedColor = colorIndex;
@@ -761,6 +806,10 @@ function writePaintedPixel(
   data[offset + 1] = green;
   data[offset + 2] = blue;
   data[offset + 3] = alpha;
+}
+
+function clearPixel(data: Uint8ClampedArray, pixelIndex: number) {
+  data.fill(0, pixelIndex * 4, pixelIndex * 4 + 4);
 }
 
 function getCanvasContext(canvas: HTMLCanvasElement, options?: CanvasRenderingContext2DSettings) {
