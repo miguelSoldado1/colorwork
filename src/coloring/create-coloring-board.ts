@@ -1,3 +1,4 @@
+import { createNumberGlyphAtlas } from "./number-glyphs";
 import { countTargetPixelsByColor, createProgressSummary, UNPAINTED_PIXEL } from "./progress";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "./types";
 
@@ -21,7 +22,6 @@ interface PointerPosition {
   y: number;
 }
 
-const NUMBER_THRESHOLD = 12;
 const GRID_THRESHOLD = 5;
 const MAX_ZOOM = 32;
 const MIN_ZOOM = 1;
@@ -45,6 +45,11 @@ export function createColoringBoard({
   const secondaryRgba = resolveCssColor(theme.secondary);
   const translucentForeground = withAlpha(foregroundRgba, 0.12);
   const translucentPrimary = withAlpha(primaryRgba, 0.1);
+  const numberGlyphAtlas = createNumberGlyphAtlas(puzzle.palette.length, {
+    selected: theme.foreground,
+    unselected: theme.mutedForeground,
+  });
+  const maximumNumberSpriteWidth = Math.max(...numberGlyphAtlas.sprites.map((sprite) => sprite.width));
 
   // Puzzle-sized bitmap layers keep per-pixel work out of the main display canvas.
   const totalByColor = countTargetPixelsByColor(puzzle);
@@ -100,7 +105,7 @@ export function createColoringBoard({
   let availableViewportHeight = 1;
   let fitScale = 1;
   let zoom = 1;
-  let showNumbers = true;
+  let showNumbers = false;
   let highlightMissing = false;
   let cameraIsSettled = true;
   let frameId: number | undefined;
@@ -406,26 +411,35 @@ export function createColoringBoard({
 
   function drawNumbers() {
     const { cellSize, x, y } = geometry;
-    if (!showNumbers || cellSize < NUMBER_THRESHOLD) {
+    if (!showNumbers) {
       return;
     }
 
-    context.font = `600 ${Math.min(16, Math.max(12, Math.floor(cellSize * 0.42)))}px "Pixelify Sans"`;
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-
     const { endX, endY, startX, startY } = getVisibleCells();
+    const scale = Math.min(
+      (cellSize * 0.5) / maximumNumberSpriteWidth,
+      (cellSize * 0.44) / numberGlyphAtlas.sprites[0].height
+    );
     for (let row = startY; row < endY; row += 1) {
       for (let column = startX; column < endX; column += 1) {
         const index = row * puzzle.width + column;
         if (progress.paintedPixels[index] !== UNPAINTED_PIXEL) {
           continue;
         }
-        context.fillStyle = puzzle.targetPixels[index] === selectedColor ? theme.foreground : theme.mutedForeground;
-        context.fillText(
-          String(puzzle.targetPixels[index] + 1),
-          x + (column + 0.5) * cellSize,
-          y + (row + 0.52) * cellSize
+        const targetColor = puzzle.targetPixels[index];
+        const sprite = numberGlyphAtlas.sprites[targetColor];
+        const width = sprite.width * scale;
+        const height = sprite.height * scale;
+        context.drawImage(
+          numberGlyphAtlas.canvas,
+          sprite.x,
+          targetColor === selectedColor ? sprite.selectedY : sprite.unselectedY,
+          sprite.width,
+          sprite.height,
+          x + (column + 0.5) * cellSize - width / 2,
+          y + (row + 0.5) * cellSize - height / 2,
+          width,
+          height
         );
       }
     }

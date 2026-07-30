@@ -21,7 +21,7 @@ export function App() {
   const [puzzle, setPuzzle] = useState<PuzzleDefinition>(napoleonDynamitePuzzle);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
-  const [showNumbers, setShowNumbers] = useState(true);
+  const [showNumbers, setShowNumbers] = useState(false);
   const [highlightMissing, setHighlightMissing] = useState(false);
   const [progress, setProgress] = useState(() => createPuzzleProgress(napoleonDynamitePuzzle));
   const [summary, setSummary] = useState(() => createProgressSummary(napoleonDynamitePuzzle, progress));
