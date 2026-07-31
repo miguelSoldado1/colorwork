@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import { createColoringBoard } from "@/coloring/create-coloring-board";
+import { CompletionConfetti } from "@/components/board/completion-confetti";
 import type { RefObject } from "react";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 interface ColoringBoardProps {
+  complete: boolean;
   highlightMissing: boolean;
   onProgress: (summary: ProgressSummary) => void;
   onSelectColor: (colorIndex: number) => void;
@@ -16,6 +18,7 @@ interface ColoringBoardProps {
 }
 
 export function ColoringBoard({
+  complete,
   highlightMissing,
   onProgress,
   onSelectColor,
@@ -73,12 +76,23 @@ export function ColoringBoard({
 
   return (
     <div className="grid h-full min-h-0 w-full min-w-0 place-items-center" ref={containerRef}>
-      <canvas
-        aria-label="Color-by-number puzzle. Choose a tool and interact with cells on the board."
-        className="block max-h-full max-w-full touch-none select-none bg-canvas shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border"
-        ref={canvasRef}
-        role="img"
-      />
+      {/* Shrink-wraps the canvas so the confetti can fill this box instead of measuring the board. */}
+      <div className="relative">
+        <canvas
+          aria-label="Color-by-number puzzle. Choose a tool and interact with cells on the board."
+          className="block touch-none select-none bg-canvas shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border"
+          ref={canvasRef}
+          role="img"
+        />
+        {complete ? (
+          <>
+            <CompletionConfetti palette={puzzle.palette} />
+            <p className="sr-only" role="status">
+              Puzzle complete. Every pixel is painted.
+            </p>
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }

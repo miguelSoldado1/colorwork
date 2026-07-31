@@ -22,6 +22,9 @@
 - Use the shadcn-style semantic Tailwind colors defined in `src/styles/index.css`; reserve `canvas` for the coloring surface and `canvas-edge` for the board outline the Canvas controller strokes.
 - Do not introduce Tailwind's generic color palette into the game interface unless a new semantic token is deliberately added first. The one exception is ink computed against an arbitrary puzzle swatch, which no fixed token can serve.
 - Prefer hairline borders and tone steps over heavy drop shadows. The board canvas is the only element that should read as lifted.
+- The completion burst is the one colored moment, and it stays artwork-agnostic by construction: every particle takes a color from the puzzle's own palette, so no fixed accent is imposed on the art. It emits at the board edge and travels outward, keeping the artwork itself clear.
+- Its shape lives in the `CONFETTI` constant; the CSS reads `--fly-*` custom properties so the tuned values stay in one place.
+- A shrink-wrapping element around the canvas gives the burst the board's box without measuring it. Keep transforms off that chain: a transform there would smear the axis-aligned particles.
 - Preserve accessible labels, pressed states, focus states, and touch-friendly control sizes.
 - The tool rail is a horizontal scrolling strip above the board on phones and a vertical rail beside it from `sm` up. Panels that hold overflowing content need `min-w-0`, or the grid and flex parents floor at `min-content` and clip instead of scrolling.
 

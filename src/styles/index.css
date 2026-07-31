@@ -75,6 +75,85 @@
   }
 }
 
+/*
+ * Completion confetti. One outward pop per particle with a small gravity nudge at the end; the
+ * per-particle values arrive as `--fly-*` custom properties from the `CONFETTI` constant.
+ */
+@keyframes board-confetti-fly {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.6);
+  }
+
+  14% {
+    opacity: 1;
+    transform: translate3d(
+        calc(var(--fly-x) * 0.28),
+        calc(var(--fly-y) * 0.28),
+        0
+      )
+      scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--fly-x), calc(var(--fly-y) + 18px), 0)
+      scale(0.7);
+  }
+}
+
+@utility board-confetti-pixel {
+  width: var(--fly-size);
+  height: var(--fly-size);
+  margin: calc(var(--fly-size) / -2);
+  animation: board-confetti-fly var(--fly-life)
+    cubic-bezier(0.16, 0.84, 0.36, 1) both;
+  animation-delay: var(--fly-delay);
+
+  @media (prefers-reduced-motion: reduce) {
+    opacity: 0;
+    animation: none;
+  }
+}
+
+@keyframes board-ping-out {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  30% {
+    opacity: 0.85;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.14);
+  }
+}
+
+@keyframes board-ping-glow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  40% {
+    opacity: 0.7;
+  }
+}
+
+/* The minimap answers on the burst, leading the eye from the art to its thumbnail. */
+@utility board-confetti-ping {
+  animation: board-ping-out 900ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation-delay: var(--confetti-ping);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-name: board-ping-glow;
+    animation-timing-function: ease;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

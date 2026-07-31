@@ -28,6 +28,8 @@ export function App() {
   const [importSource, setImportSource] = useState<ImageImportSource | null>(null);
   const [importError, setImportError] = useState("");
 
+  const complete = summary.totalPixels > 0 && summary.paintedCount >= summary.totalPixels;
+
   function toggleNumbers() {
     setShowNumbers((visible) => !visible);
   }
@@ -119,8 +121,10 @@ export function App() {
             />
           </aside>
 
-          <section className="min-h-0 min-w-0 flex-1 overflow-hidden">
+          {/* Clipped, not hidden, with room for the completion burst to fly past the board edge. */}
+          <section className="min-h-0 min-w-0 flex-1 overflow-clip [overflow-clip-margin:8rem]">
             <ColoringBoard
+              complete={complete}
               highlightMissing={highlightMissing}
               onProgress={setSummary}
               onSelectColor={setSelectedColor}
@@ -135,7 +139,12 @@ export function App() {
         </div>
 
         <aside className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card/80 p-2.5 sm:gap-5 sm:p-3">
-          <BoardOverview canvasRef={overviewCanvasRef} puzzleHeight={puzzle.height} puzzleWidth={puzzle.width} />
+          <BoardOverview
+            canvasRef={overviewCanvasRef}
+            complete={complete}
+            puzzleHeight={puzzle.height}
+            puzzleWidth={puzzle.width}
+          />
           <div className="min-w-0 flex-1">
             <Palette onSelect={setSelectedColor} puzzle={puzzle} selectedColor={selectedColor} summary={summary} />
           </div>

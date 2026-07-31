@@ -33,13 +33,13 @@ describe("getRecommendedGridSize", () => {
   });
 
   it("scales wide and tall images proportionally to the grid limit", () => {
-    expect(getRecommendedGridSize(320, 160)).toEqual({ height: 80, width: 160 });
-    expect(getRecommendedGridSize(100, 400)).toEqual({ height: 160, width: 40 });
+    expect(getRecommendedGridSize(512, 256)).toEqual({ height: 128, width: 256 });
+    expect(getRecommendedGridSize(100, 400)).toEqual({ height: 256, width: 64 });
   });
 
   it("keeps both dimensions usable for extremely wide or tall images", () => {
-    expect(getRecommendedGridSize(10_000, 1)).toEqual({ height: 1, width: 160 });
-    expect(getRecommendedGridSize(1, 10_000)).toEqual({ height: 160, width: 1 });
+    expect(getRecommendedGridSize(10_000, 1)).toEqual({ height: 1, width: 256 });
+    expect(getRecommendedGridSize(1, 10_000)).toEqual({ height: 256, width: 1 });
   });
 });
 
