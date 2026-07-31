@@ -1,34 +1,28 @@
-import { Brush } from "pixelarticons/react/Brush";
-import { Image2Plus } from "pixelarticons/react/Image2Plus";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft } from "pixelarticons/react/ArrowLeft";
 import { useRef, useState } from "react";
-import { countRenderedImageColors, getRecommendedGridSize } from "@/coloring/import-image";
 import { createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
-import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
-import { Button } from "@/components/ui/button";
-import { napoleonDynamitePuzzle } from "@/puzzles/napoleon-dynamite-puzzle";
-import type { ChangeEvent } from "react";
-import type { ImageImportSource } from "@/coloring/import-image";
 import type { ColoringTool, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
-export function App() {
+interface AppProps {
+  puzzle: PuzzleDefinition;
+}
+
+export function App({ puzzle }: AppProps) {
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [puzzle, setPuzzle] = useState<PuzzleDefinition>(napoleonDynamitePuzzle);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [showGrid, setShowGrid] = useState(true);
   const [showNumbers, setShowNumbers] = useState(false);
   const [highlightMissing, setHighlightMissing] = useState(false);
-  const [progress, setProgress] = useState<PuzzleProgress>(() => createPuzzleProgress(napoleonDynamitePuzzle));
-  const [summary, setSummary] = useState(() => createProgressSummary(napoleonDynamitePuzzle, progress));
-  const [importSource, setImportSource] = useState<ImageImportSource | null>(null);
-  const [importError, setImportError] = useState("");
+  const [progress, setProgress] = useState<PuzzleProgress>(() => createPuzzleProgress(puzzle));
+  const [summary, setSummary] = useState(() => createProgressSummary(puzzle, progress));
 
   const complete = summary.totalPixels > 0 && summary.paintedCount >= summary.totalPixels;
 
@@ -44,59 +38,24 @@ export function App() {
     setHighlightMissing((highlighted) => !highlighted);
   }
 
-  async function selectImage(event: ChangeEvent<HTMLInputElement>) {
-    const [file] = Array.from(event.target.files ?? []);
-    event.target.value = "";
-    if (!file) {
-      return;
-    }
-
-    setImportError("");
-    try {
-      const bitmap = await createImageBitmap(file);
-      const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height);
-      setImportSource({
-        bitmap,
-        detectedColorCount: countRenderedImageColors(bitmap, recommendedSize.width, recommendedSize.height),
-        fileName: file.name,
-        height: bitmap.height,
-        width: bitmap.width,
-      });
-    } catch {
-      setImportError("That image could not be opened. Try a PNG, JPG, or WebP file.");
-    }
-  }
-
-  function closeImporter() {
-    importSource?.bitmap.close();
-    setImportSource(null);
-  }
-
-  function useImportedPuzzle(nextPuzzle: PuzzleDefinition) {
-    const nextProgress = createPuzzleProgress(nextPuzzle);
-    setPuzzle(nextPuzzle);
-    setProgress(nextProgress);
-    setSummary(createProgressSummary(nextPuzzle, nextProgress));
-    setSelectedColor(0);
-    closeImporter();
-  }
-
   return (
     <main className="relative h-svh overflow-hidden p-3 text-foreground sm:p-5">
       <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4">
         <header className="flex min-w-0 items-end justify-between gap-4 border-border border-b px-1 pb-3 sm:pb-4">
           <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground/70 uppercase tracking-[0.24em]">
-              <Brush aria-hidden height={13} width={13} />
-              Color Byte
-            </p>
+            <Link
+              className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground/70 uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+              to="/"
+            >
+              <ArrowLeft aria-hidden height={13} width={13} />
+              All artworks
+            </Link>
             <h1 className="mt-1 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
           </div>
           <div className="flex shrink-0 items-center gap-3 sm:gap-5">
             <div className="w-24 sm:w-56">
               <ProgressDisplay summary={summary} />
             </div>
-            <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
             <DebugFillControl
               key={puzzle.id}
               onProgress={setProgress}
@@ -104,22 +63,8 @@ export function App() {
               progress={progress}
               puzzle={puzzle}
             />
-            <Button className="sm:px-4" onClick={() => fileInputRef.current?.click()} size="compact" variant="outline">
-              <Image2Plus aria-hidden height={20} width={20} />
-              <span className="hidden sm:inline">Import art</span>
-              <span className="sr-only sm:hidden">Import art</span>
-            </Button>
           </div>
         </header>
-
-        {importError ? (
-          <p
-            className="absolute top-24 left-1/2 z-10 -translate-x-1/2 rounded-md border border-destructive/40 bg-card px-4 py-3 text-card-foreground text-sm shadow-xl"
-            role="alert"
-          >
-            {importError}
-          </p>
-        ) : null}
 
         <div className="flex min-h-0 min-w-0 flex-col gap-3 sm:flex-row sm:gap-4">
           {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. */}
@@ -166,9 +111,6 @@ export function App() {
           </div>
         </aside>
       </div>
-      {importSource ? (
-        <ImageImportDialog onCancel={closeImporter} onConfirm={useImportedPuzzle} source={importSource} />
-      ) : null}
     </main>
   );
 }

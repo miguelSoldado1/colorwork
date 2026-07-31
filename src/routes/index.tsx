@@ -1,6 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { App } from "@/app/app";
+import { LevelsMenu } from "@/components/levels/levels-menu";
+
+interface MenuSearch {
+  artwork?: string;
+}
 
 export const Route = createFileRoute("/")({
-  component: App,
+  component: LevelsRoute,
+  validateSearch: (search: Record<string, unknown>): MenuSearch =>
+    typeof search.artwork === "string" ? { artwork: search.artwork } : {},
 });
+
+function LevelsRoute() {
+  const { artwork } = Route.useSearch();
+
+  return <LevelsMenu previewId={artwork} />;
+}

@@ -1,0 +1,87 @@
+import { describe, expect, it } from "vitest";
+import { describeLevel, MENU_LEVELS } from "@/levels/describe-level";
+import { findImportedPuzzle, rememberImportedPuzzle } from "@/levels/imported-levels";
+import { findLevel, LEVELS } from "@/levels/level-catalog";
+import type { PuzzleDefinition } from "@/coloring/types";
+
+function puzzleOf(width: number, targetPixels: number[]): PuzzleDefinition {
+  const paletteSize = Math.max(...targetPixels) + 1;
+
+  return {
+    height: targetPixels.length / width,
+    id: "test-puzzle",
+    name: "Test puzzle",
+    palette: Array.from({ length: paletteSize }, (_, index) => `#00000${index}`),
+    targetPixels: new Uint8Array(targetPixels),
+    width,
+  };
+}
+
+describe("level catalog", () => {
+  it("holds artwork with unique ids and square pixel data", () => {
+    const ids = LEVELS.map((puzzle) => puzzle.id);
+
+    expect(LEVELS.length).toBeGreaterThan(0);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const puzzle of LEVELS) {
+      expect(puzzle.targetPixels).toHaveLength(puzzle.width * puzzle.height);
+      expect(puzzle.palette.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("finds a level by id and reports nothing for an unknown one", () => {
+    expect(findLevel(LEVELS[0].id)?.name).toBe(LEVELS[0].name);
+    expect(findLevel("not-an-artwork")).toBeUndefined();
+  });
+
+  it("keeps every target color inside the artwork palette", () => {
+    for (const puzzle of LEVELS) {
+      for (const colorIndex of puzzle.targetPixels) {
+        expect(colorIndex).toBeLessThan(puzzle.palette.length);
+      }
+    }
+  });
+});
+
+describe("imported levels", () => {
+  it("hands a remembered puzzle back by id", () => {
+    const puzzle = { ...puzzleOf(2, [0, 1, 1, 0]), id: "imported-artwork" };
+
+    expect(findImportedPuzzle(puzzle.id)).toBeUndefined();
+    rememberImportedPuzzle(puzzle);
+    expect(findImportedPuzzle(puzzle.id)).toBe(puzzle);
+  });
+});
+
+describe("describeLevel", () => {
+  it("reads as untouched, because no progress is persisted yet", () => {
+    const puzzle = puzzleOf(2, [0, 1, 2, 3]);
+    const description = describeLevel(puzzle);
+
+    expect(description.paintedCount).toBe(0);
+    expect(description.percent).toBe(0);
+    expect(description.completedColors).toBe(0);
+    expect(description.started).toBe(false);
+    expect(description.finished).toBe(false);
+  });
+
+  it("carries the artwork's own totals so the menu can size and count it", () => {
+    const description = describeLevel(puzzleOf(4, [0, 1, 1, 1, 0, 1, 1, 1]));
+
+    expect(description.totalPixels).toBe(8);
+    expect(description.puzzle.width).toBe(4);
+    expect(description.puzzle.height).toBe(2);
+  });
+
+  it("reports one finished flag per palette color", () => {
+    const description = describeLevel(puzzleOf(2, [0, 1, 2, 3]));
+
+    expect(description.finishedColors).toEqual([false, false, false, false]);
+    expect(description.finishedColors).toHaveLength(description.puzzle.palette.length);
+  });
+
+  it("describes the catalog once per artwork", () => {
+    expect(MENU_LEVELS).toHaveLength(LEVELS.length);
+    expect(MENU_LEVELS[0].puzzle.id).toBe(LEVELS[0].id);
+  });
+});

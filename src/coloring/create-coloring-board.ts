@@ -1,4 +1,5 @@
 import { createNumberGlyphAtlas } from "./number-glyphs";
+import { getCanvasContext, mutedTargetGray, parseHexColor, writePaintedPixel } from "./pixel-raster";
 import { countTargetPixelsByColor, createProgressSummary, UNPAINTED_PIXEL } from "./progress";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "./types";
 
@@ -96,9 +97,7 @@ export function createColoringBoard({
 
   // Build the static grayscale overview and restore any existing painted pixels.
   for (let index = 0; index < puzzle.targetPixels.length; index += 1) {
-    const color = paletteRgba[puzzle.targetPixels[index]];
-    const luminance = color[0] * 0.2126 + color[1] * 0.7152 + color[2] * 0.0722;
-    const gray = Math.round(52 + luminance * 0.35);
+    const gray = mutedTargetGray(paletteRgba[puzzle.targetPixels[index]]);
     writePaintedPixel(overviewBaseImage.data, index, [gray, gray, gray, 255]);
   }
   overviewBaseContext.putImageData(overviewBaseImage, 0, 0);
@@ -1143,35 +1142,6 @@ function withAlpha([red, green, blue]: ReturnType<typeof resolveCssColor>, alpha
   return `rgb(${red} ${green} ${blue} / ${alpha})`;
 }
 
-function parseHexColor(color: string) {
-  return [
-    Number.parseInt(color.slice(1, 3), 16),
-    Number.parseInt(color.slice(3, 5), 16),
-    Number.parseInt(color.slice(5, 7), 16),
-    255,
-  ] as const;
-}
-
-function writePaintedPixel(
-  data: Uint8ClampedArray,
-  pixelIndex: number,
-  [red, green, blue, alpha]: readonly [number, number, number, number]
-) {
-  const offset = pixelIndex * 4;
-  data[offset] = red;
-  data[offset + 1] = green;
-  data[offset + 2] = blue;
-  data[offset + 3] = alpha;
-}
-
 function clearPixel(data: Uint8ClampedArray, pixelIndex: number) {
   data.fill(0, pixelIndex * 4, pixelIndex * 4 + 4);
-}
-
-function getCanvasContext(canvas: HTMLCanvasElement, options?: CanvasRenderingContext2DSettings) {
-  const context = canvas.getContext("2d", options);
-  if (!context) {
-    throw new Error("Canvas 2D is not available in this browser.");
-  }
-  return context;
 }
