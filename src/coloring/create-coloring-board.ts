@@ -1060,6 +1060,7 @@ export function createColoringBoard({
   overviewCanvas.addEventListener("pointermove", handleOverviewPointerMove);
   overviewCanvas.addEventListener("pointerup", finishOverviewPointer);
   overviewCanvas.addEventListener("pointercancel", finishOverviewPointer);
+  overviewCanvas.addEventListener("lostpointercapture", finishOverviewPointer);
   overviewCanvas.style.cursor = "grab";
   updateCursor();
   rebuildSelectionLayer();
@@ -1077,6 +1078,7 @@ export function createColoringBoard({
       overviewCanvas.removeEventListener("pointermove", handleOverviewPointerMove);
       overviewCanvas.removeEventListener("pointerup", finishOverviewPointer);
       overviewCanvas.removeEventListener("pointercancel", finishOverviewPointer);
+      overviewCanvas.removeEventListener("lostpointercapture", finishOverviewPointer);
       if (frameId !== undefined) {
         cancelAnimationFrame(frameId);
       }
