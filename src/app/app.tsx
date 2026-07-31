@@ -22,6 +22,7 @@ export function App() {
   const [puzzle, setPuzzle] = useState<PuzzleDefinition>(napoleonDynamitePuzzle);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
+  const [showGrid, setShowGrid] = useState(true);
   const [showNumbers, setShowNumbers] = useState(false);
   const [highlightMissing, setHighlightMissing] = useState(false);
   const [progress, setProgress] = useState<PuzzleProgress>(() => createPuzzleProgress(napoleonDynamitePuzzle));
@@ -33,6 +34,10 @@ export function App() {
 
   function toggleNumbers() {
     setShowNumbers((visible) => !visible);
+  }
+
+  function toggleGrid() {
+    setShowGrid((visible) => !visible);
   }
 
   function toggleMissingHighlight() {
@@ -120,9 +125,11 @@ export function App() {
           {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. */}
           <aside className="scrollbar-none min-h-0 w-full min-w-0 self-start overflow-x-auto overscroll-contain rounded-xl border border-border bg-card/80 p-2 sm:max-h-full sm:w-auto sm:shrink-0 sm:self-center sm:overflow-y-auto">
             <ToolPicker
+              gridVisible={showGrid}
               highlightMissing={highlightMissing}
               numbersVisible={showNumbers}
               onSelect={setSelectedTool}
+              onToggleGrid={toggleGrid}
               onToggleMissing={toggleMissingHighlight}
               onToggleNumbers={toggleNumbers}
               selectedTool={selectedTool}
@@ -140,6 +147,7 @@ export function App() {
               progress={progress}
               puzzle={puzzle}
               selectedColor={selectedColor}
+              showGrid={showGrid}
               showNumbers={showNumbers}
               tool={selectedTool}
             />

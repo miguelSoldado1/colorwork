@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
 import { createColoringBoard } from "@/coloring/create-coloring-board";
 import { CompletionConfetti } from "@/components/board/completion-confetti";
 import type { RefObject } from "react";
@@ -13,6 +13,7 @@ interface ColoringBoardProps {
   progress: PuzzleProgress;
   puzzle: PuzzleDefinition;
   selectedColor: number;
+  showGrid: boolean;
   showNumbers: boolean;
   tool: ColoringTool;
 }
@@ -26,12 +27,20 @@ export function ColoringBoard({
   progress,
   puzzle,
   selectedColor,
+  showGrid,
   showNumbers,
   tool,
 }: ColoringBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<ReturnType<typeof createColoringBoard> | null>(null);
+  const getBoardSettings = useEffectEvent(() => ({
+    gridVisible: showGrid,
+    highlightMissing,
+    numbersVisible: showNumbers,
+    selectedColor,
+    tool,
+  }));
 
   useEffect(() => {
     const container = containerRef.current;
@@ -44,6 +53,7 @@ export function ColoringBoard({
     const controller = createColoringBoard({
       canvas,
       container,
+      ...getBoardSettings(),
       onProgress,
       onSelectColor,
       overviewCanvas,
@@ -61,6 +71,10 @@ export function ColoringBoard({
   useEffect(() => {
     controllerRef.current?.setSelectedColor(selectedColor);
   }, [selectedColor]);
+
+  useEffect(() => {
+    controllerRef.current?.setShowGrid(showGrid);
+  }, [showGrid]);
 
   useEffect(() => {
     controllerRef.current?.setShowNumbers(showNumbers);

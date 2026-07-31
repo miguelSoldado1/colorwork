@@ -5,11 +5,16 @@ import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } 
 interface CreateColoringBoardOptions {
   canvas: HTMLCanvasElement;
   container: HTMLElement;
+  gridVisible: boolean;
+  highlightMissing: boolean;
+  numbersVisible: boolean;
   onProgress: (summary: ProgressSummary) => void;
   onSelectColor: (colorIndex: number) => void;
   overviewCanvas: HTMLCanvasElement;
   progress: PuzzleProgress;
   puzzle: PuzzleDefinition;
+  selectedColor: number;
+  tool: ColoringTool;
 }
 
 interface Cell {
@@ -32,7 +37,6 @@ interface PendingTouch {
   start: PointerPosition;
 }
 
-const GRID_THRESHOLD = 5;
 const MAX_ZOOM = 32;
 const MIN_ZOOM = 1;
 const TOUCH_PAINT_THRESHOLD = 6;
@@ -42,11 +46,16 @@ const CELL_EDGE_EPSILON = 0.000_001;
 export function createColoringBoard({
   canvas,
   container,
+  gridVisible: initialGridVisible,
+  highlightMissing: initialHighlightMissing,
+  numbersVisible: initialNumbersVisible,
   overviewCanvas,
   puzzle,
   progress,
   onProgress,
   onSelectColor,
+  selectedColor: initialSelectedColor,
+  tool: initialTool,
 }: CreateColoringBoardOptions) {
   const context = getCanvasContext(canvas, { alpha: false });
   const overviewContext = getCanvasContext(overviewCanvas, { alpha: false });
@@ -104,8 +113,8 @@ export function createColoringBoard({
   paintedContext.putImageData(paintedImage, 0, 0);
 
   // Mutable interaction state stays inside this controller rather than React.
-  let selectedColor = 0;
-  let selectedTool: ColoringTool = "pencil";
+  let selectedColor = initialSelectedColor;
+  let selectedTool = initialTool;
   let geometry = {
     cellSize: 1,
     height: puzzle.height,
@@ -121,8 +130,9 @@ export function createColoringBoard({
   let availableViewportHeight = 1;
   let fitScale = 1;
   let zoom = 1;
-  let showNumbers = false;
-  let highlightMissing = false;
+  let showGrid = initialGridVisible;
+  let showNumbers = initialNumbersVisible;
+  let highlightMissing = initialHighlightMissing;
   let cameraIsSettled = true;
   let frameId: number | undefined;
   let progressFrameId: number | undefined;
@@ -502,11 +512,11 @@ export function createColoringBoard({
   }
 
   function drawGrid() {
-    const { cellSize, x, y } = geometry;
-    if (cellSize < GRID_THRESHOLD) {
+    if (!showGrid) {
       return;
     }
 
+    const { cellSize, x, y } = geometry;
     context.beginPath();
     context.strokeStyle = translucentForeground;
     context.lineWidth = 1;
@@ -1081,6 +1091,10 @@ export function createColoringBoard({
     setSelectedColor(colorIndex: number) {
       selectedColor = colorIndex;
       rebuildSelectionLayer();
+      scheduleRender();
+    },
+    setShowGrid(visible: boolean) {
+      showGrid = visible;
       scheduleRender();
     },
     setShowNumbers(visible: boolean) {
