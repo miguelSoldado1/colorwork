@@ -37,6 +37,12 @@ src/
 pnpm dev
 ```
 
+Set `VITE_DEBUG` locally to show a debug-only checkbox that temporarily fills the canvas. Unchecking it restores the progress from before the debug fill. The control is disabled in production builds even if the variable is set.
+
+```sh
+VITE_DEBUG=1 pnpm dev
+```
+
 ```sh
 pnpm check
 pnpm typecheck

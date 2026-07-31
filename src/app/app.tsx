@@ -5,6 +5,7 @@ import { countRenderedImageColors, getRecommendedGridSize } from "@/coloring/imp
 import { createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
+import { DebugFillControl } from "@/components/debug/debug-fill-control";
 import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { napoleonDynamitePuzzle } from "@/puzzles/napoleon-dynamite-puzzle";
 import type { ChangeEvent } from "react";
 import type { ImageImportSource } from "@/coloring/import-image";
-import type { ColoringTool, PuzzleDefinition } from "@/coloring/types";
+import type { ColoringTool, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 export function App() {
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,7 +24,7 @@ export function App() {
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [showNumbers, setShowNumbers] = useState(false);
   const [highlightMissing, setHighlightMissing] = useState(false);
-  const [progress, setProgress] = useState(() => createPuzzleProgress(napoleonDynamitePuzzle));
+  const [progress, setProgress] = useState<PuzzleProgress>(() => createPuzzleProgress(napoleonDynamitePuzzle));
   const [summary, setSummary] = useState(() => createProgressSummary(napoleonDynamitePuzzle, progress));
   const [importSource, setImportSource] = useState<ImageImportSource | null>(null);
   const [importError, setImportError] = useState("");
@@ -91,6 +92,13 @@ export function App() {
               <ProgressDisplay summary={summary} />
             </div>
             <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
+            <DebugFillControl
+              key={puzzle.id}
+              onProgress={setProgress}
+              onSummary={setSummary}
+              progress={progress}
+              puzzle={puzzle}
+            />
             <Button className="sm:px-4" onClick={() => fileInputRef.current?.click()} size="compact" variant="outline">
               <Image2Plus aria-hidden height={20} width={20} />
               <span className="hidden sm:inline">Import art</span>

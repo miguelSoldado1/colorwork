@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  clonePuzzleProgress,
   countTargetPixelsByColor,
+  createCompletedPuzzleProgress,
   createProgressSummary,
   createPuzzleProgress,
   UNPAINTED_PIXEL,
@@ -43,6 +45,43 @@ describe("createPuzzleProgress", () => {
 
     expect(secondProgress.paintedPixels[0]).toBe(UNPAINTED_PIXEL);
     expect(secondProgress.paintedByColor[0]).toBe(0);
+  });
+});
+
+describe("createCompletedPuzzleProgress", () => {
+  it("creates completed progress without sharing the immutable target buffer", () => {
+    const progress = createCompletedPuzzleProgress(smallPuzzle);
+
+    expect(progress.paintedCount).toBe(6);
+    expect(progress.paintedByColor).toEqual(new Uint32Array([2, 3, 1]));
+    expect(progress.paintedPixels).toEqual(smallPuzzle.targetPixels);
+    expect(progress.paintedPixels).not.toBe(smallPuzzle.targetPixels);
+  });
+});
+
+describe("clonePuzzleProgress", () => {
+  it("preserves progress in independent mutable buffers", () => {
+    const progress = createPuzzleProgress(smallPuzzle);
+    progress.paintedPixels[1] = 1;
+    progress.paintedByColor[1] = 1;
+    progress.paintedCount = 1;
+
+    const clone = clonePuzzleProgress(progress);
+    progress.paintedPixels[1] = UNPAINTED_PIXEL;
+    progress.paintedByColor[1] = 0;
+
+    expect(clone).toEqual({
+      paintedByColor: new Uint32Array([0, 1, 0]),
+      paintedCount: 1,
+      paintedPixels: new Uint8Array([
+        UNPAINTED_PIXEL,
+        1,
+        UNPAINTED_PIXEL,
+        UNPAINTED_PIXEL,
+        UNPAINTED_PIXEL,
+        UNPAINTED_PIXEL,
+      ]),
+    });
   });
 });
 

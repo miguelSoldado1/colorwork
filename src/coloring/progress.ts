@@ -13,6 +13,22 @@ export function createPuzzleProgress(puzzle: PuzzleDefinition) {
   };
 }
 
+export function createCompletedPuzzleProgress(puzzle: PuzzleDefinition) {
+  return {
+    paintedByColor: countTargetPixelsByColor(puzzle),
+    paintedCount: puzzle.width * puzzle.height,
+    paintedPixels: puzzle.targetPixels.slice(),
+  };
+}
+
+export function clonePuzzleProgress(progress: PuzzleProgress) {
+  return {
+    paintedByColor: progress.paintedByColor.slice(),
+    paintedCount: progress.paintedCount,
+    paintedPixels: progress.paintedPixels.slice(),
+  };
+}
+
 export function countTargetPixelsByColor(puzzle: PuzzleDefinition) {
   const totals = new Uint32Array(puzzle.palette.length);
 
