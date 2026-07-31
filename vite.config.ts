@@ -1,5 +1,6 @@
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import { debugFillPlugin } from "./build/debug-fill-plugin";
@@ -11,7 +12,14 @@ export default defineConfig(({ command, mode }) => {
     command === "serve" && (process.env.VITE_DEBUG !== undefined || fileEnv.VITE_DEBUG !== undefined);
 
   return {
-    plugins: [debugFillPlugin(debugFillEnabled), react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()],
+    plugins: [
+      debugFillPlugin(debugFillEnabled),
+      // '@tanstack/router-plugin' must come before '@vitejs/plugin-react'.
+      tanstackRouter({ autoCodeSplitting: true, target: "react" }),
+      react(),
+      babel({ presets: [reactCompilerPreset()] }),
+      tailwindcss(),
+    ],
     resolve: {
       tsconfigPaths: true,
     },

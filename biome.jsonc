@@ -1,6 +1,14 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/biome/core", "ultracite/biome/react"],
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/tanstack"
+  ],
+  // The route tree is generated and owned by TanStack Router.
+  "files": {
+    "includes": ["!src/routeTree.gen.ts"]
+  },
   "formatter": {
     "lineWidth": 120
   },
