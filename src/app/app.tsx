@@ -34,6 +34,8 @@ export function App({ persistProgress, puzzle }: AppProps) {
   const [summary, setSummary] = useState(() => createProgressSummary(puzzle, progress));
   const [saveStatus, setSaveStatus] = useState<SaveStatusValue>("idle");
   const [progressSaver] = useState(() => createProgressSaveController({ onStatus: setSaveStatus, puzzle }));
+  const [celebrateCompletion, setCelebrateCompletion] = useState(false);
+  const completedRef = useRef(isPuzzleComplete(summary));
 
   useEffect(() => (persistProgress ? progressSaver.connect() : undefined), [persistProgress, progressSaver]);
 
@@ -53,7 +55,7 @@ export function App({ persistProgress, puzzle }: AppProps) {
     { key: TOOLBAR_SHORTCUTS.missing, onTrigger: toggleMissingHighlight },
   ]);
 
-  const complete = summary.totalPixels > 0 && summary.paintedCount >= summary.totalPixels;
+  const complete = isPuzzleComplete(summary);
 
   function toggleNumbers() {
     setShowNumbers((visible) => !visible);
@@ -68,10 +70,21 @@ export function App({ persistProgress, puzzle }: AppProps) {
   }
 
   function updateBoardProgress(nextSummary: ProgressSummary) {
-    setSummary(nextSummary);
+    updateProgressSummary(nextSummary);
     if (persistProgress) {
-      progressSaver.schedule(progress, nextSummary.paintedCount >= nextSummary.totalPixels);
+      progressSaver.schedule(progress, isPuzzleComplete(nextSummary));
     }
+  }
+
+  function updateProgressSummary(nextSummary: ProgressSummary) {
+    const nextComplete = isPuzzleComplete(nextSummary);
+
+    if (nextComplete !== completedRef.current) {
+      completedRef.current = nextComplete;
+      setCelebrateCompletion(nextComplete);
+    }
+
+    setSummary(nextSummary);
   }
 
   function replaceDebugProgress(nextProgress: PuzzleProgress) {
@@ -105,7 +118,7 @@ export function App({ persistProgress, puzzle }: AppProps) {
             <DebugFillControl
               key={puzzle.id}
               onProgress={replaceDebugProgress}
-              onSummary={setSummary}
+              onSummary={updateProgressSummary}
               progress={progress}
               puzzle={puzzle}
             />
@@ -130,7 +143,7 @@ export function App({ persistProgress, puzzle }: AppProps) {
           {/* Clipped, not hidden, with room for the completion burst to fly past the board edge. */}
           <section className="min-h-0 min-w-0 flex-1 overflow-clip [overflow-clip-margin:8rem]">
             <ColoringBoard
-              complete={complete}
+              celebrateCompletion={celebrateCompletion}
               highlightMissing={highlightMissing}
               onProgress={updateBoardProgress}
               onSelectColor={setSelectedColor}
@@ -148,7 +161,7 @@ export function App({ persistProgress, puzzle }: AppProps) {
         <aside className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card/80 p-2.5 sm:gap-5 sm:p-3">
           <BoardOverview
             canvasRef={overviewCanvasRef}
-            complete={complete}
+            celebrateCompletion={celebrateCompletion}
             puzzleHeight={puzzle.height}
             puzzleWidth={puzzle.width}
           />
@@ -170,4 +183,8 @@ export function App({ persistProgress, puzzle }: AppProps) {
 function createInitialProgress(puzzle: PuzzleDefinition, persistProgress: boolean): PuzzleProgress {
   const storedProgress = persistProgress ? loadPuzzleProgress(puzzle) : undefined;
   return storedProgress ?? createPuzzleProgress(puzzle);
+}
+
+function isPuzzleComplete(summary: ProgressSummary) {
+  return summary.totalPixels > 0 && summary.paintedCount >= summary.totalPixels;
 }

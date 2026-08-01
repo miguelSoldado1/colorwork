@@ -5,7 +5,7 @@ import type { RefObject } from "react";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 interface ColoringBoardProps {
-  complete: boolean;
+  celebrateCompletion: boolean;
   highlightMissing: boolean;
   onProgress: (summary: ProgressSummary) => void;
   onSelectColor: (colorIndex: number) => void;
@@ -19,7 +19,7 @@ interface ColoringBoardProps {
 }
 
 export function ColoringBoard({
-  complete,
+  celebrateCompletion,
   highlightMissing,
   onProgress,
   onSelectColor,
@@ -98,7 +98,7 @@ export function ColoringBoard({
           ref={canvasRef}
           role="img"
         />
-        {complete ? (
+        {celebrateCompletion ? (
           <>
             <CompletionConfetti palette={puzzle.palette} />
             <p className="sr-only" role="status">

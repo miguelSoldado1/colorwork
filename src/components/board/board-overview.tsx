@@ -3,7 +3,7 @@ import type { CSSProperties, RefObject } from "react";
 
 interface BoardOverviewProps {
   canvasRef: RefObject<HTMLCanvasElement | null>;
-  complete: boolean;
+  celebrateCompletion: boolean;
   puzzleHeight: number;
   puzzleWidth: number;
 }
@@ -19,7 +19,7 @@ export function fitOverview(width: number, height: number, maximum: typeof MOBIL
   };
 }
 
-export function BoardOverview({ canvasRef, complete, puzzleHeight, puzzleWidth }: BoardOverviewProps) {
+export function BoardOverview({ canvasRef, celebrateCompletion, puzzleHeight, puzzleWidth }: BoardOverviewProps) {
   const mobileSize = fitOverview(puzzleWidth, puzzleHeight, MOBILE_MAX_SIZE);
   const desktopSize = fitOverview(puzzleWidth, puzzleHeight, DESKTOP_MAX_SIZE);
 
@@ -42,7 +42,7 @@ export function BoardOverview({ canvasRef, complete, puzzleHeight, puzzleWidth }
         width={puzzleWidth}
       />
       {/* The ring sits outside the thumbnail, so nothing lands on the artwork inside it. */}
-      {complete ? (
+      {celebrateCompletion ? (
         <span
           aria-hidden
           className="board-confetti-ping pointer-events-none absolute -inset-1 rounded-lg ring-1 ring-foreground/60"
