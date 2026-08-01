@@ -35,7 +35,7 @@ export function LevelSpecs({ level }: LevelSpecsProps) {
 function SpecRow({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <dt className="text-[10px] text-muted-foreground uppercase tracking-[0.18em]">{label}</dt>
+      <dt className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">{label}</dt>
       <dd className="tabular-nums">{children}</dd>
     </div>
   );

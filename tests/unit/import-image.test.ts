@@ -28,13 +28,24 @@ const SKEWED_COLORS: ColorCount[] = [
 type ColorCount = [color: string, count: number];
 
 describe("getRecommendedGridSize", () => {
-  it("preserves images that already fit within the logical grid limit", () => {
+  it("preserves images already inside the cell budget", () => {
     expect(getRecommendedGridSize(64, 32)).toEqual({ height: 32, width: 64 });
   });
 
-  it("scales wide and tall images proportionally to the grid limit", () => {
-    expect(getRecommendedGridSize(512, 256)).toEqual({ height: 128, width: 256 });
-    expect(getRecommendedGridSize(100, 400)).toEqual({ height: 256, width: 64 });
+  it("lands near the cell budget whatever the aspect ratio", () => {
+    for (const [width, height] of [
+      [240, 160],
+      [512, 256],
+      [100, 400],
+      [1000, 1000],
+    ]) {
+      const size = getRecommendedGridSize(width, height);
+      const cells = size.width * size.height;
+
+      expect(cells).toBeLessThanOrEqual(4096 * 1.05);
+      expect(cells).toBeGreaterThan(4096 * 0.9);
+      expect(size.width / size.height).toBeCloseTo(width / height, 1);
+    }
   });
 
   it("keeps both dimensions usable for extremely wide or tall images", () => {

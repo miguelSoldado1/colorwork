@@ -16,6 +16,8 @@ const MIN_GRID_SIZE = 1;
 const MAX_GRID_SIZE = 256;
 const MIN_PALETTE_SIZE = 1;
 const MAX_PALETTE_SIZE = 32;
+// The slider still reaches 32; a board only opens with about as many colours as a catalogued one.
+const DEFAULT_PALETTE_SIZE = 16;
 
 interface ImageImportDialogProps {
   onCancel: () => void;
@@ -32,7 +34,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
   const [name, setName] = useState(initialName);
   const [width, setWidth] = useState(recommendedSize.width);
   const [height, setHeight] = useState(recommendedSize.height);
-  const [paletteSize, setPaletteSize] = useState(paletteMaximum);
+  const [paletteSize, setPaletteSize] = useState(Math.min(paletteMaximum, DEFAULT_PALETTE_SIZE));
   const [dimensionsLinked, setDimensionsLinked] = useState(true);
   const [puzzle, setPuzzle] = useState<PuzzleDefinition | null>(null);
   const [processingError, setProcessingError] = useState("");
@@ -123,7 +125,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
       <div className="border-border border-b px-5 py-4 sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-[0.16em]">New puzzle</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">New puzzle</p>
             <h2 className="mt-1 text-2xl" id="import-title">
               Tune your pixel grid
             </h2>

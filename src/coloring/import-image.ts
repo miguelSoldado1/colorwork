@@ -1,6 +1,8 @@
 import type { PuzzleDefinition } from "./types";
 
 const DEFAULT_GRID_LIMIT = 256;
+// A budget on cells, not on the long side: a board is as much work as it has cells, whatever its shape.
+const DEFAULT_CELL_BUDGET = 4096;
 const TRANSPARENT_PIXEL_COLOR = "#11141e";
 const MAX_INDEXED_COLORS = 255;
 const FILE_EXTENSION_PATTERN = /\.[^.]+$/;
@@ -47,7 +49,11 @@ export interface IndexedPixelData {
 
 // Import defaults and source metadata.
 export function getRecommendedGridSize(sourceWidth: number, sourceHeight: number) {
-  const scale = Math.min(1, DEFAULT_GRID_LIMIT / Math.max(sourceWidth, sourceHeight));
+  const scale = Math.min(
+    1,
+    DEFAULT_GRID_LIMIT / Math.max(sourceWidth, sourceHeight),
+    Math.sqrt(DEFAULT_CELL_BUDGET / (sourceWidth * sourceHeight))
+  );
 
   return {
     height: Math.max(1, Math.round(sourceHeight * scale)),
