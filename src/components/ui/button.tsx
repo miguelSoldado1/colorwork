@@ -1,6 +1,9 @@
 import type { ComponentProps } from "react";
 
 const variants = {
+  destructive: "border-destructive/40 bg-destructive/12 text-destructive hover:bg-destructive/20",
+  destructiveGhost:
+    "border-transparent bg-transparent text-muted-foreground enabled:hover:bg-destructive/10 enabled:hover:text-destructive",
   ghost: "border-transparent bg-transparent text-muted-foreground hover:bg-foreground/6 hover:text-foreground",
   outline: "border-border bg-transparent text-muted-foreground hover:border-foreground/20 hover:text-foreground",
   primary: "border-primary bg-primary text-primary-foreground hover:brightness-108",

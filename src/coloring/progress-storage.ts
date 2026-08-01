@@ -7,6 +7,7 @@ const STORAGE_VERSION = 1;
 
 interface ProgressStorage {
   getItem: (key: string) => string | null;
+  removeItem: (key: string) => void;
   setItem: (key: string, value: string) => void;
 }
 
@@ -68,6 +69,24 @@ export function savePuzzleProgress(puzzle: PuzzleDefinition, progress: PuzzlePro
 
     if (progressStorage.getItem(key) !== serialized) {
       progressStorage.setItem(key, serialized);
+      notifyProgressChanged(key);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function clearPuzzleProgress(puzzle: PuzzleDefinition, storage?: ProgressStorage) {
+  const progressStorage = storage ?? getBrowserStorage();
+  if (!progressStorage) {
+    return false;
+  }
+
+  try {
+    const key = progressStorageKey(puzzle.id);
+    if (progressStorage.getItem(key) !== null) {
+      progressStorage.removeItem(key);
       notifyProgressChanged(key);
     }
     return true;

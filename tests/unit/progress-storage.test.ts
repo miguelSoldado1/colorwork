@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createPuzzleProgress } from "../../src/coloring/progress";
 import {
+  clearPuzzleProgress,
   createProgressSaveController,
   loadPuzzleProgress,
   savePuzzleProgress,
@@ -35,6 +36,10 @@ class MemoryStorage {
       throw new DOMException("Storage is unavailable", "QuotaExceededError");
     }
     this.values.set(key, value);
+  }
+
+  removeItem(key: string) {
+    this.values.delete(key);
   }
 }
 
@@ -83,6 +88,23 @@ describe("puzzle progress storage", () => {
     storage.values.set(key, JSON.stringify({ ...record, paintedCells: btoa("\0") }));
 
     expect(loadPuzzleProgress(puzzle, storage)).toBeUndefined();
+  });
+
+  it("clears a stored puzzle and leaves other puzzles alone", () => {
+    const storage = new MemoryStorage();
+    const other = { ...puzzle, id: "other-puzzle" };
+    const progress = createPuzzleProgress(puzzle);
+    paintCells(progress, puzzle, [0, 3]);
+    savePuzzleProgress(puzzle, progress, storage);
+    savePuzzleProgress(other, progress, storage);
+
+    expect(clearPuzzleProgress(puzzle, storage)).toBe(true);
+    expect(loadPuzzleProgress(puzzle, storage)).toBeUndefined();
+    expect(loadPuzzleProgress(other, storage)).toEqual(progress);
+  });
+
+  it("treats clearing an untouched puzzle as a success", () => {
+    expect(clearPuzzleProgress(puzzle, new MemoryStorage())).toBe(true);
   });
 });
 
