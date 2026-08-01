@@ -51,8 +51,9 @@
 - Bucket fill is limited to the visible cell rectangle captured when the fill begins.
 - Middle-click selects the target color of the clicked cell without painting it.
 - Zoom buttons use fixed, cursor-centered zoom steps. Panning remains a separate tool.
-- Numbers are drawn only above the configured cell-size threshold and remain independently toggleable from the selected-color highlight.
-- The minimap starts with a muted grayscale target and overlays painted pixels in their true colors.
+- Numbers are off by default because a board full of them is noisy, and the toggle always draws them when asked: a control that silently does nothing at some zoom levels is worse than cramped glyphs. Their scale floors to a whole number of pixels and never below 1, so they stay crisp instead of losing rows to an unsmoothed downscale. They remain independently toggleable from the selected-color highlight.
+- An unpainted board is never blank: it wears the minimap's grayscale target at a low alpha, under a translucent wash on the selected color's cells. The guide fades as the board fills, or it would camouflage the last holes against the paint around them.
+- The minimap starts with a muted grayscale target and overlays painted pixels in their true colors. It shares the target layer with the board's guide, so the tone curve lives in `mutedTargetGray` alone.
 
 ## Validation
 

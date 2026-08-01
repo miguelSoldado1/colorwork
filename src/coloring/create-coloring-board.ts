@@ -1,4 +1,4 @@
-import { createNumberGlyphAtlas } from "./number-glyphs";
+import { createNumberGlyphAtlas, numberGlyphScale } from "./number-glyphs";
 import { getCanvasContext, mutedTargetGray, parseHexColor, writePaintedPixel } from "./pixel-raster";
 import { countTargetPixelsByColor, createProgressSummary, UNPAINTED_PIXEL } from "./progress";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "./types";
@@ -44,6 +44,9 @@ const TOUCH_PAINT_THRESHOLD = 6;
 const ZOOM_STEP = 1.8;
 const CELL_EDGE_EPSILON = 0.000_001;
 
+const TARGET_GUIDE_MAX_ALPHA = 0.42;
+const SELECTION_ALPHA = 0.3;
+
 export function createColoringBoard({
   canvas,
   container,
@@ -63,7 +66,6 @@ export function createColoringBoard({
   const theme = getColoringTheme(canvas);
   const foregroundRgba = resolveCssColor(theme.foreground);
   const primaryRgba = resolveCssColor(theme.primary);
-  const secondaryRgba = resolveCssColor(theme.secondary);
   const translucentForeground = withAlpha(foregroundRgba, 0.12);
   const numberGlyphAtlas = createNumberGlyphAtlas(puzzle.palette.length, {
     selected: theme.foreground,
@@ -79,11 +81,11 @@ export function createColoringBoard({
   const paintedContext = getCanvasContext(paintedLayer);
   const paintedImage = paintedContext.createImageData(puzzle.width, puzzle.height);
   const paletteRgba = puzzle.palette.map(parseHexColor);
-  const overviewBaseLayer = document.createElement("canvas");
-  overviewBaseLayer.width = puzzle.width;
-  overviewBaseLayer.height = puzzle.height;
-  const overviewBaseContext = getCanvasContext(overviewBaseLayer);
-  const overviewBaseImage = overviewBaseContext.createImageData(puzzle.width, puzzle.height);
+  const targetLayer = document.createElement("canvas");
+  targetLayer.width = puzzle.width;
+  targetLayer.height = puzzle.height;
+  const targetContext = getCanvasContext(targetLayer);
+  const targetImage = targetContext.createImageData(puzzle.width, puzzle.height);
   const selectionLayer = document.createElement("canvas");
   selectionLayer.width = puzzle.width;
   selectionLayer.height = puzzle.height;
@@ -95,12 +97,13 @@ export function createColoringBoard({
   const missingContext = getCanvasContext(missingLayer);
   const missingImage = missingContext.createImageData(puzzle.width, puzzle.height);
 
-  // Build the static grayscale overview and restore any existing painted pixels.
+  // Build the static grayscale target shared by the minimap and the board's faint guide, then
+  // restore any existing painted pixels.
   for (let index = 0; index < puzzle.targetPixels.length; index += 1) {
     const gray = mutedTargetGray(paletteRgba[puzzle.targetPixels[index]]);
-    writePaintedPixel(overviewBaseImage.data, index, [gray, gray, gray, 255]);
+    writePaintedPixel(targetImage.data, index, [gray, gray, gray, 255]);
   }
-  overviewBaseContext.putImageData(overviewBaseImage, 0, 0);
+  targetContext.putImageData(targetImage, 0, 0);
 
   for (let index = 0; index < progress.paintedPixels.length; index += 1) {
     const colorIndex = progress.paintedPixels[index];
@@ -153,7 +156,7 @@ export function createColoringBoard({
         continue;
       }
       if (puzzle.targetPixels[index] === selectedColor) {
-        writePaintedPixel(selectionImage.data, index, secondaryRgba);
+        writePaintedPixel(selectionImage.data, index, foregroundRgba);
         writePaintedPixel(missingImage.data, index, primaryRgba);
       } else {
         writePaintedPixel(missingImage.data, index, foregroundRgba);
@@ -343,7 +346,12 @@ export function createColoringBoard({
       drawVisibleLayer(missingLayer);
       drawGrid();
     } else {
+      // Guide under the wash, so the shape survives inside the selected color.
+      context.globalAlpha = TARGET_GUIDE_MAX_ALPHA * unpaintedFraction();
+      drawVisibleLayer(targetLayer);
+      context.globalAlpha = SELECTION_ALPHA;
       drawVisibleLayer(selectionLayer);
+      context.globalAlpha = 1;
       drawGrid();
       drawVisibleLayer(paintedLayer);
     }
@@ -379,14 +387,14 @@ export function createColoringBoard({
     overviewContext.fillRect(0, 0, bounds.width, bounds.height);
     if (highlightMissing) {
       overviewContext.globalAlpha = 0.16;
-      overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.drawImage(targetLayer, 0, 0, bounds.width, bounds.height);
       overviewContext.globalAlpha = 0.38;
       overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
       overviewContext.globalAlpha = 1;
       overviewContext.drawImage(missingLayer, 0, 0, bounds.width, bounds.height);
     } else {
       overviewContext.globalAlpha = 1;
-      overviewContext.drawImage(overviewBaseLayer, 0, 0, bounds.width, bounds.height);
+      overviewContext.drawImage(targetLayer, 0, 0, bounds.width, bounds.height);
       overviewContext.drawImage(paintedLayer, 0, 0, bounds.width, bounds.height);
     }
 
@@ -453,6 +461,14 @@ export function createColoringBoard({
     };
   }
 
+  function unpaintedFraction() {
+    const total = puzzle.targetPixels.length;
+    if (total === 0) {
+      return 0;
+    }
+    return 1 - progress.paintedCount / total;
+  }
+
   function drawVisibleLayer(layer: HTMLCanvasElement) {
     const { endX, endY, startX, startY } = getVisibleCells();
     const sourceWidth = endX - startX;
@@ -481,10 +497,7 @@ export function createColoringBoard({
     }
 
     const { endX, endY, startX, startY } = getVisibleCells();
-    const scale = Math.min(
-      (cellSize * 0.5) / maximumNumberSpriteWidth,
-      (cellSize * 0.44) / numberGlyphAtlas.sprites[0].height
-    );
+    const scale = numberGlyphScale(cellSize, maximumNumberSpriteWidth, numberGlyphAtlas.sprites[0].height);
     for (let row = startY; row < endY; row += 1) {
       for (let column = startX; column < endX; column += 1) {
         const index = row * puzzle.width + column;
@@ -501,8 +514,8 @@ export function createColoringBoard({
           targetColor === selectedColor ? sprite.selectedY : sprite.unselectedY,
           sprite.width,
           sprite.height,
-          x + (column + 0.5) * cellSize - width / 2,
-          y + (row + 0.5) * cellSize - height / 2,
+          Math.round(x + (column + 0.5) * cellSize - width / 2),
+          Math.round(y + (row + 0.5) * cellSize - height / 2),
           width,
           height
         );
@@ -1123,7 +1136,6 @@ function getColoringTheme(element: HTMLElement) {
     muted: getColor("muted"),
     mutedForeground: getColor("muted-foreground"),
     primary: getColor("primary"),
-    secondary: getColor("secondary"),
   };
 }
 

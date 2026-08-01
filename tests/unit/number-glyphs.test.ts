@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createNumberGlyphAtlas } from "../../src/coloring/number-glyphs";
+import { createNumberGlyphAtlas, numberGlyphScale } from "../../src/coloring/number-glyphs";
 
 interface PaintedPixel {
   color: string;
@@ -48,6 +48,32 @@ describe("createNumberGlyphAtlas", () => {
 
     expect(readSprite(pixels, sprite, "selected")).toEqual(readSprite(pixels, sprite, "unselected"));
     expect(new Set(pixels.map(({ color }) => color))).toEqual(new Set(["selected", "unselected"]));
+  });
+});
+
+describe("numberGlyphScale", () => {
+  it.each([
+    { cellSize: 2.1, expected: 1, name: "a 256 wide import squeezed onto the screen" },
+    { cellSize: 8.49, expected: 1, name: "a 64x64 board fitted to the screen" },
+    { cellSize: 14, expected: 1, name: "the smallest cell that fits a two-digit label exactly" },
+    { cellSize: 28, expected: 2, name: "twice that" },
+    { cellSize: 42, expected: 3, name: "three times that" },
+  ])("scales two-digit labels to $expected on $name", ({ cellSize, expected }) => {
+    expect(numberGlyphScale(cellSize, 7, 5)).toBe(expected);
+  });
+
+  it("is bound by whichever of the glyph's width and height runs out first", () => {
+    expect(numberGlyphScale(40, 3, 5)).toBe(3);
+    expect(numberGlyphScale(40, 7, 5)).toBe(2);
+  });
+
+  it("never returns a fractional or zero scale, which would drop glyph rows", () => {
+    for (let cellSize = 0.5; cellSize < 80; cellSize += 0.25) {
+      const scale = numberGlyphScale(cellSize, 7, 5);
+
+      expect(Number.isInteger(scale)).toBe(true);
+      expect(scale).toBeGreaterThanOrEqual(1);
+    }
   });
 });
 

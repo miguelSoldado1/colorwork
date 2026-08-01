@@ -67,6 +67,11 @@ export function createNumberGlyphAtlas(labelCount: number, colors: NumberGlyphCo
   return { canvas, sprites };
 }
 
+// Whole-pixel steps, never below 1: an unsmoothed fractional downscale drops glyph rows entirely.
+export function numberGlyphScale(cellSize: number, spriteWidth: number, spriteHeight: number) {
+  return Math.max(1, Math.floor(Math.min((cellSize * 0.5) / spriteWidth, (cellSize * 0.44) / spriteHeight)));
+}
+
 // Multi-digit labels share a fixed one-pixel gap so their proportions remain predictable.
 function getLabelWidth(label: string) {
   return label.length * GLYPH_WIDTH + (label.length - 1) * GLYPH_GAP;
