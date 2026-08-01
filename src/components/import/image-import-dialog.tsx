@@ -129,7 +129,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
             </h2>
           </div>
           <Button aria-label="Cancel image import" className="shrink-0" onClick={onCancel} size="icon" variant="ghost">
-            <Close aria-hidden height={22} width={22} />
+            <Close height={22} width={22} />
           </Button>
         </div>
       </div>
@@ -171,11 +171,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
                 size="icon"
                 variant="ghost"
               >
-                {dimensionsLinked ? (
-                  <Link aria-hidden height={19} width={19} />
-                ) : (
-                  <Unlink aria-hidden height={19} width={19} />
-                )}
+                {dimensionsLinked ? <Link height={19} width={19} /> : <Unlink height={19} width={19} />}
               </Button>
               <NumberField
                 label="Height"
@@ -238,7 +234,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
           Cancel
         </Button>
         <Button disabled={!puzzle} onClick={confirmPuzzle} variant="primary">
-          <Check aria-hidden className="block shrink-0" height={19} width={19} />
+          <Check className="block shrink-0" height={19} width={19} />
           Use this puzzle
         </Button>
       </div>

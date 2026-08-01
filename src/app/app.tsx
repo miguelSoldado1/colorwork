@@ -47,12 +47,12 @@ export function App({ puzzle }: AppProps) {
               className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground/70 uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
               to="/"
             >
-              <ArrowLeft aria-hidden height={13} width={13} />
+              <ArrowLeft height={13} width={13} />
               All artworks
             </Link>
             <h1 className="mt-1 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
           </div>
-          <div className="flex shrink-0 items-center gap-3 sm:gap-5">
+          <div className="flex min-h-11 shrink-0 items-center gap-3 sm:gap-5">
             <div className="w-24 sm:w-56">
               <ProgressDisplay summary={summary} />
             </div>

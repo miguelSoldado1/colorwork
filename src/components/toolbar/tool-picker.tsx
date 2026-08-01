@@ -44,13 +44,13 @@ export function ToolPicker({
     <div aria-label="Board tools" className="flex flex-row gap-2.5 sm:flex-col" role="toolbar">
       <div className={GROUP}>
         <ToolButton label="Pencil tool" onClick={() => onSelect("pencil")} pressed={selectedTool === "pencil"}>
-          <Pencil aria-hidden height={24} width={24} />
+          <Pencil height={24} width={24} />
         </ToolButton>
         <ToolButton label="Bucket fill tool" onClick={() => onSelect("bucket")} pressed={selectedTool === "bucket"}>
-          <Bucket aria-hidden height={24} width={24} />
+          <Bucket height={24} width={24} />
         </ToolButton>
         <ToolButton label="Color picker tool" onClick={() => onSelect("picker")} pressed={selectedTool === "picker"}>
-          <Pipette aria-hidden height={24} width={24} />
+          <Pipette height={24} width={24} />
         </ToolButton>
       </div>
 
@@ -58,13 +58,13 @@ export function ToolPicker({
 
       <div className={GROUP}>
         <ToolButton label="Zoom in tool" onClick={() => onSelect("zoom-in")} pressed={selectedTool === "zoom-in"}>
-          <ZoomIn aria-hidden height={24} width={24} />
+          <ZoomIn height={24} width={24} />
         </ToolButton>
         <ToolButton label="Zoom out tool" onClick={() => onSelect("zoom-out")} pressed={selectedTool === "zoom-out"}>
-          <ZoomOut aria-hidden height={24} width={24} />
+          <ZoomOut height={24} width={24} />
         </ToolButton>
         <ToolButton label="Pan tool" onClick={() => onSelect("pan")} pressed={selectedTool === "pan"}>
-          <Hand aria-hidden height={24} width={24} />
+          <Hand height={24} width={24} />
         </ToolButton>
       </div>
 
@@ -72,13 +72,13 @@ export function ToolPicker({
 
       <div className={GROUP}>
         <ToolButton label={gridLabel} onClick={onToggleGrid} pressed={gridVisible}>
-          <Grid aria-hidden height={24} width={24} />
+          <Grid height={24} width={24} />
         </ToolButton>
         <ToolButton label={numbersLabel} onClick={onToggleNumbers} pressed={numbersVisible}>
-          {numbersVisible ? <Eye aria-hidden height={24} width={24} /> : <EyeOff aria-hidden height={24} width={24} />}
+          {numbersVisible ? <Eye height={24} width={24} /> : <EyeOff height={24} width={24} />}
         </ToolButton>
         <ToolButton label={missingLabel} onClick={onToggleMissing} pressed={highlightMissing}>
-          <Target aria-hidden height={24} width={24} />
+          <Target height={24} width={24} />
         </ToolButton>
       </div>
     </div>

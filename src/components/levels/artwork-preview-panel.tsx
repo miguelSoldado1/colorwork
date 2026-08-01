@@ -69,14 +69,14 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
               onClick={() => setRevealedId(revealed ? "" : level.puzzle.id)}
               variant="ghost"
             >
-              {revealed ? <EyeOff aria-hidden height={19} width={19} /> : <Eye aria-hidden height={19} width={19} />}
+              {revealed ? <EyeOff height={19} width={19} /> : <Eye height={19} width={19} />}
               {revealed ? "Hide full artwork" : "See full artwork"}
             </Button>
           )}
 
           {/* Inert on purpose: what starting over should do to stored progress is still undecided. */}
           <Button variant="ghost">
-            <Reload aria-hidden height={19} width={19} />
+            <Reload height={19} width={19} />
             Start over
           </Button>
         </div>

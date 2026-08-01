@@ -57,7 +57,7 @@ export function ImportArtworkRow() {
         type="button"
       >
         <span className="grid size-12 shrink-0 place-items-center rounded-[3px] border border-border border-dashed text-muted-foreground">
-          <Image2Plus aria-hidden height={22} width={22} />
+          <Image2Plus height={22} width={22} />
         </span>
         <span className="min-w-0">
           <span className="block text-sm leading-none">Import your own</span>
