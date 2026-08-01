@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import Eye from "@/components/icons/eye.svg?react";
 import EyeOff from "@/components/icons/eye-off.svg?react";
-import Reload from "@/components/icons/reload.svg?react";
 import { LevelPreview } from "@/components/levels/level-preview";
 import { describeLevelState, LevelSpecs, paintActionLabel } from "@/components/levels/level-specs";
+import { StartOverControl } from "@/components/levels/start-over-control";
 import { Button } from "@/components/ui/button";
 import type { LevelDescription } from "@/levels/describe-level";
 
@@ -76,11 +76,10 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
             </Button>
           )}
 
-          {/* Inert on purpose: what starting over should do to stored progress is still undecided. */}
-          <Button variant="ghost">
-            <Reload height={19} width={19} />
-            Start over
-          </Button>
+          <div className="mt-1 border-border border-t pt-3">
+            {/* Keyed by artwork so a pending confirmation never carries over to another piece. */}
+            <StartOverControl key={level.puzzle.id} level={level} />
+          </div>
         </div>
       </div>
     </aside>

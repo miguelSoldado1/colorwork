@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCompletedPuzzleProgress, createPuzzleProgress } from "@/coloring/progress";
-import { describeLevel, MENU_LEVELS } from "@/levels/describe-level";
+import { describeLevel } from "@/levels/describe-level";
 import { findImportedPuzzle, rememberImportedPuzzle } from "@/levels/imported-levels";
 import { findLevel, LEVELS } from "@/levels/level-catalog";
 import type { PuzzleDefinition } from "@/coloring/types";
@@ -115,8 +115,16 @@ describe("describeLevel", () => {
     });
   });
 
-  it("describes the catalog once per artwork", () => {
-    expect(MENU_LEVELS).toHaveLength(LEVELS.length);
-    expect(MENU_LEVELS[0].puzzle.id).toBe(LEVELS[0].id);
+  it("describes an untouched catalogued artwork as all zeros", () => {
+    const [puzzle] = LEVELS;
+
+    expect(describeLevel(puzzle)).toMatchObject({
+      completedColors: 0,
+      finished: false,
+      paintedCount: 0,
+      percent: 0,
+      started: false,
+      totalPixels: puzzle.width * puzzle.height,
+    });
   });
 });

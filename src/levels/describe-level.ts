@@ -1,5 +1,4 @@
 import { countTargetPixelsByColor } from "@/coloring/progress";
-import { LEVELS } from "./level-catalog";
 import type { PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 export interface LevelDescription {
@@ -12,8 +11,6 @@ export interface LevelDescription {
   started: boolean;
   totalPixels: number;
 }
-
-export const MENU_LEVELS: readonly LevelDescription[] = LEVELS.map((puzzle) => describeLevel(puzzle));
 
 export function describeLevel(puzzle: PuzzleDefinition, progress?: PuzzleProgress): LevelDescription {
   const totalByColor = countTargetPixelsByColor(puzzle);

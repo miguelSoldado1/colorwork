@@ -7,7 +7,7 @@ interface LevelSpecsProps {
 }
 
 export function LevelSpecs({ level }: LevelSpecsProps) {
-  const { finishedColors, paintedCount, percent, puzzle, totalPixels } = level;
+  const { paintedCount, percent, puzzle, totalPixels } = level;
 
   return (
     <div>
@@ -16,7 +16,7 @@ export function LevelSpecs({ level }: LevelSpecsProps) {
           {puzzle.width} × {puzzle.height}
         </SpecRow>
         <SpecRow label="Colors">
-          <PaletteStrip className="justify-end" finishedColors={finishedColors} palette={puzzle.palette} />
+          <PaletteStrip className="justify-end" palette={puzzle.palette} />
         </SpecRow>
         <SpecRow label="Painted">
           {paintedCount.toLocaleString()} | {totalPixels.toLocaleString()}
@@ -52,8 +52,9 @@ export function describeLevelState({ completedColors, finished, puzzle, started 
 }
 
 export function paintActionLabel({ finished, started }: LevelDescription) {
+  // Opening a finished artwork restores the finished board, so the label cannot promise a repaint.
   if (finished) {
-    return "Paint it again";
+    return "Open the finished board";
   }
   return started ? "Keep painting" : "Start painting";
 }
