@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Image2Plus } from "pixelarticons/react/Image2Plus";
 import { useRef, useState } from "react";
 import { countRenderedImageColors, getRecommendedGridSize } from "@/coloring/import-image";
+import Image2Plus from "@/components/icons/image-plus.svg?react";
 import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { rememberImportedPuzzle } from "@/levels/imported-levels";
 import type { ChangeEvent } from "react";

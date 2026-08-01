@@ -1,13 +1,13 @@
-import { ColorsSwatch } from "pixelarticons/react/ColorsSwatch";
-import { Eye } from "pixelarticons/react/Eye";
-import { EyeOff } from "pixelarticons/react/EyeOff";
-import { Grid3x3 } from "pixelarticons/react/Grid3x3";
-import { Hand } from "pixelarticons/react/Hand";
-import { Pencil } from "pixelarticons/react/Pencil";
-import { Pipette } from "pixelarticons/react/Pipette";
-import { Target } from "pixelarticons/react/Target";
-import { ZoomIn } from "pixelarticons/react/ZoomIn";
-import { ZoomOut } from "pixelarticons/react/ZoomOut";
+import Bucket from "@/components/icons/bucket.svg?react";
+import Eye from "@/components/icons/eye.svg?react";
+import EyeOff from "@/components/icons/eye-off.svg?react";
+import Grid from "@/components/icons/grid.svg?react";
+import Hand from "@/components/icons/hand.svg?react";
+import Pencil from "@/components/icons/pencil.svg?react";
+import Pipette from "@/components/icons/pipette.svg?react";
+import Target from "@/components/icons/target.svg?react";
+import ZoomIn from "@/components/icons/zoom-in.svg?react";
+import ZoomOut from "@/components/icons/zoom-out.svg?react";
 import { ToolButton } from "./tool-button";
 import type { ColoringTool } from "@/coloring/types";
 
@@ -47,7 +47,7 @@ export function ToolPicker({
           <Pencil aria-hidden height={24} width={24} />
         </ToolButton>
         <ToolButton label="Bucket fill tool" onClick={() => onSelect("bucket")} pressed={selectedTool === "bucket"}>
-          <ColorsSwatch aria-hidden height={24} width={24} />
+          <Bucket aria-hidden height={24} width={24} />
         </ToolButton>
         <ToolButton label="Color picker tool" onClick={() => onSelect("picker")} pressed={selectedTool === "picker"}>
           <Pipette aria-hidden height={24} width={24} />
@@ -72,7 +72,7 @@ export function ToolPicker({
 
       <div className={GROUP}>
         <ToolButton label={gridLabel} onClick={onToggleGrid} pressed={gridVisible}>
-          <Grid3x3 aria-hidden height={24} width={24} />
+          <Grid aria-hidden height={24} width={24} />
         </ToolButton>
         <ToolButton label={numbersLabel} onClick={onToggleNumbers} pressed={numbersVisible}>
           {numbersVisible ? <Eye aria-hidden height={24} width={24} /> : <EyeOff aria-hidden height={24} width={24} />}

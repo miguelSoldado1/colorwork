@@ -3,6 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
+import svgr from "vite-plugin-svgr";
 import { debugFillPlugin } from "./build/debug-fill-plugin";
 
 // https://vite.dev/config/
@@ -16,6 +17,7 @@ export default defineConfig(({ command, mode }) => {
       debugFillPlugin(debugFillEnabled),
       // '@tanstack/router-plugin' must come before '@vitejs/plugin-react'.
       tanstackRouter({ autoCodeSplitting: true, target: "react" }),
+      svgr({ include: "**/*.svg?react" }),
       react(),
       babel({ presets: [reactCompilerPreset()] }),
       tailwindcss(),

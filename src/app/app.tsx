@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft } from "pixelarticons/react/ArrowLeft";
 import { useRef, useState } from "react";
 import { createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
+import ArrowLeft from "@/components/icons/arrow-left.svg?react";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
 import { ToolPicker } from "@/components/toolbar/tool-picker";

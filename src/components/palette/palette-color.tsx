@@ -1,5 +1,5 @@
-import { Check } from "pixelarticons/react/Check";
 import { readableInk } from "@/coloring/readable-ink";
+import Check from "@/components/icons/check.svg?react";
 import { Button } from "@/components/ui/button";
 
 interface PaletteColorProps {
@@ -29,7 +29,7 @@ export function PaletteColor({ color, colorIndex, onSelect, painted, selected, t
         variant="secondary"
       >
         <span className="font-bold text-base leading-none">
-          {complete ? <Check aria-hidden height={20} width={20} /> : colorIndex + 1}
+          {complete ? <Check aria-hidden className="block" height={20} width={20} /> : colorIndex + 1}
         </span>
         {/* The swatch drains as its cells are filled, so the row doubles as ambient progress. */}
         <span

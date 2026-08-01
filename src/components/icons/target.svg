@@ -1,0 +1,13 @@
+<svg
+  aria-hidden="true"
+  fill="currentColor"
+  height="24"
+  shape-rendering="crispEdges"
+  viewBox="0 0 24 24"
+  width="24"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    d="M1 11h6v2H1zM4 5h3v1H4zM4 6h2v1H4zM4 17h2v1H4zM4 18h3v1H4zM5 4h2v1H5zM5 19h2v1H5zM9 11h6v2H9zM11 1h2v6H11zM11 9h2v2H11zM11 13h2v2H11zM11 17h2v6H11zM17 4h2v1H17zM17 5h3v1H17zM17 11h6v2H17zM17 18h3v1H17zM17 19h2v1H17zM18 6h2v1H18zM18 17h2v1H18z"
+  />
+</svg>

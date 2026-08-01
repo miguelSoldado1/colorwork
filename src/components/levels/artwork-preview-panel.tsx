@@ -1,9 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Brush } from "pixelarticons/react/Brush";
-import { Eye } from "pixelarticons/react/Eye";
-import { EyeOff } from "pixelarticons/react/EyeOff";
-import { Reload } from "pixelarticons/react/Reload";
 import { useEffect, useRef, useState } from "react";
+import Eye from "@/components/icons/eye.svg?react";
+import EyeOff from "@/components/icons/eye-off.svg?react";
+import Reload from "@/components/icons/reload.svg?react";
 import { LevelPreview } from "@/components/levels/level-preview";
 import { describeLevelState, LevelSpecs, paintActionLabel } from "@/components/levels/level-specs";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ interface ArtworkPreviewPanelProps {
 }
 
 const ACTION_LINK =
-  "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-md border px-4 transition-[filter,transform,color,border-color] duration-200 ease-out focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-px";
+  "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md border px-4 transition-[filter,transform,color,border-color] duration-200 ease-out focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-px";
 
 export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
   const panelRef = useRef<HTMLElement>(null);
@@ -61,7 +60,6 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
             params={{ levelId: level.puzzle.id }}
             to="/play/$levelId"
           >
-            <Brush aria-hidden height={19} width={19} />
             {paintActionLabel(level)}
           </Link>
 

@@ -1,7 +1,3 @@
-import { Check } from "pixelarticons/react/Check";
-import { Close } from "pixelarticons/react/Close";
-import { Link } from "pixelarticons/react/Link";
-import { Unlink } from "pixelarticons/react/Unlink";
 import { useEffect, useRef, useState } from "react";
 import {
   createPuzzleFromImage,
@@ -9,6 +5,10 @@ import {
   getRecommendedGridSize,
   type ImageImportSource,
 } from "@/coloring/import-image";
+import Check from "@/components/icons/check.svg?react";
+import Close from "@/components/icons/close.svg?react";
+import Link from "@/components/icons/link.svg?react";
+import Unlink from "@/components/icons/unlink.svg?react";
 import { Button } from "@/components/ui/button";
 import type { PuzzleDefinition } from "@/coloring/types";
 
@@ -238,7 +238,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
           Cancel
         </Button>
         <Button disabled={!puzzle} onClick={confirmPuzzle} variant="primary">
-          <Check aria-hidden height={19} width={19} />
+          <Check aria-hidden className="block shrink-0" height={19} width={19} />
           Use this puzzle
         </Button>
       </div>
