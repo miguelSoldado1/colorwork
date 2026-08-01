@@ -13,7 +13,7 @@ export function LevelsMenu({ previewId }: LevelsMenuProps) {
     <main className="min-h-svh px-3 py-5 text-foreground sm:px-6 sm:py-8">
       <div className="mx-auto flex min-w-0 max-w-384 flex-col gap-6 sm:gap-8">
         <header className="min-w-0 border-border border-b pb-4 sm:pb-6">
-          <p className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.24em]">Color Byte</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.24em]">Color Byte</p>
           <h1 className="mt-1 font-semibold text-xl leading-none sm:text-2xl">Artworks</h1>
           <p className="mt-2 text-muted-foreground text-sm">{summarizeCatalog()}</p>
         </header>

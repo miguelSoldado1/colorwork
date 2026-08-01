@@ -44,7 +44,7 @@ export function App({ puzzle }: AppProps) {
         <header className="flex min-w-0 items-end justify-between gap-4 border-border border-b px-1 pb-3 sm:pb-4">
           <div className="min-w-0">
             <Link
-              className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground/70 uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+              className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
               to="/"
             >
               <ArrowLeft height={13} width={13} />
@@ -107,7 +107,13 @@ export function App({ puzzle }: AppProps) {
             puzzleWidth={puzzle.width}
           />
           <div className="min-w-0 flex-1">
-            <Palette onSelect={setSelectedColor} puzzle={puzzle} selectedColor={selectedColor} summary={summary} />
+            <Palette
+              complete={complete}
+              onSelect={setSelectedColor}
+              puzzle={puzzle}
+              selectedColor={selectedColor}
+              summary={summary}
+            />
           </div>
         </aside>
       </div>

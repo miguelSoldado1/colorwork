@@ -2,13 +2,14 @@ import { PaletteColor } from "./palette-color";
 import type { ProgressSummary, PuzzleDefinition } from "@/coloring/types";
 
 interface PaletteProps {
+  complete: boolean;
   onSelect: (colorIndex: number) => void;
   puzzle: PuzzleDefinition;
   selectedColor: number;
   summary: ProgressSummary;
 }
 
-export function Palette({ onSelect, puzzle, selectedColor, summary }: PaletteProps) {
+export function Palette({ complete, onSelect, puzzle, selectedColor, summary }: PaletteProps) {
   const painted = summary.paintedByColor[selectedColor] ?? 0;
   const total = summary.totalByColor[selectedColor] ?? 0;
 
@@ -41,6 +42,7 @@ export function Palette({ onSelect, puzzle, selectedColor, summary }: PalettePro
               key={color}
               onSelect={onSelect}
               painted={colorPainted}
+              puzzleComplete={complete}
               selected={colorIndex === selectedColor}
               total={colorTotal}
             />

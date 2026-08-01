@@ -14,7 +14,7 @@ export function IndexMenu({ levels }: IndexMenuProps) {
     <div className="min-w-0 overflow-hidden rounded-xl border border-border">
       <div
         aria-hidden
-        className={`${COLUMNS} border-border border-b bg-card/40 px-4 py-3 text-[10px] text-muted-foreground/60 uppercase tracking-[0.2em] sm:px-6`}
+        className={`${COLUMNS} border-border border-b bg-card/40 px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-[0.2em] sm:px-6`}
       >
         <span />
         <span>Artwork</span>
@@ -48,7 +48,7 @@ function IndexRow({ level }: { level: LevelDescription }) {
         <span className="min-w-0 truncate text-sm">{puzzle.name}</span>
 
         <span
-          className="text-right text-sm tabular-nums data-[finished=true]:text-primary data-[started=false]:text-muted-foreground/40"
+          className="text-right text-sm tabular-nums data-[finished=true]:text-primary data-[started=false]:text-muted-foreground"
           data-finished={finished}
           data-started={level.started}
         >

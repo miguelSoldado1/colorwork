@@ -7,11 +7,20 @@ interface PaletteColorProps {
   colorIndex: number;
   onSelect: (colorIndex: number) => void;
   painted: number;
+  puzzleComplete: boolean;
   selected: boolean;
   total: number;
 }
 
-export function PaletteColor({ color, colorIndex, onSelect, painted, selected, total }: PaletteColorProps) {
+export function PaletteColor({
+  color,
+  colorIndex,
+  onSelect,
+  painted,
+  puzzleComplete,
+  selected,
+  total,
+}: PaletteColorProps) {
   const complete = total > 0 && painted === total;
   const filled = total === 0 ? 0 : (painted / total) * 100;
   const ink = readableInk(color);
@@ -21,8 +30,8 @@ export function PaletteColor({ color, colorIndex, onSelect, painted, selected, t
       <Button
         aria-label={`Color ${colorIndex + 1}: ${painted} of ${total} cells painted`}
         aria-pressed={selected}
-        className="relative shrink-0 overflow-hidden hover:-translate-y-0.5 focus-visible:outline-offset-4 aria-pressed:ring-2 aria-pressed:ring-foreground/80 aria-pressed:ring-offset-2 aria-pressed:ring-offset-card data-[complete=true]:opacity-50"
-        data-complete={complete}
+        className="relative shrink-0 overflow-hidden hover:-translate-y-0.5 focus-visible:outline-offset-4 aria-pressed:ring-2 aria-pressed:ring-foreground/80 aria-pressed:ring-offset-2 aria-pressed:ring-offset-card data-[spent=true]:opacity-50"
+        data-spent={complete && !puzzleComplete}
         onClick={() => onSelect(colorIndex)}
         size="icon"
         style={{ backgroundColor: color, borderColor: `${ink}26`, color: ink }}

@@ -61,7 +61,7 @@ export function ImportArtworkRow() {
         </span>
         <span className="min-w-0">
           <span className="block text-sm leading-none">Import your own</span>
-          <span className="mt-1.5 block text-muted-foreground/70 text-xs">
+          <span className="mt-1.5 block text-muted-foreground text-xs">
             Turn a PNG, JPG, or WebP into a numbered board
           </span>
         </span>
