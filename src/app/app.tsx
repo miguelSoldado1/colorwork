@@ -44,7 +44,7 @@ export function App({ puzzle }: AppProps) {
         <header className="flex min-w-0 items-end justify-between gap-4 border-border border-b px-1 pb-3 sm:pb-4">
           <div className="min-w-0">
             <Link
-              className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+              className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground uppercase tracking-[0.2em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
               to="/"
             >
               <ArrowLeft height={13} width={13} />
@@ -67,18 +67,22 @@ export function App({ puzzle }: AppProps) {
         </header>
 
         <div className="flex min-h-0 min-w-0 flex-col gap-3 sm:flex-row sm:gap-4">
-          {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. */}
-          <aside className="scrollbar-none min-h-0 w-full min-w-0 self-start overflow-x-auto overscroll-contain rounded-xl border border-border bg-card/80 p-2 sm:max-h-full sm:w-auto sm:shrink-0 sm:self-center sm:overflow-y-auto">
-            <ToolPicker
-              gridVisible={showGrid}
-              highlightMissing={highlightMissing}
-              numbersVisible={showNumbers}
-              onSelect={setSelectedTool}
-              onToggleGrid={toggleGrid}
-              onToggleMissing={toggleMissingHighlight}
-              onToggleNumbers={toggleNumbers}
-              selectedTool={selectedTool}
-            />
+          {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. The card
+              carries the border and the strip inside it carries the scroll, so fading the strip's ends
+              cannot dissolve the outline. */}
+          <aside className="min-h-0 w-full min-w-0 self-start rounded-xl border border-border bg-card/80 p-2 sm:flex sm:max-h-full sm:w-auto sm:shrink-0 sm:self-center">
+            <div className="scrollbar-none max-sm:scroll-fade-x min-h-0 overflow-x-auto overscroll-contain sm:overflow-y-auto sm:overflow-x-visible">
+              <ToolPicker
+                gridVisible={showGrid}
+                highlightMissing={highlightMissing}
+                numbersVisible={showNumbers}
+                onSelect={setSelectedTool}
+                onToggleGrid={toggleGrid}
+                onToggleMissing={toggleMissingHighlight}
+                onToggleNumbers={toggleNumbers}
+                selectedTool={selectedTool}
+              />
+            </div>
           </aside>
 
           {/* Clipped, not hidden, with room for the completion burst to fly past the board edge. */}
