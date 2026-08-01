@@ -8,6 +8,8 @@ import ArrowLeft from "@/components/icons/arrow-left.svg?react";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
+import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
+import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
 import type { ColoringTool, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 interface AppProps {
@@ -23,6 +25,22 @@ export function App({ puzzle }: AppProps) {
   const [highlightMissing, setHighlightMissing] = useState(false);
   const [progress, setProgress] = useState<PuzzleProgress>(() => createPuzzleProgress(puzzle));
   const [summary, setSummary] = useState(() => createProgressSummary(puzzle, progress));
+
+  useKeyboardShortcuts([
+    ...puzzle.palette.slice(0, 9).map((_color, colorIndex) => ({
+      key: String(colorIndex + 1),
+      onTrigger: () => setSelectedColor(colorIndex),
+    })),
+    { key: TOOL_SHORTCUTS.pencil, onTrigger: () => setSelectedTool("pencil") },
+    { key: TOOL_SHORTCUTS.bucket, onTrigger: () => setSelectedTool("bucket") },
+    { key: TOOL_SHORTCUTS.picker, onTrigger: () => setSelectedTool("picker") },
+    { key: TOOL_SHORTCUTS["zoom-in"], onTrigger: () => setSelectedTool("zoom-in") },
+    { key: TOOL_SHORTCUTS["zoom-out"], onTrigger: () => setSelectedTool("zoom-out") },
+    { key: TOOL_SHORTCUTS.pan, onTrigger: () => setSelectedTool("pan") },
+    { key: TOOLBAR_SHORTCUTS.grid, onTrigger: toggleGrid },
+    { key: TOOLBAR_SHORTCUTS.numbers, onTrigger: toggleNumbers },
+    { key: TOOLBAR_SHORTCUTS.missing, onTrigger: toggleMissingHighlight },
+  ]);
 
   const complete = summary.totalPixels > 0 && summary.paintedCount >= summary.totalPixels;
 

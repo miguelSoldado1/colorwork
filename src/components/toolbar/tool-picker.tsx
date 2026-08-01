@@ -8,6 +8,7 @@ import Pipette from "@/components/icons/pipette.svg?react";
 import Target from "@/components/icons/target.svg?react";
 import ZoomIn from "@/components/icons/zoom-in.svg?react";
 import ZoomOut from "@/components/icons/zoom-out.svg?react";
+import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { ToolButton } from "./tool-button";
 import type { ColoringTool } from "@/coloring/types";
 
@@ -43,13 +44,28 @@ export function ToolPicker({
   return (
     <div aria-label="Board tools" className="flex flex-row gap-2.5 sm:flex-col" role="toolbar">
       <div className={GROUP}>
-        <ToolButton label="Pencil tool" onClick={() => onSelect("pencil")} pressed={selectedTool === "pencil"}>
+        <ToolButton
+          label="Pencil tool"
+          onClick={() => onSelect("pencil")}
+          pressed={selectedTool === "pencil"}
+          shortcut={TOOL_SHORTCUTS.pencil}
+        >
           <Pencil height={24} width={24} />
         </ToolButton>
-        <ToolButton label="Bucket fill tool" onClick={() => onSelect("bucket")} pressed={selectedTool === "bucket"}>
+        <ToolButton
+          label="Bucket fill tool"
+          onClick={() => onSelect("bucket")}
+          pressed={selectedTool === "bucket"}
+          shortcut={TOOL_SHORTCUTS.bucket}
+        >
           <Bucket height={24} width={24} />
         </ToolButton>
-        <ToolButton label="Color picker tool" onClick={() => onSelect("picker")} pressed={selectedTool === "picker"}>
+        <ToolButton
+          label="Color picker tool"
+          onClick={() => onSelect("picker")}
+          pressed={selectedTool === "picker"}
+          shortcut={TOOL_SHORTCUTS.picker}
+        >
           <Pipette height={24} width={24} />
         </ToolButton>
       </div>
@@ -57,13 +73,28 @@ export function ToolPicker({
       <div aria-hidden className={DIVIDER} />
 
       <div className={GROUP}>
-        <ToolButton label="Zoom in tool" onClick={() => onSelect("zoom-in")} pressed={selectedTool === "zoom-in"}>
+        <ToolButton
+          label="Zoom in tool"
+          onClick={() => onSelect("zoom-in")}
+          pressed={selectedTool === "zoom-in"}
+          shortcut={TOOL_SHORTCUTS["zoom-in"]}
+        >
           <ZoomIn height={24} width={24} />
         </ToolButton>
-        <ToolButton label="Zoom out tool" onClick={() => onSelect("zoom-out")} pressed={selectedTool === "zoom-out"}>
+        <ToolButton
+          label="Zoom out tool"
+          onClick={() => onSelect("zoom-out")}
+          pressed={selectedTool === "zoom-out"}
+          shortcut={TOOL_SHORTCUTS["zoom-out"]}
+        >
           <ZoomOut height={24} width={24} />
         </ToolButton>
-        <ToolButton label="Pan tool" onClick={() => onSelect("pan")} pressed={selectedTool === "pan"}>
+        <ToolButton
+          label="Pan tool"
+          onClick={() => onSelect("pan")}
+          pressed={selectedTool === "pan"}
+          shortcut={TOOL_SHORTCUTS.pan}
+        >
           <Hand height={24} width={24} />
         </ToolButton>
       </div>
@@ -71,13 +102,23 @@ export function ToolPicker({
       <div aria-hidden className={DIVIDER} />
 
       <div className={GROUP}>
-        <ToolButton label={gridLabel} onClick={onToggleGrid} pressed={gridVisible}>
+        <ToolButton label={gridLabel} onClick={onToggleGrid} pressed={gridVisible} shortcut={TOOLBAR_SHORTCUTS.grid}>
           <Grid height={24} width={24} />
         </ToolButton>
-        <ToolButton label={numbersLabel} onClick={onToggleNumbers} pressed={numbersVisible}>
+        <ToolButton
+          label={numbersLabel}
+          onClick={onToggleNumbers}
+          pressed={numbersVisible}
+          shortcut={TOOLBAR_SHORTCUTS.numbers}
+        >
           {numbersVisible ? <Eye height={24} width={24} /> : <EyeOff height={24} width={24} />}
         </ToolButton>
-        <ToolButton label={missingLabel} onClick={onToggleMissing} pressed={highlightMissing}>
+        <ToolButton
+          label={missingLabel}
+          onClick={onToggleMissing}
+          pressed={highlightMissing}
+          shortcut={TOOLBAR_SHORTCUTS.missing}
+        >
           <Target height={24} width={24} />
         </ToolButton>
       </div>

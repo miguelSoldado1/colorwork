@@ -24,10 +24,12 @@ export function PaletteColor({
   const complete = total > 0 && painted === total;
   const filled = total === 0 ? 0 : (painted / total) * 100;
   const ink = readableInk(color);
+  const shortcut = colorIndex < 9 ? String(colorIndex + 1) : undefined;
 
   return (
     <li>
       <Button
+        aria-keyshortcuts={shortcut}
         aria-label={`Color ${colorIndex + 1}: ${painted} of ${total} cells painted`}
         aria-pressed={selected}
         className="relative shrink-0 overflow-hidden hover:-translate-y-0.5 focus-visible:outline-offset-4 aria-pressed:ring-2 aria-pressed:ring-foreground/80 aria-pressed:ring-offset-2 aria-pressed:ring-offset-card data-[spent=true]:opacity-50"
