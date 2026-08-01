@@ -1,4 +1,8 @@
 export interface PuzzleDefinition {
+  artist?: {
+    name: string;
+    url?: string;
+  };
   height: number;
   id: string;
   name: string;

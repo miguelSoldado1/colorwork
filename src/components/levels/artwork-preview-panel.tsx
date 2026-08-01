@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import Eye from "@/components/icons/eye.svg?react";
 import EyeOff from "@/components/icons/eye-off.svg?react";
 import Reload from "@/components/icons/reload.svg?react";
@@ -39,6 +40,7 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
     >
       <div className="border-border border-b px-4 py-3" role="status">
         <h2 className="truncate leading-tight">{level.puzzle.name}</h2>
+        <ArtworkCredit artist={level.puzzle.artist} />
         <p className="mt-1 text-muted-foreground text-xs">{describeLevelState(level)}</p>
       </div>
 

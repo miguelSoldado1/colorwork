@@ -6,6 +6,7 @@ import {
   loadPuzzleProgress,
   type SaveStatus as SaveStatusValue,
 } from "@/coloring/progress-storage";
+import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
@@ -110,6 +111,7 @@ export function App({ persistProgress, puzzle }: AppProps) {
               <h1 className="min-w-0 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
               {persistProgress ? <SaveStatus status={saveStatus} /> : null}
             </div>
+            <ArtworkCredit artist={puzzle.artist} />
           </div>
           <div className="flex min-h-11 shrink-0 items-center gap-3 sm:gap-5">
             <div className="w-24 sm:w-56">

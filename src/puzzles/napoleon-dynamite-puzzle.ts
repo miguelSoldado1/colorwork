@@ -63,6 +63,10 @@ function decodePixels(value: string) {
 }
 
 export const napoleonDynamitePuzzle = {
+  artist: {
+    name: "kikitheguillotine",
+    url: "https://lospec.com/gallery/kikitheguillotine/napoleon-dynamite",
+  },
   height: 64,
   id: "napoleon-dynamite",
   name: "Napoleon Dynamite",

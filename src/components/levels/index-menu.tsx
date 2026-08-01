@@ -38,7 +38,7 @@ function IndexRow({ level }: { level: LevelDescription }) {
   return (
     <li>
       <Link
-        aria-label={`${puzzle.name}, ${puzzle.width} by ${puzzle.height} cells, ${completedColors} of ${puzzle.palette.length} colors finished, ${paintedCount} of ${totalPixels} pixels painted`}
+        aria-label={`${puzzle.name}${puzzle.artist ? `, artwork by ${puzzle.artist.name}` : ""}, ${puzzle.width} by ${puzzle.height} cells, ${completedColors} of ${puzzle.palette.length} colors finished, ${paintedCount} of ${totalPixels} pixels painted`}
         className={`${COLUMNS} px-4 py-3.5 transition-colors duration-150 ease-out hover:bg-foreground/4 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 sm:px-6`}
         search={(previous) => ({ ...previous, artwork: puzzle.id })}
         to="/"
