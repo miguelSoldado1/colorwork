@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { createCompletedPuzzleProgress, createPuzzleProgress } from "@/coloring/progress";
 import { describeLevel, MENU_LEVELS } from "@/levels/describe-level";
 import { findImportedPuzzle, rememberImportedPuzzle } from "@/levels/imported-levels";
 import { findLevel, LEVELS } from "@/levels/level-catalog";
@@ -54,7 +55,7 @@ describe("imported levels", () => {
 });
 
 describe("describeLevel", () => {
-  it("reads as untouched, because no progress is persisted yet", () => {
+  it("reads as untouched when no progress is supplied", () => {
     const puzzle = puzzleOf(2, [0, 1, 2, 3]);
     const description = describeLevel(puzzle);
 
@@ -78,6 +79,39 @@ describe("describeLevel", () => {
 
     expect(description.finishedColors).toEqual([false, false, false, false]);
     expect(description.finishedColors).toHaveLength(description.puzzle.palette.length);
+  });
+
+  it("describes partial progress using counts and completed colors", () => {
+    const puzzle = puzzleOf(2, [0, 1, 0, 1]);
+    const progress = createPuzzleProgress(puzzle);
+    progress.paintedPixels[0] = 0;
+    progress.paintedPixels[1] = 1;
+    progress.paintedPixels[3] = 1;
+    progress.paintedByColor[0] = 1;
+    progress.paintedByColor[1] = 2;
+    progress.paintedCount = 3;
+
+    expect(describeLevel(puzzle, progress)).toMatchObject({
+      completedColors: 1,
+      finished: false,
+      finishedColors: [false, true],
+      paintedCount: 3,
+      percent: 75,
+      started: true,
+    });
+  });
+
+  it("describes completed progress without relying on rounded percent", () => {
+    const puzzle = puzzleOf(2, [0, 1, 0, 1]);
+
+    expect(describeLevel(puzzle, createCompletedPuzzleProgress(puzzle))).toMatchObject({
+      completedColors: 2,
+      finished: true,
+      finishedColors: [true, true],
+      paintedCount: 4,
+      percent: 100,
+      started: true,
+    });
   });
 
   it("describes the catalog once per artwork", () => {

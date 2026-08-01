@@ -1,32 +1,37 @@
+import { countTargetPixelsByColor } from "@/coloring/progress";
 import { LEVELS } from "./level-catalog";
-import type { PuzzleDefinition } from "@/coloring/types";
+import type { PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 export interface LevelDescription {
-  /** How many palette colors have no cells left. */
   completedColors: number;
   finished: boolean;
-  /** Per palette index: true once that color has no cells left. */
   finishedColors: readonly boolean[];
   paintedCount: number;
-  /** Rounded whole percent, for the meter only. Counts decide whether something is finished. */
   percent: number;
   puzzle: PuzzleDefinition;
   started: boolean;
   totalPixels: number;
 }
 
-export const MENU_LEVELS: readonly LevelDescription[] = LEVELS.map(describeLevel);
+export const MENU_LEVELS: readonly LevelDescription[] = LEVELS.map((puzzle) => describeLevel(puzzle));
 
-/** Replace these zeroes with stored progress once persistence is available. */
-export function describeLevel(puzzle: PuzzleDefinition): LevelDescription {
+export function describeLevel(puzzle: PuzzleDefinition, progress?: PuzzleProgress): LevelDescription {
+  const totalByColor = countTargetPixelsByColor(puzzle);
+  const paintedCount = progress?.paintedCount ?? 0;
+  const finishedColors = Array.from(totalByColor, (total, colorIndex) => {
+    const painted = progress?.paintedByColor[colorIndex] ?? 0;
+    return total > 0 && painted >= total;
+  });
+  const totalPixels = puzzle.width * puzzle.height;
+
   return {
-    completedColors: 0,
-    finished: false,
-    finishedColors: puzzle.palette.map(() => false),
-    paintedCount: 0,
-    percent: 0,
+    completedColors: finishedColors.filter(Boolean).length,
+    finished: totalPixels > 0 && paintedCount >= totalPixels,
+    finishedColors,
+    paintedCount,
+    percent: totalPixels === 0 ? 0 : Math.round((paintedCount / totalPixels) * 100),
     puzzle,
-    started: false,
-    totalPixels: puzzle.width * puzzle.height,
+    started: paintedCount > 0,
+    totalPixels,
   };
 }

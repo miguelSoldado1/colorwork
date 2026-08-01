@@ -16,14 +16,15 @@ export const Route = createFileRoute("/play/$levelId")({
 
 function PlayRoute() {
   const { levelId } = Route.useParams();
-  const puzzle = resolvePuzzle(levelId);
+  const catalogPuzzle = findLevel(levelId);
+  const puzzle = catalogPuzzle ?? findImportedPuzzle(levelId);
 
   if (!puzzle) {
     return null;
   }
 
   // Keyed so switching artworks rebuilds board state instead of inheriting the previous puzzle's.
-  return <App key={puzzle.id} puzzle={puzzle} />;
+  return <App key={puzzle.id} persistProgress={catalogPuzzle !== undefined} puzzle={puzzle} />;
 }
 
 function resolvePuzzle(levelId: string) {

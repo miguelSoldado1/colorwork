@@ -1,30 +1,41 @@
 import { Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
+import {
+  createProgressSaveController,
+  loadPuzzleProgress,
+  type SaveStatus as SaveStatusValue,
+} from "@/coloring/progress-storage";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
 import ArrowLeft from "@/components/icons/arrow-left.svg?react";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
+import { SaveStatus } from "@/components/progress/save-status";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
-import type { ColoringTool, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
+import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 interface AppProps {
+  persistProgress: boolean;
   puzzle: PuzzleDefinition;
 }
 
-export function App({ puzzle }: AppProps) {
+export function App({ persistProgress, puzzle }: AppProps) {
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [showGrid, setShowGrid] = useState(true);
   const [showNumbers, setShowNumbers] = useState(false);
   const [highlightMissing, setHighlightMissing] = useState(false);
-  const [progress, setProgress] = useState<PuzzleProgress>(() => createPuzzleProgress(puzzle));
+  const [progress, setProgress] = useState(() => createInitialProgress(puzzle, persistProgress));
   const [summary, setSummary] = useState(() => createProgressSummary(puzzle, progress));
+  const [saveStatus, setSaveStatus] = useState<SaveStatusValue>("idle");
+  const [progressSaver] = useState(() => createProgressSaveController({ onStatus: setSaveStatus, puzzle }));
+
+  useEffect(() => (persistProgress ? progressSaver.connect() : undefined), [persistProgress, progressSaver]);
 
   useKeyboardShortcuts([
     ...puzzle.palette.slice(0, 9).map((_color, colorIndex) => ({
@@ -56,6 +67,20 @@ export function App({ puzzle }: AppProps) {
     setHighlightMissing((highlighted) => !highlighted);
   }
 
+  function updateBoardProgress(nextSummary: ProgressSummary) {
+    setSummary(nextSummary);
+    if (persistProgress) {
+      progressSaver.schedule(progress, nextSummary.paintedCount >= nextSummary.totalPixels);
+    }
+  }
+
+  function replaceDebugProgress(nextProgress: PuzzleProgress) {
+    setProgress(nextProgress);
+    if (persistProgress) {
+      progressSaver.schedule(nextProgress, nextProgress.paintedCount >= puzzle.width * puzzle.height);
+    }
+  }
+
   return (
     <main className="relative h-svh overflow-hidden p-3 text-foreground sm:p-5">
       <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4">
@@ -68,7 +93,10 @@ export function App({ puzzle }: AppProps) {
               <ArrowLeft height={13} width={13} />
               All artworks
             </Link>
-            <h1 className="mt-1 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
+            <div className="mt-1 flex min-w-0 items-center gap-2">
+              <h1 className="min-w-0 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
+              {persistProgress ? <SaveStatus status={saveStatus} /> : null}
+            </div>
           </div>
           <div className="flex min-h-11 shrink-0 items-center gap-3 sm:gap-5">
             <div className="w-24 sm:w-56">
@@ -76,7 +104,7 @@ export function App({ puzzle }: AppProps) {
             </div>
             <DebugFillControl
               key={puzzle.id}
-              onProgress={setProgress}
+              onProgress={replaceDebugProgress}
               onSummary={setSummary}
               progress={progress}
               puzzle={puzzle}
@@ -104,7 +132,7 @@ export function App({ puzzle }: AppProps) {
             <ColoringBoard
               complete={complete}
               highlightMissing={highlightMissing}
-              onProgress={setSummary}
+              onProgress={updateBoardProgress}
               onSelectColor={setSelectedColor}
               overviewCanvasRef={overviewCanvasRef}
               progress={progress}
@@ -137,4 +165,9 @@ export function App({ puzzle }: AppProps) {
       </div>
     </main>
   );
+}
+
+function createInitialProgress(puzzle: PuzzleDefinition, persistProgress: boolean): PuzzleProgress {
+  const storedProgress = persistProgress ? loadPuzzleProgress(puzzle) : undefined;
+  return storedProgress ?? createPuzzleProgress(puzzle);
 }
