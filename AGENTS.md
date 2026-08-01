@@ -42,7 +42,6 @@
 - A shrink-wrapping element around the canvas gives the burst the board's box without measuring it. Keep transforms off that chain: a transform there would smear the axis-aligned particles.
 - Preserve accessible labels, pressed states, focus states, and touch-friendly control sizes.
 - The tool rail is a horizontal scrolling strip above the board on phones and a vertical rail beside it from `sm` up. Panels that hold overflowing content need `min-w-0`, or the grid and flex parents floor at `min-content` and clip instead of scrolling.
-- A strip that scrolls wears `scroll-fade-x` on phones, where it always overflows. Without it the cut can land on a divider and read as the end of the strip, which is how a whole group of toggles came to be invisible. The fade belongs on the scrolling element, never on the card around it: masking the card would dissolve its own border and corners, so the rail keeps the border on the outer element and the scroll on an inner one.
 
 ## Canvas behavior
 

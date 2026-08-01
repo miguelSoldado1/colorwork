@@ -30,7 +30,7 @@ export function Palette({ complete, onSelect, puzzle, selectedColor, summary }: 
         </span>
       </div>
       {/* Clears the selected swatch's ring, its focus outline, and the hover lift; the scroll container clips all three. */}
-      <ul aria-label="Puzzle colors" className="scrollbar-none max-sm:scroll-fade-x flex gap-2.5 overflow-x-auto p-2.5">
+      <ul aria-label="Puzzle colors" className="scrollbar-none flex gap-2.5 overflow-x-auto p-2.5">
         {puzzle.palette.map((color, colorIndex) => {
           const colorPainted = summary.paintedByColor[colorIndex] ?? 0;
           const colorTotal = summary.totalByColor[colorIndex] ?? 0;

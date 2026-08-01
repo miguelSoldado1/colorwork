@@ -67,17 +67,6 @@
   }
 }
 
-/* Softens the ends of a strip that scrolls, so a clipped row never reads as a finished one. */
-@utility scroll-fade-x {
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 1.25rem,
-    black calc(100% - 1.25rem),
-    transparent
-  );
-}
-
 @utility scrollbar-none {
   scrollbar-width: none;
 
