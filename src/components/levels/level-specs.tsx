@@ -52,8 +52,9 @@ export function describeLevelState({ completedColors, finished, puzzle, started 
 }
 
 export function paintActionLabel({ finished, started }: LevelDescription) {
+  // Opening a finished artwork restores the finished board, so the label cannot promise a repaint.
   if (finished) {
-    return "Paint it again";
+    return "Open the finished board";
   }
   return started ? "Keep painting" : "Start painting";
 }
