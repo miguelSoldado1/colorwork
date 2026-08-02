@@ -16,8 +16,8 @@ export function IndexMenu({ levels }: IndexMenuProps) {
         aria-hidden
         className={`${COLUMNS} border-border border-b bg-card/40 px-4 py-3 text-[10px] text-muted-foreground uppercase tracking-[0.2em] sm:px-6`}
       >
-        <span />
         <span>Artwork</span>
+        <span />
         <span className="text-right">Pixels</span>
       </div>
 
