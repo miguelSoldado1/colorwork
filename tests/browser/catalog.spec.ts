@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test";
 const PLAY_URL = /\/play\/[^/]+$/;
 const PIXEL_COUNT = /^\d+$/;
 const ROOT_URL = /\/$/;
-const POND_BUTTON = /^Pond/;
-const NAPOLEON_BUTTON = /^Napoleon Dynamite/;
+const RIBBIT_BUTTON = /^Ribbit/;
+const GOBBO_BUTTON = /^Gobbo/;
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -15,18 +15,18 @@ test.describe("artwork catalog", () => {
     await expect(page.getByRole("heading", { name: "Artworks" })).toBeVisible();
     const preview = page.getByRole("complementary", { name: "Artwork preview" });
     await expect(preview).toBeVisible();
-    await expect(preview.getByRole("heading", { name: "Napoleon Dynamite" })).toBeVisible();
+    await expect(preview.getByRole("heading", { name: "Gobbo" })).toBeVisible();
 
-    await page.getByRole("button", { name: POND_BUTTON }).click();
+    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
     await expect(page).toHaveURL(ROOT_URL);
-    await expect(preview.getByRole("heading", { name: "Pond" })).toBeVisible();
+    await expect(preview.getByRole("heading", { name: "Ribbit" })).toBeVisible();
 
     await preview.getByRole("button", { name: "See full artwork" }).click();
     await expect(preview.getByRole("button", { name: "Hide full artwork" })).toBeVisible();
 
-    await page.getByRole("button", { name: NAPOLEON_BUTTON }).click();
+    await page.getByRole("button", { name: GOBBO_BUTTON }).click();
     await expect(page).toHaveURL(ROOT_URL);
-    await expect(preview.getByRole("heading", { name: "Napoleon Dynamite" })).toBeVisible();
+    await expect(preview.getByRole("heading", { name: "Gobbo" })).toBeVisible();
     await expect(preview.getByRole("button", { name: "See full artwork" })).toBeVisible();
   });
 
@@ -34,10 +34,10 @@ test.describe("artwork catalog", () => {
     await page.setViewportSize({ height: 952, width: 539 });
     await page.goto("/");
 
-    await page.getByRole("button", { name: POND_BUTTON }).click();
+    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
     await expect(page).toHaveURL(ROOT_URL);
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
-    await expect(page.getByRole("heading", { name: "Pond" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ribbit" })).toBeVisible();
   });
 
   test("opens every catalog entry and initializes its board", async ({ page }) => {

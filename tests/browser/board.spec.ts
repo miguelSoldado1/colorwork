@@ -4,7 +4,7 @@ import { expect, type Page, test } from "@playwright/test";
 const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
 const IMPORTED_URL = /\/play\/two-color-fixture-/;
 const PAINTED_ANY = /[1-9][0-9,]* of [0-9,]+ pixels painted/;
-const POND_BUTTON = /^Pond/;
+const RIBBIT_BUTTON = /^Ribbit/;
 const ZOOMED_IN = /^1\.8/;
 const FIXTURE = {
   buffer: Buffer.from(
@@ -69,7 +69,7 @@ test.describe("coloring board", () => {
   });
 
   test("persists catalog progress and clears it from the menu", async ({ page }) => {
-    await page.goto("/play/pond");
+    await page.goto("/play/ribbit");
     const canvas = page.getByRole("img", { name: BOARD_LABEL });
     await expect(canvas).toBeVisible();
 
@@ -83,11 +83,11 @@ test.describe("coloring board", () => {
     await canvas.click({ position });
     await expect(page.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
     await expect
-      .poll(() => page.evaluate(() => Object.keys(localStorage).some((key) => key === "color-byte:progress:v1:pond")))
+      .poll(() => page.evaluate(() => Object.keys(localStorage).some((key) => key === "color-byte:progress:v1:ribbit")))
       .toBe(true);
 
     await page.getByRole("link", { name: "All artworks" }).click();
-    await page.getByRole("button", { name: POND_BUTTON }).click();
+    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
 
     const preview = page.getByRole("complementary", { name: "Artwork preview" });
     const startOver = preview.getByRole("button", { name: "Start over" });
@@ -101,7 +101,7 @@ test.describe("coloring board", () => {
     await preview.getByRole("button", { name: "Start over" }).click();
     await preview.getByRole("button", { name: "Yes, clear it" }).click();
     await expect(preview.getByRole("button", { name: "Start over" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: POND_BUTTON })).toContainText("0 | 65,536");
+    await expect(page.getByRole("button", { name: RIBBIT_BUTTON })).toContainText("0 | 12,544");
   });
 });
 
