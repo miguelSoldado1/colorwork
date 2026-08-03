@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { downloadPuzzleModule } from "@/coloring/export-puzzle";
 import {
   createPuzzleFromImage,
   getImportName,
@@ -10,6 +11,7 @@ import Close from "@/components/icons/close.svg?react";
 import Link from "@/components/icons/link.svg?react";
 import Unlink from "@/components/icons/unlink.svg?react";
 import { Button } from "@/components/ui/button";
+import { isDebugMode } from "@/debug/debug-mode";
 import type { PuzzleDefinition } from "@/coloring/types";
 
 const MIN_GRID_SIZE = 1;
@@ -109,6 +111,15 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
   function confirmPuzzle() {
     if (puzzle) {
       onConfirm({
+        ...puzzle,
+        name: name.trim() || "Custom puzzle",
+      });
+    }
+  }
+
+  function downloadCurrentPuzzle() {
+    if (puzzle) {
+      downloadPuzzleModule({
         ...puzzle,
         name: name.trim() || "Custom puzzle",
       });
@@ -232,6 +243,11 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
       </div>
 
       <div className="flex flex-col-reverse gap-3 border-border border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+        {isDebugMode ? (
+          <Button className="sm:mr-auto" disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
+            Download .ts module
+          </Button>
+        ) : null}
         <Button onClick={onCancel} variant="ghost">
           Cancel
         </Button>
