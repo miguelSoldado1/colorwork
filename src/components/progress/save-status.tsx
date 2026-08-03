@@ -1,8 +1,8 @@
 import Save from "@/components/icons/save.svg?react";
-import type { SaveStatus as SaveStatusValue } from "@/coloring/progress-storage";
+import type { ProgressSaveStatus } from "@/coloring/progress-storage";
 
 interface SaveStatusProps {
-  status: SaveStatusValue;
+  status: ProgressSaveStatus;
 }
 
 export function SaveStatus({ status }: SaveStatusProps) {

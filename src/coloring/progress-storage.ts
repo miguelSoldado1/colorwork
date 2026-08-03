@@ -17,10 +17,10 @@ interface StoredProgressV1 {
   version: 1;
 }
 
-export type SaveStatus = "error" | "idle" | "saved" | "saving";
+export type ProgressSaveStatus = "error" | "idle" | "saved" | "saving";
 
 interface ProgressSaveControllerOptions {
-  onStatus: (status: SaveStatus) => void;
+  onStatus: (status: ProgressSaveStatus) => void;
   puzzle: PuzzleDefinition;
   storage?: ProgressStorage;
 }

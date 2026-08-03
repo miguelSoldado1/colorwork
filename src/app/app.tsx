@@ -1,11 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
-import {
-  createProgressSaveController,
-  loadPuzzleProgress,
-  type SaveStatus as SaveStatusValue,
-} from "@/coloring/progress-storage";
+import { createProgressSaveController, loadPuzzleProgress, type ProgressSaveStatus } from "@/coloring/progress-storage";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
@@ -33,7 +29,7 @@ export function App({ persistProgress, puzzle }: AppProps) {
   const [highlightMissing, setHighlightMissing] = useState(false);
   const [progress, setProgress] = useState(() => createInitialProgress(puzzle, persistProgress));
   const [summary, setSummary] = useState(() => createProgressSummary(puzzle, progress));
-  const [saveStatus, setSaveStatus] = useState<SaveStatusValue>("idle");
+  const [saveStatus, setSaveStatus] = useState<ProgressSaveStatus>("idle");
   const [progressSaver] = useState(() => createProgressSaveController({ onStatus: setSaveStatus, puzzle }));
   const [celebrateCompletion, setCelebrateCompletion] = useState(false);
   const completedRef = useRef(isPuzzleComplete(summary));
