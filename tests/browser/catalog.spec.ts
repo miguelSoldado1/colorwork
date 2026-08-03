@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-const NAPOLEON_URL = /\/\?artwork=napoleon-dynamite$/;
-const POND_URL = /\/\?artwork=pond$/;
 const PLAY_URL = /\/play\/[^/]+$/;
 const PIXEL_COUNT = /^\d+$/;
 const ROOT_URL = /\/$/;
+const POND_BUTTON = /^Pond/;
+const NAPOLEON_BUTTON = /^Napoleon Dynamite/;
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("artwork catalog", () => {
-  test("shows a default preview and keeps the selected artwork in the URL", async ({ page }) => {
+  test("shows a default preview and keeps selection client-side", async ({ page }) => {
     await page.goto("/");
 
     await expect(page.getByRole("heading", { name: "Artworks" })).toBeVisible();
@@ -17,15 +17,15 @@ test.describe("artwork catalog", () => {
     await expect(preview).toBeVisible();
     await expect(preview.getByRole("heading", { name: "Napoleon Dynamite" })).toBeVisible();
 
-    await page.locator('a[href="/?artwork=pond"]').click();
-    await expect(page).toHaveURL(POND_URL);
+    await page.getByRole("button", { name: POND_BUTTON }).click();
+    await expect(page).toHaveURL(ROOT_URL);
     await expect(preview.getByRole("heading", { name: "Pond" })).toBeVisible();
 
     await preview.getByRole("button", { name: "See full artwork" }).click();
     await expect(preview.getByRole("button", { name: "Hide full artwork" })).toBeVisible();
 
-    await page.locator('a[href="/?artwork=napoleon-dynamite"]').click();
-    await expect(page).toHaveURL(NAPOLEON_URL);
+    await page.getByRole("button", { name: NAPOLEON_BUTTON }).click();
+    await expect(page).toHaveURL(ROOT_URL);
     await expect(preview.getByRole("heading", { name: "Napoleon Dynamite" })).toBeVisible();
     await expect(preview.getByRole("button", { name: "See full artwork" })).toBeVisible();
   });
@@ -33,18 +33,17 @@ test.describe("artwork catalog", () => {
   test("opens every catalog entry and initializes its board", async ({ page }) => {
     await page.goto("/");
 
-    const artworkLinks = page.locator('a[href*="artwork="]');
-    await expect(artworkLinks.first()).toBeVisible();
-    const artworkHrefs = await artworkLinks.evaluateAll((links) =>
-      links.map((link) => link.getAttribute("href")).filter((href): href is string => href !== null)
-    );
-    expect(artworkHrefs.length).toBeGreaterThan(0);
+    const artworkButtons = page.locator("ul button");
+    await expect(artworkButtons.first()).toBeVisible();
+    const artworkCount = await artworkButtons.count();
+    expect(artworkCount).toBeGreaterThan(0);
 
     await Promise.all(
-      artworkHrefs.map(async (artworkHref) => {
+      Array.from({ length: artworkCount }, async (_, index) => {
         const artworkPage = await page.context().newPage();
         try {
-          await artworkPage.goto(artworkHref);
+          await artworkPage.goto("/");
+          await artworkPage.locator("ul button").nth(index).click();
           const preview = artworkPage.getByRole("complementary", { name: "Artwork preview" });
           await expect(preview).toBeVisible();
 

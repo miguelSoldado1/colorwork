@@ -1,15 +1,16 @@
-import { Link } from "@tanstack/react-router";
 import { ImportArtworkRow } from "@/components/levels/import-artwork-row";
 import { LevelPreview } from "@/components/levels/level-preview";
 import type { LevelDescription } from "@/levels/describe-level";
 
 interface IndexMenuProps {
   levels: readonly LevelDescription[];
+  onSelect: (id: string) => void;
+  selectedId: string | undefined;
 }
 
 const COLUMNS = "grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-4 sm:gap-6";
 
-export function IndexMenu({ levels }: IndexMenuProps) {
+export function IndexMenu({ levels, onSelect, selectedId }: IndexMenuProps) {
   return (
     <div className="min-w-0 overflow-hidden rounded-xl border border-border">
       <div
@@ -23,7 +24,7 @@ export function IndexMenu({ levels }: IndexMenuProps) {
 
       <ul className="divide-y divide-border">
         {levels.map((level) => (
-          <IndexRow key={level.puzzle.id} level={level} />
+          <IndexRow key={level.puzzle.id} level={level} onSelect={onSelect} selected={level.puzzle.id === selectedId} />
         ))}
       </ul>
 
@@ -32,16 +33,26 @@ export function IndexMenu({ levels }: IndexMenuProps) {
   );
 }
 
-function IndexRow({ level }: { level: LevelDescription }) {
+function IndexRow({
+  level,
+  onSelect,
+  selected,
+}: {
+  level: LevelDescription;
+  onSelect: (id: string) => void;
+  selected: boolean;
+}) {
   const { completedColors, finished, paintedCount, puzzle, totalPixels } = level;
 
   return (
     <li>
-      <Link
+      <button
         aria-label={`${puzzle.name}${puzzle.artist ? `, artwork by ${puzzle.artist.name}` : ""}, ${puzzle.width} by ${puzzle.height} cells, ${completedColors} of ${puzzle.palette.length} colors finished, ${paintedCount} of ${totalPixels} pixels painted`}
-        className={`${COLUMNS} px-4 py-3.5 transition-colors duration-150 ease-out hover:bg-foreground/4 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 sm:px-6`}
-        search={(previous) => ({ ...previous, artwork: puzzle.id })}
-        to="/"
+        aria-pressed={selected}
+        className={`${COLUMNS} w-full cursor-pointer px-4 py-3.5 text-left transition-colors duration-150 ease-out hover:bg-foreground/4 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 data-[selected=true]:bg-primary/8 sm:px-6`}
+        data-selected={selected}
+        onClick={() => onSelect(puzzle.id)}
+        type="button"
       >
         <LevelPreview className="size-12 rounded-[3px] bg-canvas" colored={finished} puzzle={puzzle} />
 
@@ -54,7 +65,7 @@ function IndexRow({ level }: { level: LevelDescription }) {
         >
           {paintedCount.toLocaleString()} | {totalPixels.toLocaleString()}
         </span>
-      </Link>
+      </button>
     </li>
   );
 }

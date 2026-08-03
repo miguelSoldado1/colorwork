@@ -5,12 +5,9 @@ import { IndexMenu } from "@/components/levels/index-menu";
 import { describeLevel } from "@/levels/describe-level";
 import { LEVELS } from "@/levels/level-catalog";
 
-interface LevelsMenuProps {
-  previewId: string | undefined;
-}
-
-export function LevelsMenu({ previewId }: LevelsMenuProps) {
+export function LevelsMenu() {
   const [levels, setLevels] = useState(readMenuLevels);
+  const [previewId, setPreviewId] = useState(() => LEVELS[0]?.id);
   const preview = levels.find((level) => level.puzzle.id === previewId) ?? levels[0];
 
   useEffect(() => subscribeToStoredProgress(() => setLevels(readMenuLevels())), []);
@@ -25,7 +22,7 @@ export function LevelsMenu({ previewId }: LevelsMenuProps) {
         </header>
 
         <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-8">
-          <IndexMenu levels={levels} />
+          <IndexMenu levels={levels} onSelect={setPreviewId} selectedId={preview?.puzzle.id} />
           {preview ? <ArtworkPreviewPanel level={preview} /> : null}
         </div>
       </div>
