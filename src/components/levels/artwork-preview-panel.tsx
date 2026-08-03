@@ -30,10 +30,11 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
       </div>
 
       <div className="flex flex-col gap-4 p-4">
-        <div className="flex items-center justify-center rounded-lg border border-border bg-canvas p-3">
+        <div className="overflow-hidden rounded-lg bg-canvas">
           <LevelPreview
-            className="size-52 sm:size-56"
+            className="aspect-square w-full"
             colored={level.finished || revealed}
+            fit="cover"
             numbers
             puzzle={level.puzzle}
           />

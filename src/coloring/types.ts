@@ -3,6 +3,7 @@ export interface PuzzleDefinition {
     name: string;
     url?: string;
   };
+  catalogOrder?: number;
   height: number;
   id: string;
   name: string;

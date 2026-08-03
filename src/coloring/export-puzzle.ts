@@ -8,6 +8,7 @@ const FILE_NAME_EDGE_PATTERN = /^-|-$/g;
 export function createPuzzleModuleSource(puzzle: PuzzleDefinition) {
   const encodedPixels = encodePixels(puzzle.targetPixels);
   const encodedLines = splitIntoLines(encodedPixels, BASE64_LINE_LENGTH);
+  const catalogOrder = puzzle.catalogOrder === undefined ? [] : [`  catalogOrder: ${puzzle.catalogOrder},`];
   const palette = puzzle.palette.map((color) => `    ${JSON.stringify(color)},`).join("\n");
 
   return [
@@ -19,6 +20,7 @@ export function createPuzzleModuleSource(puzzle: PuzzleDefinition) {
     '].join("");',
     "",
     "export default {",
+    ...catalogOrder,
     `  height: ${puzzle.height},`,
     `  id: ${JSON.stringify(puzzle.id)},`,
     `  name: ${JSON.stringify(puzzle.name)},`,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio, DARK_INK, LIGHT_INK, readableInk, relativeLuminance } from "../../src/coloring/readable-ink";
-import napoleonDynamitePuzzle from "../../src/puzzles/napoleon-dynamite-puzzle";
+import mechPuzzle from "../../src/puzzles/mech";
 
 const LARGE_TEXT_MINIMUM = 3;
 
@@ -23,7 +23,7 @@ describe("readableInk", () => {
   });
 
   it("never picks the lower-contrast ink", () => {
-    for (const swatch of napoleonDynamitePuzzle.palette) {
+    for (const swatch of mechPuzzle.palette) {
       const chosen = contrastRatio(relativeLuminance(swatch), relativeLuminance(readableInk(swatch)));
       const rejected = contrastRatio(
         relativeLuminance(swatch),
@@ -35,7 +35,7 @@ describe("readableInk", () => {
   });
 
   it("clears the large-text contrast floor across the shipped palette", () => {
-    for (const swatch of napoleonDynamitePuzzle.palette) {
+    for (const swatch of mechPuzzle.palette) {
       expect(inkContrast(swatch)).toBeGreaterThanOrEqual(LARGE_TEXT_MINIMUM);
     }
   });

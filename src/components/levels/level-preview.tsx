@@ -5,11 +5,12 @@ import type { PuzzleDefinition } from "@/coloring/types";
 interface LevelPreviewProps {
   className: string;
   colored: boolean;
+  fit?: "contain" | "cover";
   numbers?: boolean;
   puzzle: PuzzleDefinition;
 }
 
-export function LevelPreview({ className, colored, numbers = false, puzzle }: LevelPreviewProps) {
+export function LevelPreview({ className, colored, fit = "contain", numbers = false, puzzle }: LevelPreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [frame, setFrame] = useState({ height: 0, width: 0 });
@@ -34,12 +35,12 @@ export function LevelPreview({ className, colored, numbers = false, puzzle }: Le
       return;
     }
 
-    renderLevelPreview({ canvas, colored, frame, numbers, puzzle });
-  }, [colored, frame, numbers, puzzle]);
+    renderLevelPreview({ canvas, colored, fit, frame, numbers, puzzle });
+  }, [colored, fit, frame, numbers, puzzle]);
 
   return (
     <div className={`grid place-items-center ${className}`} ref={frameRef}>
-      <canvas aria-hidden className="block" ref={canvasRef} />
+      <canvas aria-hidden className={`block ${fit === "cover" ? "[image-rendering:pixelated]" : ""}`} ref={canvasRef} />
     </div>
   );
 }

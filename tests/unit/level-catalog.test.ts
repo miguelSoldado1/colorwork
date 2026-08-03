@@ -33,6 +33,12 @@ describe("level catalog", () => {
     }
   });
 
+  it("keeps artwork in catalog order", () => {
+    for (let index = 1; index < LEVELS.length; index += 1) {
+      expect(LEVELS[index].catalogOrder).toBeGreaterThanOrEqual(LEVELS[index - 1].catalogOrder ?? 0);
+    }
+  });
+
   it("finds a level by id and reports nothing for an unknown one", () => {
     expect(findLevel(LEVELS[0].id)?.name).toBe(LEVELS[0].name);
     expect(findLevel("not-an-artwork")).toBeUndefined();

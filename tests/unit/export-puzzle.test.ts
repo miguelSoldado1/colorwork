@@ -17,6 +17,7 @@ describe("createPuzzleModuleSource", () => {
     expect(source).toContain("export default {");
     expect(source).toContain('  id: "sunset-scene-abc123",');
     expect(source).toContain('  name: "Sunset scene",');
+    expect(source).not.toContain("catalogOrder:");
     expect(source).toContain('import { decodePixels } from "./decode-pixels";');
     expect(source).not.toContain("function decodePixels(value: string)");
 
@@ -37,5 +38,19 @@ describe("createPuzzleModuleSource", () => {
     });
 
     expect(source).toContain("export default {");
+  });
+
+  it("preserves a catalog order when one is configured", () => {
+    const source = createPuzzleModuleSource({
+      catalogOrder: 20,
+      height: 1,
+      id: "ordered-puzzle",
+      name: "Ordered puzzle",
+      palette: ["#000000"],
+      targetPixels: new Uint8Array([0]),
+      width: 1,
+    });
+
+    expect(source).toContain("  catalogOrder: 20,");
   });
 });

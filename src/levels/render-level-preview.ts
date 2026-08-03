@@ -16,6 +16,7 @@ interface PreviewFrame {
 interface RenderLevelPreviewOptions {
   canvas: HTMLCanvasElement;
   colored: boolean;
+  fit: "contain" | "cover";
   frame: PreviewFrame;
   numbers: boolean;
   puzzle: PuzzleDefinition;
@@ -28,13 +29,12 @@ interface PreviewLayerOptions {
   puzzle: PuzzleDefinition;
 }
 
-const GRID_MIN_CELL_SIZE = 7;
 const NUMBER_MIN_CELL_SIZE = 13;
 const GLYPH_CELL_DIVISOR = 7;
 
 const glyphAtlases = new Map<string, ReturnType<typeof createNumberGlyphAtlas>>();
 
-export function renderLevelPreview({ canvas, colored, frame, numbers, puzzle }: RenderLevelPreviewOptions) {
+export function renderLevelPreview({ canvas, colored, fit, frame, numbers, puzzle }: RenderLevelPreviewOptions) {
   const cellSize = fitCellSize(puzzle, frame);
   if (cellSize <= 0) {
     return;
@@ -43,8 +43,10 @@ export function renderLevelPreview({ canvas, colored, frame, numbers, puzzle }: 
   const width = cellSize * puzzle.width;
   const height = cellSize * puzzle.height;
   const dpr = window.devicePixelRatio || 1;
-  canvas.style.width = `${width}px`;
-  canvas.style.height = `${height}px`;
+  canvas.style.width = fit === "cover" ? "100%" : `${width}px`;
+  canvas.style.height = fit === "cover" ? "100%" : `${height}px`;
+  canvas.style.objectFit = fit;
+  canvas.style.objectPosition = "center";
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);
 
@@ -59,9 +61,6 @@ export function renderLevelPreview({ canvas, colored, frame, numbers, puzzle }: 
   }
 
   const layer = { canvas, cellSize, context, puzzle };
-  if (cellSize >= GRID_MIN_CELL_SIZE) {
-    drawGrid(layer);
-  }
   if (numbers && cellSize >= NUMBER_MIN_CELL_SIZE) {
     drawNumbers(layer);
   }
@@ -93,19 +92,6 @@ function drawArtworkLayer(puzzle: PuzzleDefinition, colored: boolean) {
 
   context.putImageData(image, 0, 0);
   return layer;
-}
-
-function drawGrid({ canvas, cellSize, context, puzzle }: PreviewLayerOptions) {
-  context.fillStyle = readThemeColor(canvas, "--color-canvas");
-
-  for (let y = 0; y < puzzle.height; y += 1) {
-    for (let x = 0; x < puzzle.width; x += 1) {
-      const left = x * cellSize;
-      const top = y * cellSize;
-      context.fillRect(left + cellSize - 1, top, 1, cellSize);
-      context.fillRect(left, top + cellSize - 1, cellSize, 1);
-    }
-  }
 }
 
 function drawNumbers({ canvas, cellSize, context, puzzle }: PreviewLayerOptions) {
