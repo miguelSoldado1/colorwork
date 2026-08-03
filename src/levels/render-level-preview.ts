@@ -34,6 +34,12 @@ const GLYPH_CELL_DIVISOR = 7;
 
 const glyphAtlases = new Map<string, ReturnType<typeof createNumberGlyphAtlas>>();
 
+/** Whole pixels once the artwork is upscaled, so a caller can size a frame the render will fill exactly. */
+export function fitCellSize(puzzle: PuzzleDefinition, frame: PreviewFrame) {
+  const scale = Math.min(frame.width / puzzle.width, frame.height / puzzle.height);
+  return scale >= 1 ? Math.floor(scale) : scale;
+}
+
 export function renderLevelPreview({ canvas, colored, fit, frame, numbers, puzzle }: RenderLevelPreviewOptions) {
   const cellSize = fitCellSize(puzzle, frame);
   if (cellSize <= 0) {
@@ -64,11 +70,6 @@ export function renderLevelPreview({ canvas, colored, fit, frame, numbers, puzzl
   if (numbers && cellSize >= NUMBER_MIN_CELL_SIZE) {
     drawNumbers(layer);
   }
-}
-
-function fitCellSize(puzzle: PuzzleDefinition, frame: PreviewFrame) {
-  const scale = Math.min(frame.width / puzzle.width, frame.height / puzzle.height);
-  return scale >= 1 ? Math.floor(scale) : scale;
 }
 
 function drawArtworkLayer(puzzle: PuzzleDefinition, colored: boolean) {

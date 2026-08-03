@@ -6,11 +6,20 @@ interface LevelPreviewProps {
   className: string;
   colored: boolean;
   fit?: "contain" | "cover";
+  /** Names the artwork for assistive tech; omit where a nearby heading already does. */
+  label?: string;
   numbers?: boolean;
   puzzle: PuzzleDefinition;
 }
 
-export function LevelPreview({ className, colored, fit = "contain", numbers = false, puzzle }: LevelPreviewProps) {
+export function LevelPreview({
+  className,
+  colored,
+  fit = "contain",
+  label,
+  numbers = false,
+  puzzle,
+}: LevelPreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [frame, setFrame] = useState({ height: 0, width: 0 });
@@ -40,7 +49,13 @@ export function LevelPreview({ className, colored, fit = "contain", numbers = fa
 
   return (
     <div className={`grid place-items-center ${className}`} ref={frameRef}>
-      <canvas aria-hidden className={`block ${fit === "cover" ? "[image-rendering:pixelated]" : ""}`} ref={canvasRef} />
+      <canvas
+        aria-hidden={label ? undefined : true}
+        aria-label={label}
+        className={`block ${fit === "cover" ? "[image-rendering:pixelated]" : ""}`}
+        ref={canvasRef}
+        role={label ? "img" : undefined}
+      />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import Eye from "@/components/icons/eye.svg?react";
-import EyeOff from "@/components/icons/eye-off.svg?react";
+import { ArtworkRevealDialog } from "@/components/levels/artwork-reveal-dialog";
 import { LevelPreview } from "@/components/levels/level-preview";
 import { describeLevelState, LevelSpecs, paintActionLabel } from "@/components/levels/level-specs";
 import { StartOverControl } from "@/components/levels/start-over-control";
@@ -17,9 +17,7 @@ const ACTION_LINK =
   "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md border px-4 transition-[filter,transform,color,border-color] duration-200 ease-out focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-px";
 
 export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
-  const [revealedId, setRevealedId] = useState("");
-
-  const revealed = revealedId === level.puzzle.id;
+  const [revealing, setRevealing] = useState(false);
 
   return (
     <aside aria-label="Artwork preview" className="rounded-xl border border-border bg-card/60 lg:sticky lg:top-8">
@@ -33,7 +31,7 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
         <div className="overflow-hidden rounded-lg bg-canvas">
           <LevelPreview
             className="aspect-square w-full"
-            colored={level.finished || revealed}
+            colored={level.finished}
             fit="cover"
             numbers
             puzzle={level.puzzle}
@@ -51,16 +49,10 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
             {paintActionLabel(level)}
           </Link>
 
-          {level.finished ? null : (
-            <Button
-              aria-pressed={revealed}
-              onClick={() => setRevealedId(revealed ? "" : level.puzzle.id)}
-              variant="ghost"
-            >
-              {revealed ? <EyeOff height={19} width={19} /> : <Eye height={19} width={19} />}
-              {revealed ? "Hide full artwork" : "See full artwork"}
-            </Button>
-          )}
+          <Button aria-haspopup="dialog" onClick={() => setRevealing(true)} variant="ghost">
+            <Eye height={19} width={19} />
+            See full artwork
+          </Button>
 
           <div className="mt-1 border-border border-t pt-3">
             {/* Keyed by artwork so a pending confirmation never carries over to another piece. */}
@@ -68,6 +60,8 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
           </div>
         </div>
       </div>
+
+      {revealing ? <ArtworkRevealDialog onClose={() => setRevealing(false)} puzzle={level.puzzle} /> : null}
     </aside>
   );
 }

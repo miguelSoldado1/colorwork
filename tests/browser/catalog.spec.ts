@@ -22,7 +22,11 @@ test.describe("artwork catalog", () => {
     await expect(preview.getByRole("heading", { name: "Ribbit" })).toBeVisible();
 
     await preview.getByRole("button", { name: "See full artwork" }).click();
-    await expect(preview.getByRole("button", { name: "Hide full artwork" })).toBeVisible();
+    const reveal = page.getByRole("dialog", { name: "Ribbit, full artwork" });
+    await expect(reveal.getByRole("img", { name: "Ribbit, fully colored" })).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(reveal).toBeHidden();
 
     await page.getByRole("button", { name: GOBBO_BUTTON }).click();
     await expect(page).toHaveURL(ROOT_URL);

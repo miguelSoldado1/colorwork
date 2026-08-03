@@ -129,7 +129,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
   return (
     <dialog
       aria-labelledby="import-title"
-      className="m-auto max-h-[calc(100svh-2rem)] w-[min(46rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-border bg-card p-0 text-card-foreground shadow-[0_32px_90px_-24px_rgba(0,0,0,0.85)] backdrop:bg-background/75 backdrop:backdrop-blur-sm"
+      className="dialog-surface m-auto max-h-[calc(100svh-2rem)] w-[min(46rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-border bg-card p-0 text-card-foreground shadow-[0_32px_90px_-24px_rgba(0,0,0,0.85)] backdrop:bg-background/75 backdrop:backdrop-blur-sm"
       onCancel={onCancel}
       ref={dialogRef}
     >

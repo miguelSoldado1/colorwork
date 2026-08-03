@@ -67,6 +67,31 @@
   }
 }
 
+/*
+ * Modal surfaces settle in with one short fade. Closing is not animated: the dialog unmounts, so
+ * the catalog underneath returns the instant it is asked for.
+ */
+.dialog-surface {
+  transition:
+    opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dialog-surface::backdrop {
+  transition: opacity 200ms ease;
+}
+
+@starting-style {
+  .dialog-surface[open] {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+
+  .dialog-surface[open]::backdrop {
+    opacity: 0;
+  }
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
 
