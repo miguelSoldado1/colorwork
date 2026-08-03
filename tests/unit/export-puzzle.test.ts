@@ -14,10 +14,11 @@ describe("createPuzzleModuleSource", () => {
     });
 
     expect(source).toContain('import type { PuzzleDefinition } from "@/coloring/types";');
-    expect(source).toContain("export const sunsetScenePuzzle = {");
+    expect(source).toContain("export default {");
     expect(source).toContain('  id: "sunset-scene-abc123",');
     expect(source).toContain('  name: "Sunset scene",');
-    expect(source).toContain("function decodePixels(value: string)");
+    expect(source).toContain('import { decodePixels } from "./decode-pixels";');
+    expect(source).not.toContain("function decodePixels(value: string)");
 
     const encodedPixels = [...source.matchAll(/^ {2}"([A-Za-z0-9+/=]+)",$/gm)].map(([, line]) => line).join("");
     const decodedPixels = Uint8Array.from(atob(encodedPixels), (character) => character.charCodeAt(0));
@@ -25,7 +26,7 @@ describe("createPuzzleModuleSource", () => {
     expect(decodedPixels).toEqual(targetPixels);
   });
 
-  it("falls back to a valid export name for names without identifier characters", () => {
+  it("uses a default export regardless of the puzzle name", () => {
     const source = createPuzzleModuleSource({
       height: 1,
       id: "custom-puzzle-abc123",
@@ -35,19 +36,6 @@ describe("createPuzzleModuleSource", () => {
       width: 1,
     });
 
-    expect(source).toContain("export const customPuzzle = {");
-  });
-
-  it("prefixes names that begin with a number so the export remains valid TypeScript", () => {
-    const source = createPuzzleModuleSource({
-      height: 1,
-      id: "123-puzzle-abc123",
-      name: "123 scene",
-      palette: ["#000000"],
-      targetPixels: new Uint8Array([0]),
-      width: 1,
-    });
-
-    expect(source).toContain("export const puzzle123ScenePuzzle = {");
+    expect(source).toContain("export default {");
   });
 });

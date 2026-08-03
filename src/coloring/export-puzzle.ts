@@ -4,8 +4,6 @@ const BASE64_LINE_LENGTH = 100;
 const BASE64_ENCODING_CHUNK_SIZE = 32_768;
 const FILE_NAME_CHARACTER_PATTERN = /[^a-z0-9]+/gi;
 const FILE_NAME_EDGE_PATTERN = /^-|-$/g;
-const IDENTIFIER_WORD_PATTERN = /[a-z\d]+/gi;
-const IDENTIFIER_STARTS_WITH_NUMBER_PATTERN = /^\d/;
 
 export function createPuzzleModuleSource(puzzle: PuzzleDefinition) {
   const encodedPixels = encodePixels(puzzle.targetPixels);
@@ -13,17 +11,14 @@ export function createPuzzleModuleSource(puzzle: PuzzleDefinition) {
   const palette = puzzle.palette.map((color) => `    ${JSON.stringify(color)},`).join("\n");
 
   return [
+    'import { decodePixels } from "./decode-pixels";',
     'import type { PuzzleDefinition } from "@/coloring/types";',
     "",
     "const encodedPixels = [",
     ...encodedLines.map((line) => `  ${JSON.stringify(line)},`),
     '].join("");',
     "",
-    "function decodePixels(value: string) {",
-    "  return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));",
-    "}",
-    "",
-    `export const ${createExportName(puzzle.name)} = {`,
+    "export default {",
     `  height: ${puzzle.height},`,
     `  id: ${JSON.stringify(puzzle.id)},`,
     `  name: ${JSON.stringify(puzzle.name)},`,
@@ -66,17 +61,6 @@ function splitIntoLines(value: string, lineLength: number) {
     lines.push(value.slice(index, index + lineLength));
   }
   return lines;
-}
-
-function createExportName(name: string) {
-  const words = name.match(IDENTIFIER_WORD_PATTERN) ?? [];
-  const identifier = words
-    .map((word, index) => (index === 0 ? word.toLowerCase() : `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}`))
-    .join("");
-  const safeIdentifier =
-    identifier && IDENTIFIER_STARTS_WITH_NUMBER_PATTERN.test(identifier) ? `puzzle${identifier}` : identifier;
-
-  return `${safeIdentifier || "custom"}Puzzle`;
 }
 
 function createFileName(id: string) {

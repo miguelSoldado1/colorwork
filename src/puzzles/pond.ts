@@ -1,3 +1,4 @@
+import { decodePixels } from "./decode-pixels";
 import type { PuzzleDefinition } from "@/coloring/types";
 
 const encodedPixels = [
@@ -877,11 +878,7 @@ const encodedPixels = [
   "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
 ].join("");
 
-function decodePixels(value: string) {
-  return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
-}
-
-export const pondPuzzle = {
+const pondPuzzle = {
   height: 256,
   id: "pond",
   name: "Pond",
@@ -889,3 +886,5 @@ export const pondPuzzle = {
   targetPixels: decodePixels(encodedPixels),
   width: 256,
 } satisfies PuzzleDefinition;
+
+export default pondPuzzle;

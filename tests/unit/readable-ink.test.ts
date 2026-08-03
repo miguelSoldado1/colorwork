@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { contrastRatio, DARK_INK, LIGHT_INK, readableInk, relativeLuminance } from "../../src/coloring/readable-ink";
-import { napoleonDynamitePuzzle } from "../../src/puzzles/napoleon-dynamite-puzzle";
+import napoleonDynamitePuzzle from "../../src/puzzles/napoleon-dynamite-puzzle";
 
 const LARGE_TEXT_MINIMUM = 3;
 

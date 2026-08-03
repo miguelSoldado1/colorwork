@@ -1,3 +1,4 @@
+import { decodePixels } from "./decode-pixels";
 import type { PuzzleDefinition } from "@/coloring/types";
 
 const encodedPixels = [
@@ -58,11 +59,7 @@ const encodedPixels = [
   "AgICAgwFAgUMDAwNDQ0NBwcCAgIMBQIFAgICAgICAgICAgICAgICAgICAgICAg==",
 ].join("");
 
-function decodePixels(value: string) {
-  return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
-}
-
-export const napoleonDynamitePuzzle = {
+const napoleonDynamitePuzzle = {
   artist: {
     name: "kikitheguillotine",
     url: "https://lospec.com/gallery/kikitheguillotine/napoleon-dynamite",
@@ -90,3 +87,5 @@ export const napoleonDynamitePuzzle = {
   targetPixels: decodePixels(encodedPixels),
   width: 64,
 } satisfies PuzzleDefinition;
+
+export default napoleonDynamitePuzzle;
