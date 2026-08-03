@@ -41,7 +41,7 @@ export function ColoringBoard({
     selectedColor,
     tool,
   }));
-  
+
   const reportProgress = useEffectEvent(onProgress);
   const selectColor = useEffectEvent(onSelectColor);
 

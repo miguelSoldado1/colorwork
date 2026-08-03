@@ -885,14 +885,7 @@ export const pondPuzzle = {
   height: 256,
   id: "pond",
   name: "Pond",
-  palette: [
-    "#000000",
-    "#b9095c",
-    "#4c171d",
-    "#e34646",
-    "#e2b098",
-    "#e36aa4",
-  ],
+  palette: ["#000000", "#b9095c", "#4c171d", "#e34646", "#e2b098", "#e36aa4"],
   targetPixels: decodePixels(encodedPixels),
   width: 256,
 } satisfies PuzzleDefinition;

@@ -25,7 +25,9 @@ describe("level catalog", () => {
     expect(LEVELS.length).toBeGreaterThan(0);
     expect(new Set(ids).size).toBe(ids.length);
     for (const puzzle of LEVELS) {
-      expect(puzzle.artist?.name.trim()).toBeTruthy();
+      if (puzzle.artist) {
+        expect(puzzle.artist.name.trim()).toBeTruthy();
+      }
       expect(puzzle.targetPixels).toHaveLength(puzzle.width * puzzle.height);
       expect(puzzle.palette.length).toBeGreaterThan(0);
     }

@@ -9,6 +9,7 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run --config tests/vitest.config.ts",
     "test:watch": "vitest --config tests/vitest.config.ts",
+    "test:browser": "playwright test",
     "preview": "vite preview",
     "check": "ultracite check",
     "fix": "ultracite fix"
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.3",
+    "@playwright/test": "^1.62.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tanstack/router-plugin": "^1.168.23",
     "@types/node": "^26.1.2",
