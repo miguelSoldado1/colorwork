@@ -41,6 +41,9 @@ export function ColoringBoard({
     selectedColor,
     tool,
   }));
+  
+  const reportProgress = useEffectEvent(onProgress);
+  const selectColor = useEffectEvent(onSelectColor);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -54,8 +57,8 @@ export function ColoringBoard({
       canvas,
       container,
       ...getBoardSettings(),
-      onProgress,
-      onSelectColor,
+      onProgress: reportProgress,
+      onSelectColor: selectColor,
       overviewCanvas,
       progress,
       puzzle,
@@ -66,7 +69,7 @@ export function ColoringBoard({
       controller.destroy();
       controllerRef.current = null;
     };
-  }, [onProgress, onSelectColor, overviewCanvasRef, progress, puzzle]);
+  }, [overviewCanvasRef, progress, puzzle]);
 
   useEffect(() => {
     controllerRef.current?.setSelectedColor(selectedColor);
