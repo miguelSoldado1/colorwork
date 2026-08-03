@@ -1,4 +1,4 @@
-# Color Byte
+# Colorwork
 
 A browser-based pixel color-by-number prototype built with React, Vite, TypeScript, Tailwind CSS, React Compiler, and Canvas 2D.
 

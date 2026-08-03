@@ -1,4 +1,4 @@
-# Color Byte contributor guidance
+# Colorwork contributor guidance
 
 ## Architecture
 
