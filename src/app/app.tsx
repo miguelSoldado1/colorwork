@@ -17,6 +17,7 @@ import { SaveStatus } from "@/components/progress/save-status";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
+import { loadUserPreferences, saveUserPreferences } from "@/user-preferences";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 interface AppProps {
@@ -28,8 +29,7 @@ export function App({ persistProgress, puzzle }: AppProps) {
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
-  const [showGrid, setShowGrid] = useState(true);
-  const [showNumbers, setShowNumbers] = useState(false);
+  const [preferences, setPreferences] = useState(loadUserPreferences);
   const [highlightMissing, setHighlightMissing] = useState(false);
   const [progress, setProgress] = useState(() => createInitialProgress(puzzle, persistProgress));
   const [summary, setSummary] = useState(() => createProgressSummary(puzzle, progress));
@@ -39,6 +39,10 @@ export function App({ persistProgress, puzzle }: AppProps) {
   const completedRef = useRef(isPuzzleComplete(summary));
 
   useEffect(() => (persistProgress ? progressSaver.connect() : undefined), [persistProgress, progressSaver]);
+
+  useEffect(() => {
+    saveUserPreferences(preferences);
+  }, [preferences]);
 
   useKeyboardShortcuts([
     ...puzzle.palette.slice(0, 9).map((_color, colorIndex) => ({
@@ -59,11 +63,11 @@ export function App({ persistProgress, puzzle }: AppProps) {
   const complete = isPuzzleComplete(summary);
 
   function toggleNumbers() {
-    setShowNumbers((visible) => !visible);
+    setPreferences((current) => ({ ...current, showNumbers: !current.showNumbers }));
   }
 
   function toggleGrid() {
-    setShowGrid((visible) => !visible);
+    setPreferences((current) => ({ ...current, showGrid: !current.showGrid }));
   }
 
   function toggleMissingHighlight() {
@@ -131,9 +135,9 @@ export function App({ persistProgress, puzzle }: AppProps) {
           {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. */}
           <aside className="scrollbar-none min-h-0 w-full min-w-0 self-start overflow-x-auto overscroll-contain rounded-xl border border-border bg-card/80 p-2 sm:max-h-full sm:w-auto sm:shrink-0 sm:self-center sm:overflow-y-auto">
             <ToolPicker
-              gridVisible={showGrid}
+              gridVisible={preferences.showGrid}
               highlightMissing={highlightMissing}
-              numbersVisible={showNumbers}
+              numbersVisible={preferences.showNumbers}
               onSelect={setSelectedTool}
               onToggleGrid={toggleGrid}
               onToggleMissing={toggleMissingHighlight}
@@ -153,8 +157,8 @@ export function App({ persistProgress, puzzle }: AppProps) {
               progress={progress}
               puzzle={puzzle}
               selectedColor={selectedColor}
-              showGrid={showGrid}
-              showNumbers={showNumbers}
+              showGrid={preferences.showGrid}
+              showNumbers={preferences.showNumbers}
               tool={selectedTool}
             />
           </section>
