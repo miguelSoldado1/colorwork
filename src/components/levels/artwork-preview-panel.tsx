@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import Eye from "@/components/icons/eye.svg?react";
 import EyeOff from "@/components/icons/eye-off.svg?react";
@@ -17,27 +17,12 @@ const ACTION_LINK =
   "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md border px-4 transition-[filter,transform,color,border-color] duration-200 ease-out focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-px";
 
 export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
-  const panelRef = useRef<HTMLElement>(null);
-  const scrolledIdRef = useRef(level.puzzle.id);
-  // Keyed by id rather than by a flag, so choosing another artwork drops the previous reveal.
   const [revealedId, setRevealedId] = useState("");
+
   const revealed = revealedId === level.puzzle.id;
 
-  useEffect(() => {
-    if (scrolledIdRef.current === level.puzzle.id) {
-      return;
-    }
-
-    scrolledIdRef.current = level.puzzle.id;
-    panelRef.current?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [level.puzzle.id]);
-
   return (
-    <aside
-      aria-label="Artwork preview"
-      className="rounded-xl border border-border bg-card/60 lg:sticky lg:top-8"
-      ref={panelRef}
-    >
+    <aside aria-label="Artwork preview" className="rounded-xl border border-border bg-card/60 lg:sticky lg:top-8">
       <div className="border-border border-b px-4 py-3" role="status">
         <h2 className="truncate leading-tight">{level.puzzle.name}</h2>
         <ArtworkCredit artist={level.puzzle.artist} />

@@ -30,6 +30,16 @@ test.describe("artwork catalog", () => {
     await expect(preview.getByRole("button", { name: "See full artwork" })).toBeVisible();
   });
 
+  test("keeps the tapped row in place when selecting an artwork", async ({ page }) => {
+    await page.setViewportSize({ height: 952, width: 539 });
+    await page.goto("/");
+
+    await page.getByRole("button", { name: POND_BUTTON }).click();
+    await expect(page).toHaveURL(ROOT_URL);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(page.getByRole("heading", { name: "Pond" })).toBeVisible();
+  });
+
   test("opens every catalog entry and initializes its board", async ({ page }) => {
     await page.goto("/");
 
