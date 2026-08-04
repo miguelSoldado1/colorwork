@@ -71,7 +71,7 @@ export function ImportArtworkRow() {
   }
 
   return (
-    <div className="border-border border-t">
+    <div>
       <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
       <button
         className="flex w-full cursor-pointer items-center gap-4 px-4 py-3.5 text-left transition-colors duration-150 ease-out hover:bg-foreground/4 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 sm:px-6"

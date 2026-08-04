@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArtworkPreviewPanel } from "@/components/levels/artwork-preview-panel";
-import { IndexMenu } from "@/components/levels/index-menu";
+import { CatalogMenu } from "@/components/levels/catalog-menu";
+import { ImportedMenu } from "@/components/levels/imported-menu";
 import { LevelsMenuFrame, LevelsMenuLoadError, LevelsMenuLoading } from "@/components/levels/levels-menu-frame";
 import { LEVELS } from "@/levels/level-catalog";
 import { artworkDescriptionsQueryOptions } from "@/query/artwork-queries";
@@ -22,11 +23,16 @@ function IndexRoute() {
   }
 
   const preview = levelsQuery.data.find((level) => level.puzzle.id === previewId) ?? levelsQuery.data[0];
+  const catalog = levelsQuery.data.filter((level) => level.source === "catalog");
+  const imported = levelsQuery.data.filter((level) => level.source === "imported");
 
   return (
     <LevelsMenuFrame summary={summarizeCatalog(levelsQuery.data)}>
       <div className="grid min-w-0 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-8">
-        <IndexMenu levels={levelsQuery.data} onSelect={setPreviewId} selectedId={preview?.puzzle.id} />
+        <div className="flex min-w-0 flex-col gap-6">
+          <CatalogMenu levels={catalog} onSelect={setPreviewId} selectedId={preview?.puzzle.id} />
+          <ImportedMenu levels={imported} onSelect={setPreviewId} selectedId={preview?.puzzle.id} />
+        </div>
         {preview ? <ArtworkPreviewPanel level={preview} /> : null}
       </div>
     </LevelsMenuFrame>

@@ -282,7 +282,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
         </Button>
         <Button disabled={!puzzle} onClick={confirmPuzzle} variant="primary">
           <Check className="block shrink-0" height={19} width={19} />
-          Use this puzzle
+          Import this puzzle
         </Button>
       </div>
     </dialog>

@@ -67,7 +67,7 @@ describe("level catalog", () => {
 describe("describeLevel", () => {
   it("reads as untouched when no progress is supplied", () => {
     const puzzle = puzzleOf(2, [0, 1, 2, 3]);
-    const description = describeLevel(puzzle);
+    const description = describeLevel(puzzle, undefined, "catalog");
 
     expect(description.paintedCount).toBe(0);
     expect(description.percent).toBe(0);
@@ -77,15 +77,22 @@ describe("describeLevel", () => {
   });
 
   it("carries the artwork's own totals so the menu can size and count it", () => {
-    const description = describeLevel(puzzleOf(4, [0, 1, 1, 1, 0, 1, 1, 1]));
+    const description = describeLevel(puzzleOf(4, [0, 1, 1, 1, 0, 1, 1, 1]), undefined, "catalog");
 
     expect(description.totalPixels).toBe(8);
     expect(description.puzzle.width).toBe(4);
     expect(description.puzzle.height).toBe(2);
   });
 
+  it("separates catalog artwork from imports so the menu can group them", () => {
+    const puzzle = puzzleOf(2, [0, 1, 2, 3]);
+
+    expect(describeLevel(puzzle, undefined, "catalog").source).toBe("catalog");
+    expect(describeLevel(puzzle, undefined, "imported").source).toBe("imported");
+  });
+
   it("reports one finished flag per palette color", () => {
-    const description = describeLevel(puzzleOf(2, [0, 1, 2, 3]));
+    const description = describeLevel(puzzleOf(2, [0, 1, 2, 3]), undefined, "catalog");
 
     expect(description.finishedColors).toEqual([false, false, false, false]);
     expect(description.finishedColors).toHaveLength(description.puzzle.palette.length);
@@ -101,7 +108,7 @@ describe("describeLevel", () => {
     progress.paintedByColor[1] = 2;
     progress.paintedCount = 3;
 
-    expect(describeLevel(puzzle, progress)).toMatchObject({
+    expect(describeLevel(puzzle, progress, "catalog")).toMatchObject({
       completedColors: 1,
       finished: false,
       finishedColors: [false, true],
@@ -114,7 +121,7 @@ describe("describeLevel", () => {
   it("describes completed progress without relying on rounded percent", () => {
     const puzzle = puzzleOf(2, [0, 1, 0, 1]);
 
-    expect(describeLevel(puzzle, createCompletedPuzzleProgress(puzzle))).toMatchObject({
+    expect(describeLevel(puzzle, createCompletedPuzzleProgress(puzzle), "catalog")).toMatchObject({
       completedColors: 2,
       finished: true,
       finishedColors: [true, true],
@@ -127,7 +134,7 @@ describe("describeLevel", () => {
   it("describes an untouched catalogued artwork as all zeros", () => {
     const [puzzle] = LEVELS;
 
-    expect(describeLevel(puzzle)).toMatchObject({
+    expect(describeLevel(puzzle, undefined, "catalog")).toMatchObject({
       completedColors: 0,
       finished: false,
       paintedCount: 0,

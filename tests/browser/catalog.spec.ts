@@ -102,7 +102,7 @@ test.describe("artwork catalog", () => {
     await page.goto("/");
     await uploadGeneratedImage(page, 8, 8);
 
-    await page.getByRole("dialog").getByRole("button", { name: "Use this puzzle" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Import this puzzle" }).click();
     await expect(page).toHaveURL(PLAY_URL);
     await expect(page.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
 
@@ -110,7 +110,10 @@ test.describe("artwork catalog", () => {
     await expect(page.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
 
     await page.getByRole("link", { name: "All artworks" }).click();
-    await expect(page.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toBeVisible();
+    const imported = page.getByRole("list", { name: "Your artwork" });
+    await expect(imported.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toBeVisible();
+    const catalog = page.getByRole("list", { name: "Built-in artwork" });
+    await expect(catalog.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toHaveCount(0);
   });
 
   test("opens every catalog entry and initializes its board", async ({ page }) => {
