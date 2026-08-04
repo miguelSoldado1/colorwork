@@ -95,6 +95,10 @@ export function ImportArtworkRow() {
         </p>
       ) : null}
 
+      <p className="px-4 pb-3.5 text-muted-foreground text-xs sm:px-6">
+        Saved on this device only — never synced or uploaded.
+      </p>
+
       {source ? (
         <ImageImportDialog onCancel={closeImporter} onConfirm={openPuzzle} saveError={error} source={source} />
       ) : null}
