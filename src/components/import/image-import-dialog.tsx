@@ -59,7 +59,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
       try {
         setPuzzle(createPuzzleFromImage(source, { height, name: initialName, paletteSize, width }));
       } catch (error) {
-        setProcessingError(error instanceof Error ? error.message : "The image could not be processed.");
+        return setProcessingError(error instanceof Error ? error.message : "The image could not be processed.");
       }
     }, 80);
 

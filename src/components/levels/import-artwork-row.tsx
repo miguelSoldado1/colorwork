@@ -4,6 +4,7 @@ import { countRenderedImageColors, getRecommendedGridSize } from "@/coloring/imp
 import Image2Plus from "@/components/icons/image-plus.svg?react";
 import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { rememberImportedPuzzle } from "@/levels/imported-levels";
+import { tryCatch } from "@/try-catch";
 import type { ChangeEvent } from "react";
 import type { ImageImportSource } from "@/coloring/import-image";
 import type { PuzzleDefinition } from "@/coloring/types";
@@ -22,19 +23,22 @@ export function ImportArtworkRow() {
     }
 
     setError("");
-    try {
-      const bitmap = await createImageBitmap(file);
-      const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height);
-      setSource({
-        bitmap,
-        detectedColorCount: countRenderedImageColors(bitmap, recommendedSize.width, recommendedSize.height),
-        fileName: file.name,
-        height: bitmap.height,
-        width: bitmap.width,
-      });
-    } catch {
-      setError("That image could not be opened. Try a PNG, JPG, or WebP file.");
+    const bitmapResult = await tryCatch(createImageBitmap(file));
+    if (bitmapResult.error) {
+      return setError("That image could not be opened. Try a PNG, JPG, or WebP file.");
     }
+
+    const bitmap = bitmapResult.data;
+    const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height);
+    const detectedColorCount = countRenderedImageColors(bitmap, recommendedSize.width, recommendedSize.height);
+
+    setSource({
+      bitmap,
+      detectedColorCount,
+      fileName: file.name,
+      height: bitmap.height,
+      width: bitmap.width,
+    });
   }
 
   function closeImporter() {
