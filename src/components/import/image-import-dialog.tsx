@@ -158,6 +158,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
             <h2 className="mt-1 text-2xl" id="import-title">
               Tune your pixel grid
             </h2>
+            <p className="text-muted-foreground text-xs">Saved in this browser — nothing is uploaded.</p>
           </div>
           <Button aria-label="Cancel image import" className="shrink-0" onClick={onCancel} size="icon" variant="ghost">
             <Close height={22} width={22} />
