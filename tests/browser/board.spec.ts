@@ -82,9 +82,7 @@ test.describe("coloring board", () => {
     await canvas.click({ button: "middle", position });
     await canvas.click({ position });
     await expect(page.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
-    await expect
-      .poll(() => page.evaluate(() => Object.keys(localStorage).some((key) => key === "color-byte:progress:v1:ribbit")))
-      .toBe(true);
+    await expect.poll(() => hasStoredProgress(page, "ribbit")).toBe(true);
 
     await page.getByRole("link", { name: "All artworks" }).click();
     await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
@@ -93,15 +91,52 @@ test.describe("coloring board", () => {
     const startOver = preview.getByRole("button", { name: "Start over" });
     await expect(startOver).toBeEnabled();
 
-    await startOver.click();
-    await expect(preview.getByRole("button", { name: "Yes, clear it" })).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(preview.getByRole("button", { name: "Start over" })).toBeEnabled();
+    await preview.getByRole("link", { name: "Keep painting" }).click();
+    await expect(page.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
 
-    await preview.getByRole("button", { name: "Start over" }).click();
-    await preview.getByRole("button", { name: "Yes, clear it" }).click();
-    await expect(preview.getByRole("button", { name: "Start over" })).toBeDisabled();
+    await page.getByRole("link", { name: "All artworks" }).click();
+    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
+    const restoredPreview = page.getByRole("complementary", { name: "Artwork preview" });
+
+    await restoredPreview.getByRole("button", { name: "Start over" }).click();
+    await expect(restoredPreview.getByRole("button", { name: "Yes, clear it" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(restoredPreview.getByRole("button", { name: "Start over" })).toBeEnabled();
+
+    await restoredPreview.getByRole("button", { name: "Start over" }).click();
+    await restoredPreview.getByRole("button", { name: "Yes, clear it" }).click();
+    await expect(restoredPreview.getByRole("button", { name: "Start over" })).toBeDisabled();
     await expect(page.getByRole("button", { name: RIBBIT_BUTTON })).toContainText("0 | 12,544");
+  });
+
+  test("refreshes menu progress when another tab saves", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+    await expect(preview.getByRole("button", { name: "Start over" })).toBeDisabled();
+
+    const boardPage = await page.context().newPage();
+    try {
+      await boardPage.goto("/play/ribbit");
+      const canvas = boardPage.getByRole("img", { name: BOARD_LABEL });
+      await expect(canvas).toBeVisible();
+      const box = await canvas.boundingBox();
+      if (!box) {
+        throw new Error("The board canvas did not receive a layout box.");
+      }
+
+      const position = { x: box.width / 2, y: box.height / 2 };
+      await canvas.click({ button: "middle", position });
+      await canvas.click({ position });
+      await expect(boardPage.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
+      await expect.poll(() => hasStoredProgress(boardPage, "ribbit")).toBe(true);
+
+      await expect(preview.getByRole("button", { name: "Start over" })).toBeEnabled();
+    } finally {
+      await boardPage.close();
+    }
   });
 });
 
@@ -128,4 +163,24 @@ async function paintCell(page: Page, x: number, y: number) {
   }
 
   await page.mouse.click(box.x + ((x + 0.5) / 4) * box.width, box.y + ((y + 0.5) / 4) * box.height);
+}
+
+function hasStoredProgress(page: Page, artworkId: string) {
+  return page.evaluate(async (id) => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("colorwork");
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+
+    try {
+      return await new Promise<boolean>((resolve, reject) => {
+        const request = database.transaction("progress").objectStore("progress").get(id);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result !== undefined);
+      });
+    } finally {
+      database.close();
+    }
+  }, artworkId);
 }

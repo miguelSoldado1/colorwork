@@ -104,6 +104,7 @@ test.describe("artwork catalog", () => {
 });
 
 async function uploadGeneratedImage(page: Page, width: number, height: number) {
+  await expect(page.locator('input[type="file"]')).toBeAttached();
   await page.evaluate(
     async ({ imageHeight, imageWidth }) => {
       const canvas = document.createElement("canvas");

@@ -1,6 +1,6 @@
 import type { Plugin } from "vite";
 
-const APP_MODULE_PATTERN = /\/src\/app\/app\.tsx(?:\?|$)/;
+const PLAY_ROUTE_MODULE_PATTERN = /\/src\/routes\/play\.\$levelId\.tsx(?:\?|$)/;
 const DEBUG_FILL_IMPORT_PATTERN =
   /^import \{ DebugFillControl \} from "@\/components\/debug\/debug-fill-control";\s*$/m;
 const DEBUG_FILL_ELEMENT_PATTERN = /\n\s*<DebugFillControl\b[\s\S]*?\/>/;
@@ -10,7 +10,7 @@ export function transformDebugFill(source: string, enabled: boolean) {
   const occurrenceCount = source.split("DebugFillControl").length - 1;
   if (occurrenceCount !== 2) {
     throw new Error(
-      `[debug-fill] Expected one import and one JSX element in App, found ${occurrenceCount} references.`,
+      `[debug-fill] Expected one import and one JSX element in the play route, found ${occurrenceCount} references.`,
     );
   }
 
@@ -20,7 +20,7 @@ export function transformDebugFill(source: string, enabled: boolean) {
 
   const transformed = source.replace(DEBUG_FILL_IMPORT_PATTERN, "").replace(DEBUG_FILL_ELEMENT_PATTERN, "");
   if (transformed.includes("DebugFillControl")) {
-    throw new Error("[debug-fill] Production transform left debug fill code in App.");
+    throw new Error("[debug-fill] Production transform left debug fill code in the play route.");
   }
 
   return transformed;
@@ -46,7 +46,7 @@ export function debugFillPlugin(enabled: boolean): Plugin {
     },
     name: "debug-fill",
     transform(source, id) {
-      if (!APP_MODULE_PATTERN.test(id)) {
+      if (!PLAY_ROUTE_MODULE_PATTERN.test(id)) {
         return;
       }
       return transformDebugFill(source, enabled);

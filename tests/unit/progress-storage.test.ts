@@ -6,7 +6,9 @@ import {
   loadPuzzleProgress,
   savePuzzleProgress,
 } from "../../src/coloring/progress-storage";
+import type { ProgressRepository } from "../../src/coloring/progress-storage";
 import type { PuzzleDefinition } from "../../src/coloring/types";
+import type { StoredProgressV1 } from "../../src/storage/colorwork-database";
 
 const puzzle = {
   height: 2,
@@ -17,8 +19,8 @@ const puzzle = {
   width: 5,
 } satisfies PuzzleDefinition;
 
-class MemoryStorage {
-  readonly values = new Map<string, string>();
+class MemoryProgressRepository implements ProgressRepository {
+  readonly values = new Map<string, StoredProgressV1>();
   failWrites: boolean;
   writeAttempts = 0;
 
@@ -26,20 +28,43 @@ class MemoryStorage {
     this.failWrites = false;
   }
 
-  getItem(key: string) {
-    return this.values.get(key) ?? null;
+  delete(artworkId: string) {
+    this.values.delete(artworkId);
+    return Promise.resolve();
   }
 
-  setItem(key: string, value: string) {
+  get(artworkId: string) {
+    const record = this.values.get(artworkId);
+    return Promise.resolve(record ? structuredClone(record) : undefined);
+  }
+
+  put(record: StoredProgressV1) {
     this.writeAttempts += 1;
     if (this.failWrites) {
-      throw new DOMException("Storage is unavailable", "QuotaExceededError");
+      return Promise.reject(new DOMException("Storage is unavailable", "QuotaExceededError"));
     }
-    this.values.set(key, value);
+    this.values.set(record.artworkId, structuredClone(record));
+    return Promise.resolve();
+  }
+}
+
+class ControlledProgressRepository extends MemoryProgressRepository {
+  readonly pendingWrites: Array<{ record: StoredProgressV1; resolve: () => void }> = [];
+
+  override put(record: StoredProgressV1) {
+    this.writeAttempts += 1;
+    return new Promise<void>((resolve) => {
+      this.pendingWrites.push({ record: structuredClone(record), resolve });
+    });
   }
 
-  removeItem(key: string) {
-    this.values.delete(key);
+  completeNextWrite() {
+    const pending = this.pendingWrites.shift();
+    if (!pending) {
+      throw new Error("There is no pending progress write to complete.");
+    }
+    this.values.set(pending.record.artworkId, pending.record);
+    pending.resolve();
   }
 }
 
@@ -48,151 +73,198 @@ afterEach(() => {
 });
 
 describe("puzzle progress storage", () => {
-  it("round-trips painted cells and reconstructs their target colors and counts", () => {
-    const storage = new MemoryStorage();
+  it("round-trips painted cells and reconstructs their target colors and counts", async () => {
+    const repository = new MemoryProgressRepository();
     const progress = createPuzzleProgress(puzzle);
     paintCells(progress, puzzle, [0, 3, 9]);
 
-    expect(savePuzzleProgress(puzzle, progress, storage)).toBe(true);
-    expect(loadPuzzleProgress(puzzle, storage)).toEqual(progress);
+    await savePuzzleProgress(puzzle, progress, repository);
+    await expect(loadPuzzleProgress(puzzle, repository)).resolves.toEqual(progress);
   });
 
-  it("stores one compact bit per cell instead of the painted pixel array", () => {
-    const storage = new MemoryStorage();
+  it("stores one compact binary bit per cell instead of the painted pixel array", async () => {
+    const repository = new MemoryProgressRepository();
     const progress = createPuzzleProgress(puzzle);
     paintCells(progress, puzzle, [0, 9]);
 
-    savePuzzleProgress(puzzle, progress, storage);
+    await savePuzzleProgress(puzzle, progress, repository);
 
-    const [serialized] = storage.values.values();
-    const record = JSON.parse(serialized) as { paintedCells: string };
-    expect(atob(record.paintedCells)).toHaveLength(2);
-    expect(serialized).not.toContain("paintedByColor");
-    expect(serialized).not.toContain("paintedCount");
+    const [record] = repository.values.values();
+    expect(record.paintedCells).toHaveLength(2);
+    expect(record).not.toHaveProperty("paintedByColor");
+    expect(record).not.toHaveProperty("paintedCount");
   });
 
-  it("ignores progress after the immutable puzzle definition changes", () => {
-    const storage = new MemoryStorage();
-    savePuzzleProgress(puzzle, createPuzzleProgress(puzzle), storage);
+  it("ignores progress after the immutable puzzle definition changes", async () => {
+    const repository = new MemoryProgressRepository();
+    await savePuzzleProgress(puzzle, createPuzzleProgress(puzzle), repository);
     const changedTarget = puzzle.targetPixels.slice();
     changedTarget[0] = 1;
 
-    expect(loadPuzzleProgress({ ...puzzle, targetPixels: changedTarget }, storage)).toBeUndefined();
+    await expect(loadPuzzleProgress({ ...puzzle, targetPixels: changedTarget }, repository)).resolves.toBeUndefined();
   });
 
-  it("ignores malformed records and bitsets with the wrong length", () => {
-    const storage = new MemoryStorage();
-    savePuzzleProgress(puzzle, createPuzzleProgress(puzzle), storage);
-    const [key] = storage.values.keys();
-    const record = JSON.parse(storage.getItem(key) ?? "{}") as { paintedCells: string };
-    storage.values.set(key, JSON.stringify({ ...record, paintedCells: btoa("\0") }));
+  it("ignores malformed records and bitsets with the wrong length", async () => {
+    const repository = new MemoryProgressRepository();
+    await savePuzzleProgress(puzzle, createPuzzleProgress(puzzle), repository);
+    const record = repository.values.get(puzzle.id);
+    if (!record) {
+      throw new Error("The progress fixture was not stored.");
+    }
+    repository.values.set(puzzle.id, { ...record, paintedCells: new Uint8Array(1) });
 
-    expect(loadPuzzleProgress(puzzle, storage)).toBeUndefined();
+    await expect(loadPuzzleProgress(puzzle, repository)).resolves.toBeUndefined();
   });
 
-  it("clears a stored puzzle and leaves other puzzles alone", () => {
-    const storage = new MemoryStorage();
+  it("clears a stored puzzle and leaves other puzzles alone", async () => {
+    const repository = new MemoryProgressRepository();
     const other = { ...puzzle, id: "other-puzzle" };
     const progress = createPuzzleProgress(puzzle);
     paintCells(progress, puzzle, [0, 3]);
-    savePuzzleProgress(puzzle, progress, storage);
-    savePuzzleProgress(other, progress, storage);
+    await savePuzzleProgress(puzzle, progress, repository);
+    await savePuzzleProgress(other, progress, repository);
 
-    expect(clearPuzzleProgress(puzzle, storage)).toBe(true);
-    expect(loadPuzzleProgress(puzzle, storage)).toBeUndefined();
-    expect(loadPuzzleProgress(other, storage)).toEqual(progress);
+    await clearPuzzleProgress(puzzle, repository);
+    await expect(loadPuzzleProgress(puzzle, repository)).resolves.toBeUndefined();
+    await expect(loadPuzzleProgress(other, repository)).resolves.toEqual(progress);
   });
 
-  it("treats clearing an untouched puzzle as a success", () => {
-    expect(clearPuzzleProgress(puzzle, new MemoryStorage())).toBe(true);
+  it("treats clearing an untouched puzzle as a success", async () => {
+    await expect(clearPuzzleProgress(puzzle, new MemoryProgressRepository())).resolves.toBeUndefined();
   });
 });
 
 describe("progress save controller", () => {
-  it("debounces writes and reports the save lifecycle", () => {
+  it("debounces writes and reports the save lifecycle", async () => {
     vi.useFakeTimers();
-    const storage = new MemoryStorage();
+    const repository = new MemoryProgressRepository();
     const statuses: string[] = [];
     const controller = createProgressSaveController({
       onStatus: (status) => statuses.push(status),
       puzzle,
-      storage,
+      repository,
     });
 
     controller.schedule(createPuzzleProgress(puzzle), false);
-    vi.advanceTimersByTime(749);
-    expect(storage.writeAttempts).toBe(0);
+    await vi.advanceTimersByTimeAsync(749);
+    expect(repository.writeAttempts).toBe(0);
 
-    vi.advanceTimersByTime(1);
-    expect(storage.writeAttempts).toBe(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(repository.writeAttempts).toBe(1);
     expect(statuses).toEqual(["saving", "saved"]);
 
-    vi.advanceTimersByTime(1800);
+    await vi.advanceTimersByTimeAsync(1800);
     expect(statuses.at(-1)).toBe("idle");
   });
 
-  it("keeps showing saving when a new change interrupts the saved status", () => {
+  it("keeps showing saving when a new change interrupts the saved status", async () => {
     vi.useFakeTimers();
-    const storage = new MemoryStorage();
+    const repository = new MemoryProgressRepository();
     const statuses: string[] = [];
     const controller = createProgressSaveController({
       onStatus: (status) => statuses.push(status),
       puzzle,
-      storage,
+      repository,
     });
     const progress = createPuzzleProgress(puzzle);
 
     controller.schedule(progress, false);
-    vi.advanceTimersByTime(750);
+    await vi.advanceTimersByTimeAsync(750);
     expect(statuses.at(-1)).toBe("saved");
 
-    vi.advanceTimersByTime(1500);
+    await vi.advanceTimersByTimeAsync(1500);
     paintCells(progress, puzzle, [0]);
     controller.schedule(progress, false);
-    vi.advanceTimersByTime(300);
+    await vi.advanceTimersByTimeAsync(300);
     expect(statuses.at(-1)).toBe("saving");
 
-    vi.advanceTimersByTime(450);
-    expect(storage.writeAttempts).toBe(2);
+    await vi.advanceTimersByTimeAsync(450);
+    expect(repository.writeAttempts).toBe(2);
     expect(statuses.at(-1)).toBe("saved");
   });
 
-  it("saves within the maximum delay during continuous changes", () => {
+  it("saves within the maximum delay during continuous changes", async () => {
     vi.useFakeTimers();
-    const storage = new MemoryStorage();
-    const controller = createProgressSaveController({ onStatus: () => undefined, puzzle, storage });
+    const repository = new MemoryProgressRepository();
+    const controller = createProgressSaveController({ onStatus: () => undefined, puzzle, repository });
     const progress = createPuzzleProgress(puzzle);
 
     controller.schedule(progress, false);
-    for (let elapsed = 600; elapsed < 3000; elapsed += 600) {
-      vi.advanceTimersByTime(600);
-      controller.schedule(progress, false);
-    }
-    expect(storage.writeAttempts).toBe(0);
+    await vi.advanceTimersByTimeAsync(600);
+    controller.schedule(progress, false);
+    await vi.advanceTimersByTimeAsync(600);
+    controller.schedule(progress, false);
+    await vi.advanceTimersByTimeAsync(600);
+    controller.schedule(progress, false);
+    await vi.advanceTimersByTimeAsync(600);
+    controller.schedule(progress, false);
+    expect(repository.writeAttempts).toBe(0);
 
-    vi.advanceTimersByTime(600);
-    expect(storage.writeAttempts).toBe(1);
+    await vi.advanceTimersByTimeAsync(600);
+    expect(repository.writeAttempts).toBe(1);
   });
 
-  it("stops retrying after the first write failure", () => {
+  it("serializes writes and persists changes made while a write is in flight", async () => {
+    const repository = new ControlledProgressRepository();
+    const controller = createProgressSaveController({ onStatus: () => undefined, puzzle, repository });
+    const progress = createPuzzleProgress(puzzle);
+    paintCells(progress, puzzle, [0]);
+
+    controller.schedule(progress, false);
+    const flushPromise = controller.flush(false);
+    expect(repository.writeAttempts).toBe(1);
+
+    paintCells(progress, puzzle, [3]);
+    controller.schedule(progress, false);
+    expect(repository.writeAttempts).toBe(1);
+
+    repository.completeNextWrite();
+    await vi.waitFor(() => expect(repository.writeAttempts).toBe(2));
+    repository.completeNextWrite();
+    await flushPromise;
+
+    await expect(loadPuzzleProgress(puzzle, repository)).resolves.toEqual(progress);
+  });
+
+  it("retries a transient failure without exposing an error", async () => {
     vi.useFakeTimers();
-    const storage = new MemoryStorage();
-    storage.failWrites = true;
+    const repository = new MemoryProgressRepository();
+    repository.failWrites = true;
     const statuses: string[] = [];
     const controller = createProgressSaveController({
       onStatus: (status) => statuses.push(status),
       puzzle,
-      storage,
+      repository,
     });
-    const progress = createPuzzleProgress(puzzle);
 
-    controller.schedule(progress, true);
-    expect(storage.writeAttempts).toBe(1);
-    expect(statuses).toEqual(["saving", "error"]);
+    controller.schedule(createPuzzleProgress(puzzle), true);
+    await controller.flush(true);
+    expect(repository.writeAttempts).toBe(1);
+    expect(statuses).toEqual(["saving"]);
 
-    storage.failWrites = false;
-    controller.schedule(progress, true);
-    expect(storage.writeAttempts).toBe(1);
+    repository.failWrites = false;
+    await vi.advanceTimersByTimeAsync(500);
+    expect(repository.writeAttempts).toBe(2);
+    expect(statuses.at(-1)).toBe("saved");
+    expect(statuses).not.toContain("error");
+  });
+
+  it("reports a persistent failure after retrying quietly", async () => {
+    vi.useFakeTimers();
+    const repository = new MemoryProgressRepository();
+    repository.failWrites = true;
+    const statuses: string[] = [];
+    const controller = createProgressSaveController({
+      onStatus: (status) => statuses.push(status),
+      puzzle,
+      repository,
+    });
+
+    controller.schedule(createPuzzleProgress(puzzle), true);
+    await vi.advanceTimersByTimeAsync(13_000);
+
+    expect(repository.writeAttempts).toBeGreaterThan(1);
+    expect(statuses.at(-1)).toBe("error");
   });
 });
 
