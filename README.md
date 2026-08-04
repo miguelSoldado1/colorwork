@@ -1,50 +1,63 @@
 # Colorwork
 
-A browser-based pixel color-by-number prototype built with React, Vite, TypeScript, Tailwind CSS, React Compiler, and Canvas 2D.
+Colorwork is a browser-based pixel color-by-number game built with React, TypeScript, Vite, Tailwind CSS, and Canvas 2D. Choose one of the included artworks or import an image to turn it into a numbered coloring board.
 
-## Controls
+## Getting started
 
-- Select a numbered swatch to choose a color.
-- Use the pencil to paint matching cells. Incorrect colors are ignored.
-- Drag the pencil to paint a continuous line without skipping cells.
-- Use the bucket to fill a connected matching region within the current viewport.
-- Use the pipette to select the color assigned to a cell.
-- Select a zoom tool, then click the part of the board that should stay under the cursor.
-- Use the hand tool to pan while zoomed in.
-- Middle-click a cell to select its color without switching tools.
-- Use the eye button to show or hide cell numbers without hiding the selected-color highlight.
-
-The bottom-left minimap shows the target in muted grayscale, overlays completed pixels in their actual colors, and marks the current viewport. Click or drag the minimap to pan the board directly.
-
-## Architecture
-
-React renders the game interface and receives summarized progress updates. The Canvas board is controlled imperatively by plain TypeScript, which owns rendering, camera state, pointer handling, painting, and frame scheduling. Painting a pixel does not create a DOM element or React state update for that pixel.
-
-Puzzle definitions and progress use flat typed arrays with row-major indexing. The prepared test puzzle is currently 160×80 logical pixels.
-
-```text
-src/
-├── app/          Application composition and React state
-├── coloring/     Imperative Canvas controller and progress logic
-├── components/   Board, palette, progress, and toolbar UI
-├── puzzles/      Prepared puzzle definitions
-└── styles/       Tailwind theme and global styles
-```
-
-## Development
+Install dependencies and start the development server:
 
 ```sh
+pnpm install
 pnpm dev
 ```
 
-Set `VITE_DEBUG` locally to show a debug-only checkbox that temporarily fills the canvas. Unchecking it restores the progress from before the debug fill. The control is disabled in production builds even if the variable is set.
+The artwork menu is available at `/`. Selecting an artwork opens its board at `/play/$levelId`.
 
-```sh
-VITE_DEBUG=1 pnpm dev
+Progress on included artwork is saved locally in IndexedDB. Imported artwork is kept in memory for the current page session and does not survive a reload.
+
+## Playing
+
+- Choose a numbered swatch, then use the pencil to paint matching cells. Incorrect colors are ignored.
+- Drag the pencil to paint a continuous stroke.
+- Use the bucket to fill a connected matching region inside the visible area.
+- Use the pipette, or middle-click a cell, to select its target color.
+- Use the zoom tools to zoom around the pointer and the hand tool to pan.
+- Toggle the grid, cell numbers, or the highlight for missing cells from the tool rail.
+- Click or drag the minimap to move around the board.
+
+The menu also accepts PNG, JPG, and WebP images. The importer reduces the image to a configurable grid and palette before opening it as a new board.
+
+## How it works
+
+React owns the interface and summarized progress state. The coloring surface is an imperative Canvas controller that owns pixel rendering, camera state, pointer input, painting, and frame scheduling. Pixel data is stored in flat typed arrays rather than React state or individual DOM elements.
+
+The main source areas are:
+
+```text
+src/
+|-- coloring/    Canvas controller, image import, and progress logic
+|-- components/  Interface grouped by feature
+|-- levels/      Catalog, descriptions, previews, and imported levels
+|-- puzzles/     Included artwork definitions
+|-- query/       Artwork and progress queries
+|-- routes/      Artwork menu and board routes
+|-- storage/     IndexedDB schema and access
+`-- styles/      Theme tokens and global styles
 ```
 
+For the product and interaction rationale behind the implementation, see [Design notes](docs/design-notes.md). Coding agents and contributors should also follow [AGENTS.md](AGENTS.md).
+
+## Development commands
+
 ```sh
-pnpm check
-pnpm typecheck
-pnpm build
+pnpm dev           # Start the development server
+pnpm test          # Run unit tests
+pnpm test:watch    # Run unit tests in watch mode
+pnpm test:browser  # Run Playwright browser tests
+pnpm typecheck     # Check TypeScript
+pnpm check         # Run repository checks
+pnpm build         # Create a production build
+pnpm preview       # Preview the production build
 ```
+
+Set `VITE_DEBUG=1` when starting the development server to show a development-only fill control. It can temporarily complete the current board and restore the preceding progress. Production builds never include the control.
