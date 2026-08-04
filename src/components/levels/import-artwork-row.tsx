@@ -1,9 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { countRenderedImageColors, getRecommendedGridSize } from "@/coloring/import-image";
 import Image2Plus from "@/components/icons/image-plus.svg?react";
 import { ImageImportDialog } from "@/components/import/image-import-dialog";
-import { rememberImportedPuzzle } from "@/levels/imported-levels";
+import { saveImportedPuzzle } from "@/levels/imported-levels";
+import { artworkQueryKeys } from "@/query/artwork-queries";
 import { tryCatch } from "@/try-catch";
 import type { ChangeEvent } from "react";
 import type { ImageImportSource } from "@/coloring/import-image";
@@ -11,6 +13,7 @@ import type { PuzzleDefinition } from "@/coloring/types";
 
 export function ImportArtworkRow() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState<ImageImportSource | null>(null);
   const [error, setError] = useState("");
@@ -46,10 +49,25 @@ export function ImportArtworkRow() {
     setSource(null);
   }
 
-  function openPuzzle(puzzle: PuzzleDefinition) {
-    rememberImportedPuzzle(puzzle);
-    closeImporter();
-    navigate({ params: { levelId: puzzle.id }, to: "/play/$levelId" });
+  async function openPuzzle(puzzle: PuzzleDefinition) {
+    setError("");
+    const saveResult = await tryCatch(saveImportedPuzzle(puzzle));
+    if (saveResult.error) {
+      return setError("Your artwork could not be saved. Check browser storage and try again.");
+    }
+
+    const filters = { queryKey: artworkQueryKeys.descriptions, refetchType: "none" as const };
+    const invalidationResult = await tryCatch(queryClient.invalidateQueries(filters));
+    if (invalidationResult.error) {
+      return setError("Your artwork was saved, but the catalog could not be refreshed. Try opening it again.");
+    }
+
+    const navigationResult = await tryCatch(navigate({ params: { levelId: puzzle.id }, to: "/play/$levelId" }));
+    if (navigationResult.error) {
+      return setError("Your artwork was saved, but its board could not be opened. Try opening it from the catalog.");
+    }
+
+    source?.bitmap.close();
   }
 
   return (
@@ -77,7 +95,9 @@ export function ImportArtworkRow() {
         </p>
       ) : null}
 
-      {source ? <ImageImportDialog onCancel={closeImporter} onConfirm={openPuzzle} source={source} /> : null}
+      {source ? (
+        <ImageImportDialog onCancel={closeImporter} onConfirm={openPuzzle} saveError={error} source={source} />
+      ) : null}
     </div>
   );
 }

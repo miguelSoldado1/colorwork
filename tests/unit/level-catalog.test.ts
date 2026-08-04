@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCompletedPuzzleProgress, createPuzzleProgress } from "@/coloring/progress";
 import { describeLevel } from "@/levels/describe-level";
-import { findImportedPuzzle, rememberImportedPuzzle } from "@/levels/imported-levels";
 import { findLevel, LEVELS } from "@/levels/level-catalog";
 import type { PuzzleDefinition } from "@/coloring/types";
 
@@ -62,16 +61,6 @@ describe("level catalog", () => {
         expect(colorIndex).toBeLessThan(puzzle.palette.length);
       }
     }
-  });
-});
-
-describe("imported levels", () => {
-  it("hands a remembered puzzle back by id", () => {
-    const puzzle = { ...puzzleOf(2, [0, 1, 1, 0]), id: "imported-artwork" };
-
-    expect(findImportedPuzzle(puzzle.id)).toBeUndefined();
-    rememberImportedPuzzle(puzzle);
-    expect(findImportedPuzzle(puzzle.id)).toBe(puzzle);
   });
 });
 

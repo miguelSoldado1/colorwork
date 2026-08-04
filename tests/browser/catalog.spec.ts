@@ -5,6 +5,7 @@ const PIXEL_COUNT = /^\d+$/;
 const ROOT_URL = /\/$/;
 const RIBBIT_BUTTON = /^Ribbit/;
 const GOBBO_BUTTON = /^Gobbo/;
+const WIDE_FIXTURE_BUTTON = /^Wide Fixture/;
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -62,6 +63,21 @@ test.describe("artwork catalog", () => {
     await width.fill("512");
     await expect(width).toHaveValue("512");
     await expect(height).toHaveValue("128");
+  });
+
+  test("persists imported artwork across reloads and includes it in the catalog", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 8, 8);
+
+    await page.getByRole("dialog").getByRole("button", { name: "Use this puzzle" }).click();
+    await expect(page).toHaveURL(PLAY_URL);
+    await expect(page.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
+
+    await page.getByRole("link", { name: "All artworks" }).click();
+    await expect(page.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toBeVisible();
   });
 
   test("opens every catalog entry and initializes its board", async ({ page }) => {

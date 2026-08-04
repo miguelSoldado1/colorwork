@@ -43,7 +43,7 @@ Clearing progress is also the only way to repaint a finished artwork. Opening a 
 
 `describeLevel` combines a puzzle definition and its saved progress into the shape consumed by menu components. This keeps storage and raw pixel arrays out of the presentation layer.
 
-Importing starts from the menu because the board is focused on painting one artwork. An imported image is converted into a puzzle, held in memory, and opened through the normal board route. Imported puzzles currently disappear on reload and do not persist progress; future persistent artwork storage should include imported puzzles and their progress together.
+Importing starts from the menu because the board is focused on painting one artwork. An imported image is converted into a puzzle, stored in IndexedDB, included after the built-in catalog entries, and opened through the normal board route. Its definition and progress persist across reloads.
 
 ## Coloring board
 

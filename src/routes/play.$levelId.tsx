@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { clonePuzzleProgress, createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
+import { clonePuzzleProgress, createProgressSummary } from "@/coloring/progress";
 import { createProgressSaveController, type ProgressSaveStatus } from "@/coloring/progress-storage";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { ArtworkLoadError, ArtworkLoading } from "@/components/artwork/artwork-load-state";
@@ -15,44 +15,34 @@ import { SaveStatus } from "@/components/progress/save-status";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
-import { findImportedPuzzle } from "@/levels/imported-levels";
-import { findLevel } from "@/levels/level-catalog";
-import { artworkProgressQueryOptions } from "@/query/artwork-queries";
+import { artworkDefinitionQueryOptions, artworkProgressQueryOptions } from "@/query/artwork-queries";
 import { loadUserPreferences, saveUserPreferences } from "@/user-preferences";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
-export const Route = createFileRoute("/play/$levelId")({
-  // An unknown artwork is a dead end, so send the player back to the menu instead of an error. An
-  // imported one reloaded from a fresh tab is unknown too, since imports live only in memory.
-  beforeLoad: ({ params }) => {
-    if (!resolvePuzzle(params.levelId)) {
-      throw redirect({ to: "/" });
-    }
-  },
-  component: PlayRoute,
-});
+export const Route = createFileRoute("/play/$levelId")({ component: PlayRoute });
 
 function PlayRoute() {
   const { levelId } = Route.useParams();
-  const catalogPuzzle = findLevel(levelId);
-  const puzzle = catalogPuzzle ?? findImportedPuzzle(levelId);
+  const artworkQuery = useQuery(artworkDefinitionQueryOptions(levelId));
 
-  if (!puzzle) {
-    return null;
+  async function retry() {
+    await artworkQuery.refetch();
+  }
+
+  if (artworkQuery.isPending) {
+    return <ArtworkLoading />;
+  }
+
+  if (artworkQuery.isError) {
+    return <ArtworkLoadError detail="Your saved artwork couldn't be opened." onRetry={retry} />;
+  }
+
+  if (!artworkQuery.data) {
+    return <Navigate replace to="/" />;
   }
 
   // Keyed so switching artworks rebuilds board state instead of inheriting the previous puzzle's.
-  if (catalogPuzzle) {
-    return <StoredColoringApp key={puzzle.id} puzzle={puzzle} />;
-  }
-  return (
-    <ColoringApp
-      initialProgress={createPuzzleProgress(puzzle)}
-      key={puzzle.id}
-      persistProgress={false}
-      puzzle={puzzle}
-    />
-  );
+  return <StoredColoringApp key={levelId} puzzle={artworkQuery.data} />;
 }
 
 function StoredColoringApp({ puzzle }: { puzzle: PuzzleDefinition }) {
@@ -65,7 +55,7 @@ function StoredColoringApp({ puzzle }: { puzzle: PuzzleDefinition }) {
     return <ArtworkLoadError onRetry={retry} puzzle={puzzle} />;
   }
 
-  return <ColoringApp initialProgress={progressQuery.data} persistProgress puzzle={puzzle} />;
+  return <ColoringApp initialProgress={progressQuery.data} puzzle={puzzle} />;
 
   async function retry() {
     await progressQuery.refetch();
@@ -74,11 +64,10 @@ function StoredColoringApp({ puzzle }: { puzzle: PuzzleDefinition }) {
 
 interface ColoringAppProps {
   initialProgress: PuzzleProgress;
-  persistProgress: boolean;
   puzzle: PuzzleDefinition;
 }
 
-function ColoringApp({ initialProgress, persistProgress, puzzle }: ColoringAppProps) {
+function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
@@ -92,7 +81,7 @@ function ColoringApp({ initialProgress, persistProgress, puzzle }: ColoringAppPr
   const [celebrateCompletion, setCelebrateCompletion] = useState(false);
   const completedRef = useRef(isPuzzleComplete(summary));
 
-  useEffect(() => (persistProgress ? progressSaver.connect() : undefined), [persistProgress, progressSaver]);
+  useEffect(() => progressSaver.connect(), [progressSaver]);
 
   useEffect(() => {
     saveUserPreferences(preferences);
@@ -130,9 +119,7 @@ function ColoringApp({ initialProgress, persistProgress, puzzle }: ColoringAppPr
 
   function updateBoardProgress(nextSummary: ProgressSummary) {
     updateProgressSummary(nextSummary);
-    if (persistProgress) {
-      progressSaver.schedule(progress, isPuzzleComplete(nextSummary));
-    }
+    progressSaver.schedule(progress, isPuzzleComplete(nextSummary));
   }
 
   function updateProgressSummary(nextSummary: ProgressSummary) {
@@ -148,9 +135,7 @@ function ColoringApp({ initialProgress, persistProgress, puzzle }: ColoringAppPr
 
   function replaceDebugProgress(nextProgress: PuzzleProgress) {
     setProgress(nextProgress);
-    if (persistProgress) {
-      progressSaver.schedule(nextProgress, nextProgress.paintedCount >= puzzle.width * puzzle.height);
-    }
+    progressSaver.schedule(nextProgress, nextProgress.paintedCount >= puzzle.width * puzzle.height);
   }
 
   return (
@@ -167,7 +152,7 @@ function ColoringApp({ initialProgress, persistProgress, puzzle }: ColoringAppPr
             </Link>
             <div className="mt-1 flex min-w-0 items-center gap-2">
               <h1 className="min-w-0 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
-              {persistProgress ? <SaveStatus status={saveStatus} /> : null}
+              <SaveStatus status={saveStatus} />
             </div>
             <ArtworkCredit artist={puzzle.artist} />
           </div>
@@ -238,10 +223,6 @@ function ColoringApp({ initialProgress, persistProgress, puzzle }: ColoringAppPr
       </div>
     </main>
   );
-}
-
-function resolvePuzzle(levelId: string) {
-  return findLevel(levelId) ?? findImportedPuzzle(levelId);
 }
 
 function isPuzzleComplete(summary: ProgressSummary) {

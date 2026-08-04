@@ -25,10 +25,11 @@ const DEFAULT_PALETTE_SIZE = 16;
 interface ImageImportDialogProps {
   onCancel: () => void;
   onConfirm: (puzzle: PuzzleDefinition) => void;
+  saveError?: string;
   source: ImageImportSource;
 }
 
-export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDialogProps) {
+export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: ImageImportDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previewRef = useRef<HTMLCanvasElement>(null);
   const recommendedSize = getRecommendedGridSize(source.width, source.height);
@@ -266,8 +267,13 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
       </div>
 
       <div className="flex flex-col-reverse gap-3 border-border border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+        {saveError ? (
+          <p className="self-center text-destructive text-xs sm:mr-auto" role="alert">
+            {saveError}
+          </p>
+        ) : null}
         {isDebugMode ? (
-          <Button className="sm:mr-auto" disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
+          <Button disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
             Download .ts module
           </Button>
         ) : null}
