@@ -5,12 +5,17 @@ import type { StoredArtworkV1 } from "@/storage/colorwork-database";
 const STORAGE_VERSION = 1;
 
 export interface ArtworkRepository {
+  delete: (artworkId: string) => Promise<void>;
   get: (artworkId: string) => Promise<StoredArtworkV1 | undefined>;
   getAll: () => Promise<StoredArtworkV1[]>;
   put: (artwork: StoredArtworkV1) => Promise<void>;
 }
 
 const indexedDbArtworkRepository: ArtworkRepository = {
+  async delete(artworkId) {
+    const database = await getColorworkDatabase();
+    await database.delete("artworks", artworkId);
+  },
   async get(artworkId) {
     const database = await getColorworkDatabase();
     return database.get("artworks", artworkId);
@@ -43,6 +48,10 @@ export async function saveImportedPuzzle(
     version: STORAGE_VERSION,
     width: puzzle.width,
   });
+}
+
+export async function deleteImportedPuzzle(id: string, repository: ArtworkRepository = indexedDbArtworkRepository) {
+  await repository.delete(id);
 }
 
 export async function findImportedPuzzle(id: string, repository: ArtworkRepository = indexedDbArtworkRepository) {
