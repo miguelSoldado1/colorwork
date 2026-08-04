@@ -65,6 +65,23 @@ test.describe("artwork catalog", () => {
     await expect(height).toHaveValue("128");
   });
 
+  test("keeps the grid usable while replacing the width", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 1000, 250);
+
+    const dialog = page.getByRole("dialog");
+    const width = dialog.getByLabel("Width");
+    const height = dialog.getByLabel("Height");
+
+    await width.fill("");
+    await expect(width).toHaveValue("");
+    await expect(height).toHaveValue("128");
+
+    await width.pressSequentially("256");
+    await expect(width).toHaveValue("256");
+    await expect(height).toHaveValue("64");
+  });
+
   test("uses the semantic canvas color behind transparent imports", async ({ page }) => {
     await page.goto("/");
     await uploadGeneratedImage(page, 2, 1, true);

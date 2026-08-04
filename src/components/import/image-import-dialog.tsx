@@ -299,6 +299,12 @@ interface NumberFieldProps {
 }
 
 function NumberField({ label, max, min, onChange, value }: NumberFieldProps) {
+  const [draft, setDraft] = useState(String(value));
+
+  useEffect(() => {
+    setDraft(String(value));
+  }, [value]);
+
   return (
     <label className="grid gap-1.5 text-muted-foreground text-xs">
       {label}
@@ -306,12 +312,37 @@ function NumberField({ label, max, min, onChange, value }: NumberFieldProps) {
         className="h-10 min-w-0 rounded-md border border-input bg-background px-2.5 text-center text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
         max={max}
         min={min}
-        onChange={(event) => onChange(event.target.valueAsNumber)}
+        onBlur={() => {
+          const parsedValue = parseNumberDraft(draft);
+          if (parsedValue === undefined) {
+            return setDraft(String(value));
+          }
+
+          onChange(parsedValue);
+        }}
+        onChange={(event) => {
+          const nextDraft = event.target.value;
+          setDraft(nextDraft);
+
+          const parsedValue = parseNumberDraft(nextDraft);
+          if (parsedValue !== undefined) {
+            onChange(parsedValue);
+          }
+        }}
         type="number"
-        value={value}
+        value={draft}
       />
     </label>
   );
+}
+
+function parseNumberDraft(draft: string) {
+  if (draft.trim() === "") {
+    return;
+  }
+
+  const parsedValue = Number(draft);
+  return Number.isFinite(parsedValue) ? parsedValue : undefined;
 }
 
 function clampGridSize(value: number) {
