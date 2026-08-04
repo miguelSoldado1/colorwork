@@ -128,7 +128,7 @@ test.describe("artwork catalog", () => {
     await expect(preview.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
 
     await preview.getByRole("button", { name: "Delete artwork" }).click();
-    await preview.getByRole("button", { name: "Delete forever" }).click();
+    await preview.getByRole("button", { name: "Yes, delete it" }).click();
 
     await expect(page.getByRole("list", { name: "Your artwork" })).toBeHidden();
     await expect(page.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toHaveCount(0);
