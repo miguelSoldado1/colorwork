@@ -16,10 +16,9 @@ export function Palette({ complete, onSelect, puzzle, selectedColor, summary }: 
   return (
     // Sized to the swatches so the readout and the row stay one centered block.
     <div className="mx-auto w-fit max-w-full">
-      <div
+      <fieldset
         aria-label={`${painted} pixels painted, ${total} pixels total for color ${selectedColor + 1}`}
         className="mb-1.5 flex min-w-0 items-baseline gap-2 px-2 text-muted-foreground text-xs tabular-nums"
-        role="status"
       >
         <span className="shrink-0 text-foreground">Color {selectedColor + 1}</span>
         <span aria-hidden className="text-muted-foreground/35">
@@ -28,7 +27,7 @@ export function Palette({ complete, onSelect, puzzle, selectedColor, summary }: 
         <span className="truncate">
           {painted.toLocaleString()} of {total.toLocaleString()} filled
         </span>
-      </div>
+      </fieldset>
       {/* Clears the selected swatch's ring, its focus outline, and the hover lift; the scroll container clips all three. */}
       <ul aria-label="Puzzle colors" className="scrollbar-none flex gap-2.5 overflow-x-auto p-2.5">
         {puzzle.palette.map((color, colorIndex) => {

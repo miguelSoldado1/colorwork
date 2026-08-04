@@ -1,7 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
 const PLAY_URL = /\/play\/[^/]+$/;
-const PIXEL_COUNT = /^\d+$/;
 const ROOT_URL = /\/$/;
 const RIBBIT_BUTTON = /^Ribbit/;
 const GOBBO_BUTTON = /^Gobbo/;
@@ -180,7 +179,6 @@ test.describe("artwork catalog", () => {
             name: "Color-by-number puzzle. Choose a tool and interact with cells on the board.",
           });
           await expect(board).toBeVisible();
-          await expect(board).toHaveAttribute("data-logical-pixels", PIXEL_COUNT);
         } finally {
           await artworkPage.close();
         }

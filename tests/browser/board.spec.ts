@@ -22,16 +22,16 @@ test.describe("coloring board", () => {
     await openImportedPuzzle(page);
 
     await paintCell(page, 0, 0);
-    await expect(page.getByRole("status", { name: "1 of 16 pixels painted" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
 
     // A wrong selected color is ignored rather than corrupting the board.
     await paintCell(page, 3, 0);
-    await expect(page.getByRole("status", { name: "1 of 16 pixels painted" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
 
     await page.getByRole("button", { name: "Color 2: 0 of 8 cells painted" }).click();
     await page.getByRole("button", { name: "Bucket fill tool" }).click();
     await paintCell(page, 3, 0);
-    await expect(page.getByRole("status", { name: "9 of 16 pixels painted" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "9 of 16 pixels painted" })).toBeVisible();
 
     await page.getByRole("button", { name: "Color picker tool" }).click();
     await paintCell(page, 0, 1);
@@ -42,7 +42,7 @@ test.describe("coloring board", () => {
 
     await page.getByRole("button", { name: "Bucket fill tool" }).click();
     await paintCell(page, 0, 1);
-    await expect(page.getByRole("status", { name: "16 of 16 pixels painted" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "16 of 16 pixels painted" })).toBeVisible();
     await expect(
       page.locator('[role="status"]').filter({ hasText: "Puzzle complete. Every pixel is painted." })
     ).toBeAttached();
@@ -81,7 +81,7 @@ test.describe("coloring board", () => {
     const position = { x: box.width / 2, y: box.height / 2 };
     await canvas.click({ button: "middle", position });
     await canvas.click({ position });
-    await expect(page.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
+    await expect(page.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
     await expect.poll(() => hasStoredProgress(page, "ribbit")).toBe(true);
 
     await page.getByRole("link", { name: "All artworks" }).click();
@@ -92,9 +92,9 @@ test.describe("coloring board", () => {
     await expect(startOver).toBeEnabled();
 
     await preview.getByRole("link", { name: "Keep painting" }).click();
-    await expect(page.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
+    await expect(page.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
+    await expect(page.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
 
     await page.getByRole("link", { name: "All artworks" }).click();
     await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
@@ -130,7 +130,7 @@ test.describe("coloring board", () => {
       const position = { x: box.width / 2, y: box.height / 2 };
       await canvas.click({ button: "middle", position });
       await canvas.click({ position });
-      await expect(boardPage.getByRole("status", { name: PAINTED_ANY })).toBeVisible();
+      await expect(boardPage.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
       await expect.poll(() => hasStoredProgress(boardPage, "ribbit")).toBe(true);
 
       await expect(preview.getByRole("button", { name: "Start over" })).toBeEnabled();
@@ -152,7 +152,7 @@ async function openImportedPuzzle(page: Page) {
   await expect(page).toHaveURL(IMPORTED_URL);
   await expect(page.getByRole("heading", { name: "Two Color Fixture" })).toBeVisible();
   await expect(page.getByRole("img", { name: BOARD_LABEL })).toBeVisible();
-  await expect(page.getByRole("status", { name: "0 of 16 pixels painted" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeVisible();
 }
 
 async function paintCell(page: Page, x: number, y: number) {

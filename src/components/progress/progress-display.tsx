@@ -10,10 +10,9 @@ export function ProgressDisplay({ summary }: ProgressDisplayProps) {
   const totalPixels = summary.totalPixels.toLocaleString();
 
   return (
-    <div
+    <fieldset
       aria-label={`${paintedCount} of ${totalPixels} pixels painted`}
       className="flex min-w-0 items-center gap-3"
-      role="status"
     >
       <div className="h-1 min-w-10 flex-1 overflow-hidden rounded-full bg-foreground/10">
         <div
@@ -26,6 +25,6 @@ export function ProgressDisplay({ summary }: ProgressDisplayProps) {
       <span className="hidden shrink-0 text-muted-foreground text-sm tabular-nums sm:inline">
         {paintedCount} / {totalPixels}
       </span>
-    </div>
+    </fieldset>
   );
 }

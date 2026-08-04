@@ -42,7 +42,7 @@ export function ToolPicker({
   const missingLabel = highlightMissing ? "Stop highlighting missing cells" : "Highlight missing cells";
 
   return (
-    <div aria-label="Board tools" className="flex flex-row gap-2.5 sm:flex-col" role="toolbar">
+    <fieldset aria-label="Board tools" className="flex flex-row gap-2.5 sm:flex-col">
       <div className={GROUP}>
         <ToolButton
           label="Pencil tool"
@@ -122,6 +122,6 @@ export function ToolPicker({
           <Target height={24} width={24} />
         </ToolButton>
       </div>
-    </div>
+    </fieldset>
   );
 }

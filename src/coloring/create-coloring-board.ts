@@ -330,7 +330,6 @@ export function createColoringBoard({
 
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
     context.imageSmoothingEnabled = false;
-    const renderStartedAt = performance.now();
 
     context.fillStyle = theme.canvas;
     context.fillRect(0, 0, bounds.width, bounds.height);
@@ -361,8 +360,6 @@ export function createColoringBoard({
     context.strokeStyle = theme.canvasEdge;
     context.lineWidth = 2;
     context.strokeRect(x - 1, y - 1, width + 2, height + 2);
-    canvas.dataset.renderMs = (performance.now() - renderStartedAt).toFixed(2);
-    canvas.dataset.logicalPixels = String(puzzle.width * puzzle.height);
     canvas.dataset.zoom = zoom.toFixed(2);
     renderOverview();
   }
