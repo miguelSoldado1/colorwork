@@ -19,7 +19,7 @@ export default {
   },
   catalogOrder: 10,
   height: 24,
-  id: "gobbo-msdpq0fp",
+  id: "gobbo",
   name: "Gobbo",
   palette: ["#c5ccb8", "#000000", "#6eaa78", "#9a4f50"],
   targetPixels: decodePixels(encodedPixels),

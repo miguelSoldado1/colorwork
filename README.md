@@ -12,6 +12,7 @@ pnpm dev
 ```
 
 The artwork menu is available at `/`. Selecting an artwork opens its board at `/play/$levelId`.
+Production builds also generate a static XML sitemap at `/sitemap.xml` and a matching `/robots.txt` from the built-in puzzle files. Set `VITE_SITE_URL` when building outside Vercel to choose the sitemap origin.
 
 Everything is stored locally in IndexedDB and nothing is uploaded. Progress on included artwork, along with imported artwork and its progress, survives a reload. Imported artwork can be deleted from its preview in the menu.
 
