@@ -91,7 +91,7 @@ export function StartOverControl({ level }: StartOverControlProps) {
           tabIndex={confirming ? undefined : -1}
           variant="destructive"
         >
-          {clearMutation.isPending ? "Clearing…" : "Yes, clear it"}
+          Yes, clear it
         </Button>
       </div>
       {clearMutation.isError ? (

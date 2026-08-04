@@ -44,7 +44,11 @@ async function loadArtworkDescriptions() {
   const imports = (await loadImportedPuzzles()).filter(
     (puzzle) => !LEVELS.some((catalogPuzzle) => catalogPuzzle.id === puzzle.id)
   );
-  const puzzles = [...LEVELS, ...imports];
-  const progress = await Promise.all(puzzles.map((puzzle) => loadPuzzleProgress(puzzle)));
-  return puzzles.map((puzzle, index) => describeLevel(puzzle, progress[index]));
+
+  const entries = [
+    ...LEVELS.map((puzzle) => ({ puzzle, source: "catalog" as const })),
+    ...imports.map((puzzle) => ({ puzzle, source: "imported" as const })),
+  ];
+  const progress = await Promise.all(entries.map((entry) => loadPuzzleProgress(entry.puzzle)));
+  return entries.map((entry, index) => describeLevel(entry.puzzle, progress[index], entry.source));
 }

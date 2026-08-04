@@ -146,8 +146,8 @@ async function openImportedPuzzle(page: Page) {
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Use this puzzle" })).toBeEnabled();
-  await dialog.getByRole("button", { name: "Use this puzzle" }).click();
+  await expect(dialog.getByRole("button", { name: "Import this puzzle" })).toBeEnabled();
+  await dialog.getByRole("button", { name: "Import this puzzle" }).click();
 
   await expect(page).toHaveURL(IMPORTED_URL);
   await expect(page.getByRole("heading", { name: "Two Color Fixture" })).toBeVisible();

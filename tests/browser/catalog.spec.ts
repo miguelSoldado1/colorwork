@@ -102,7 +102,7 @@ test.describe("artwork catalog", () => {
     await page.goto("/");
     await uploadGeneratedImage(page, 8, 8);
 
-    await page.getByRole("dialog").getByRole("button", { name: "Use this puzzle" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Import this puzzle" }).click();
     await expect(page).toHaveURL(PLAY_URL);
     await expect(page.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
 
@@ -110,7 +110,34 @@ test.describe("artwork catalog", () => {
     await expect(page.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
 
     await page.getByRole("link", { name: "All artworks" }).click();
-    await expect(page.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toBeVisible();
+    const imported = page.getByRole("list", { name: "Your artwork" });
+    await expect(imported.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toBeVisible();
+    const catalog = page.getByRole("list", { name: "Built-in artwork" });
+    await expect(catalog.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toHaveCount(0);
+  });
+
+  test("deletes imported artwork and offers no delete for the built-in catalog", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 8, 8);
+    await page.getByRole("dialog").getByRole("button", { name: "Import this puzzle" }).click();
+    await expect(page).toHaveURL(PLAY_URL);
+
+    await page.getByRole("link", { name: "All artworks" }).click();
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+    await page.getByRole("button", { name: WIDE_FIXTURE_BUTTON }).click();
+    await expect(preview.getByRole("heading", { name: "Wide Fixture" })).toBeVisible();
+
+    await preview.getByRole("button", { name: "Delete artwork" }).click();
+    await preview.getByRole("button", { name: "Delete forever" }).click();
+
+    await expect(page.getByRole("list", { name: "Your artwork" })).toBeHidden();
+    await expect(page.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toHaveCount(0);
+
+    // A built-in artwork now holds the preview, and it must not expose the control.
+    await expect(preview.getByRole("button", { name: "Delete artwork" })).toHaveCount(0);
+
+    await page.reload();
+    await expect(page.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toHaveCount(0);
   });
 
   test("opens every catalog entry and initializes its board", async ({ page }) => {

@@ -158,6 +158,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
             <h2 className="mt-1 text-2xl" id="import-title">
               Tune your pixel grid
             </h2>
+            <p className="text-muted-foreground text-xs">Saved in this browser — nothing is uploaded.</p>
           </div>
           <Button aria-label="Cancel image import" className="shrink-0" onClick={onCancel} size="icon" variant="ghost">
             <Close height={22} width={22} />
@@ -273,7 +274,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
           </p>
         ) : null}
         {isDebugMode ? (
-          <Button disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
+          <Button className="sm:mr-auto" disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
             Download .ts module
           </Button>
         ) : null}
@@ -282,7 +283,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
         </Button>
         <Button disabled={!puzzle} onClick={confirmPuzzle} variant="primary">
           <Check className="block shrink-0" height={19} width={19} />
-          Use this puzzle
+          Import this puzzle
         </Button>
       </div>
     </dialog>

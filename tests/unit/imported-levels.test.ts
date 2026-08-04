@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   type ArtworkRepository,
+  deleteImportedPuzzle,
   findImportedPuzzle,
   loadImportedPuzzles,
   saveImportedPuzzle,
@@ -19,6 +20,11 @@ const puzzle = {
 
 class MemoryArtworkRepository implements ArtworkRepository {
   readonly values = new Map<string, StoredArtworkV1>();
+
+  delete(artworkId: string) {
+    this.values.delete(artworkId);
+    return Promise.resolve();
+  }
 
   get(artworkId: string) {
     const record = this.values.get(artworkId);
@@ -58,6 +64,24 @@ describe("imported artwork storage", () => {
 
     expect(record?.targetPixels[0]).toBe(0);
     expect(record?.palette).not.toBe(puzzle.palette);
+  });
+
+  it("drops a deleted puzzle from the catalog and leaves the rest alone", async () => {
+    const repository = new MemoryArtworkRepository();
+    const other = { ...puzzle, id: "other-artwork", name: "Other artwork" } satisfies PuzzleDefinition;
+    await saveImportedPuzzle(puzzle, repository);
+    await saveImportedPuzzle(other, repository);
+
+    await deleteImportedPuzzle(puzzle.id, repository);
+
+    await expect(findImportedPuzzle(puzzle.id, repository)).resolves.toBeUndefined();
+    await expect(loadImportedPuzzles(repository)).resolves.toEqual([other]);
+  });
+
+  it("stays quiet when deleting a puzzle that is not stored", async () => {
+    const repository = new MemoryArtworkRepository();
+
+    await expect(deleteImportedPuzzle("never-imported", repository)).resolves.toBeUndefined();
   });
 
   it("ignores malformed records instead of opening a broken board", async () => {
