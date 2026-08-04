@@ -8,6 +8,7 @@ const STORAGE_CHANNEL = "colorwork:progress";
 const STORAGE_VERSION = 1;
 
 let progressChannel: BroadcastChannel | null | undefined;
+const puzzleSignatures = new WeakMap<PuzzleDefinition, string>();
 
 export interface ProgressRepository {
   delete: (artworkId: string) => Promise<void>;
@@ -331,6 +332,11 @@ function restoreProgress(puzzle: PuzzleDefinition, bitset: Uint8Array) {
 }
 
 function createPuzzleSignature(puzzle: PuzzleDefinition) {
+  const cached = puzzleSignatures.get(puzzle);
+  if (cached) {
+    return cached;
+  }
+
   const HASH_MODULUS = 4_294_967_291;
   let hash = 17;
 
@@ -350,7 +356,9 @@ function createPuzzleSignature(puzzle: PuzzleDefinition) {
     mix(colorIndex);
   }
 
-  return `${puzzle.width}x${puzzle.height}:${puzzle.palette.length}:${hash.toString(36)}`;
+  const signature = `${puzzle.width}x${puzzle.height}:${puzzle.palette.length}:${hash.toString(36)}`;
+  puzzleSignatures.set(puzzle, signature);
+  return signature;
 }
 
 function isStoredProgress(value: unknown): value is StoredProgressV1 {

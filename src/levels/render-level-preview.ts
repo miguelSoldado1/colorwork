@@ -31,6 +31,12 @@ interface PreviewLayerOptions {
 const NUMBER_MIN_CELL_SIZE = 13;
 const GLYPH_CELL_DIVISOR = 7;
 
+interface ArtworkLayers {
+  colored?: HTMLCanvasElement;
+  muted?: HTMLCanvasElement;
+}
+
+const artworkLayers = new WeakMap<PuzzleDefinition, ArtworkLayers>();
 const glyphAtlases = new Map<string, ReturnType<typeof createNumberGlyphAtlas>>();
 
 /** Whole pixels once the artwork is upscaled, so a caller can size a frame the render will fill exactly. */
@@ -60,7 +66,7 @@ export function renderLevelPreview({ canvas, colored, frame, numbers, puzzle }: 
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
   // Upscaled pixel art has to stay hard-edged; a thumbnail smaller than its artwork needs averaging.
   context.imageSmoothingEnabled = cellSize < 1;
-  context.drawImage(drawArtworkLayer(puzzle, colored), 0, 0, width, height);
+  context.drawImage(getArtworkLayer(puzzle, colored), 0, 0, width, height);
 
   if (colored) {
     return;
@@ -72,7 +78,13 @@ export function renderLevelPreview({ canvas, colored, frame, numbers, puzzle }: 
   }
 }
 
-function drawArtworkLayer(puzzle: PuzzleDefinition, colored: boolean) {
+function getArtworkLayer(puzzle: PuzzleDefinition, colored: boolean) {
+  const layers = artworkLayers.get(puzzle);
+  const cached = colored ? layers?.colored : layers?.muted;
+  if (cached) {
+    return cached;
+  }
+
   const layer = document.createElement("canvas");
   layer.width = puzzle.width;
   layer.height = puzzle.height;
@@ -92,6 +104,13 @@ function drawArtworkLayer(puzzle: PuzzleDefinition, colored: boolean) {
   }
 
   context.putImageData(image, 0, 0);
+  const nextLayers = layers ?? {};
+  if (colored) {
+    nextLayers.colored = layer;
+  } else {
+    nextLayers.muted = layer;
+  }
+  artworkLayers.set(puzzle, nextLayers);
   return layer;
 }
 
