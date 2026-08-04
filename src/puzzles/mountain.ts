@@ -585,7 +585,7 @@ export default {
     name: "ansimuz",
     url: "https://ansimuz.itch.io/mountain-dusk-parallax-background/devlog/783765/new-background",
   },
-  catalogOrder: 50,
+  catalogOrder: 70,
   height: 180,
   id: "mountain",
   name: "Mountain",

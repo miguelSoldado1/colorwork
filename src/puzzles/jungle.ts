@@ -201,7 +201,7 @@ export default {
     name: "Pixel-boy",
     url: "https://forums.rpgmakerweb.com/threads/pixel-boy-backgrounds-asset-pack-2-resolutions.103487/?utm_source=chatgpt.com",
   },
-  catalogOrder: 40,
+  catalogOrder: 60,
   height: 90,
   id: "jungle",
   name: "Jungle",
