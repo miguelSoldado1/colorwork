@@ -5,21 +5,13 @@ import type { PuzzleDefinition } from "@/coloring/types";
 interface LevelPreviewProps {
   className: string;
   colored: boolean;
-  fit?: "contain" | "cover";
   /** Names the artwork for assistive tech; omit where a nearby heading already does. */
   label?: string;
   numbers?: boolean;
   puzzle: PuzzleDefinition;
 }
 
-export function LevelPreview({
-  className,
-  colored,
-  fit = "contain",
-  label,
-  numbers = false,
-  puzzle,
-}: LevelPreviewProps) {
+export function LevelPreview({ className, colored, label, numbers = false, puzzle }: LevelPreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [frame, setFrame] = useState({ height: 0, width: 0 });
@@ -44,15 +36,15 @@ export function LevelPreview({
       return;
     }
 
-    renderLevelPreview({ canvas, colored, fit, frame, numbers, puzzle });
-  }, [colored, fit, frame, numbers, puzzle]);
+    renderLevelPreview({ canvas, colored, frame, numbers, puzzle });
+  }, [colored, frame, numbers, puzzle]);
 
   return (
     <div className={`grid place-items-center ${className}`} ref={frameRef}>
       <canvas
         aria-hidden={label ? undefined : true}
         aria-label={label}
-        className={`block ${fit === "cover" ? "[image-rendering:pixelated]" : ""}`}
+        className="block [image-rendering:pixelated]"
         ref={canvasRef}
         role={label ? "img" : undefined}
       />

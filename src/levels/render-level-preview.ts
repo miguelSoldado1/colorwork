@@ -16,7 +16,6 @@ interface PreviewFrame {
 interface RenderLevelPreviewOptions {
   canvas: HTMLCanvasElement;
   colored: boolean;
-  fit: "contain" | "cover";
   frame: PreviewFrame;
   numbers: boolean;
   puzzle: PuzzleDefinition;
@@ -40,7 +39,7 @@ export function fitCellSize(puzzle: PuzzleDefinition, frame: PreviewFrame) {
   return scale >= 1 ? Math.floor(scale) : scale;
 }
 
-export function renderLevelPreview({ canvas, colored, fit, frame, numbers, puzzle }: RenderLevelPreviewOptions) {
+export function renderLevelPreview({ canvas, colored, frame, numbers, puzzle }: RenderLevelPreviewOptions) {
   const cellSize = fitCellSize(puzzle, frame);
   if (cellSize <= 0) {
     return;
@@ -49,9 +48,10 @@ export function renderLevelPreview({ canvas, colored, fit, frame, numbers, puzzl
   const width = cellSize * puzzle.width;
   const height = cellSize * puzzle.height;
   const dpr = window.devicePixelRatio || 1;
-  canvas.style.width = fit === "cover" ? "100%" : `${width}px`;
-  canvas.style.height = fit === "cover" ? "100%" : `${height}px`;
-  canvas.style.objectFit = fit;
+
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
+  canvas.style.objectFit = "cover";
   canvas.style.objectPosition = "center";
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);

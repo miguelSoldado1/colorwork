@@ -33,15 +33,13 @@ export function IndexMenu({ levels, onSelect, selectedId }: IndexMenuProps) {
   );
 }
 
-function IndexRow({
-  level,
-  onSelect,
-  selected,
-}: {
+interface IndexRowProps {
   level: LevelDescription;
   onSelect: (id: string) => void;
   selected: boolean;
-}) {
+}
+
+function IndexRow({ level, onSelect, selected }: IndexRowProps) {
   const { completedColors, finished, paintedCount, puzzle, totalPixels } = level;
 
   return (
@@ -54,7 +52,12 @@ function IndexRow({
         onClick={() => onSelect(puzzle.id)}
         type="button"
       >
-        <LevelPreview className="size-12 rounded-[3px] bg-canvas" colored={finished} puzzle={puzzle} />
+        <LevelPreview
+          className="size-12 overflow-hidden rounded-[3px] bg-canvas"
+          colored={finished}
+          numbers
+          puzzle={puzzle}
+        />
 
         <span className="min-w-0 truncate text-sm">{puzzle.name}</span>
 
