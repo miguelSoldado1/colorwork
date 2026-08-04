@@ -13,7 +13,7 @@ pnpm dev
 
 The artwork menu is available at `/`. Selecting an artwork opens its board at `/play/$levelId`.
 
-Progress on included artwork is saved locally in IndexedDB. Imported artwork is kept in memory for the current page session and does not survive a reload.
+Everything is stored locally in IndexedDB and nothing is uploaded. Progress on included artwork, along with imported artwork and its progress, survives a reload. Imported artwork can be deleted from its preview in the menu.
 
 ## Playing
 

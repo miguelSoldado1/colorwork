@@ -11,7 +11,7 @@ Read [docs/design-notes.md](docs/design-notes.md) before changing product behavi
 - Store pixel data in flat typed arrays using row-major indexing: `y * width + x`.
 - Keep Canvas-to-React communication to small callbacks carrying summarized state or a selected palette index.
 - Stored progress reaches the menu through `describeLevel`. Components should not read the progress store or raw pixel arrays directly.
-- Imported artwork belongs to the menu and opens through `/play/$levelId` like catalog artwork. It remains in memory until persistent import storage is implemented.
+- Imported artwork belongs to the menu and opens through `/play/$levelId` like catalog artwork. Its definition and progress persist in IndexedDB, and only imported artwork can be deleted.
 
 ## React and TypeScript
 
