@@ -25,7 +25,7 @@ An artwork preview has exactly two normal states:
 
 The preview never shows partially painted progress. Progress belongs in the adjacent text and meter, while the image communicates the artwork itself.
 
-An unfinished preview displays cell numbers, distinguishing a board still to paint from a finished print. They are gated by cell size so small previews do not become visual noise. Cell size is floored to a whole pixel to keep the preview crisp.
+Artwork previews never display cell numbers. Cell size is floored to a whole pixel to keep the preview crisp.
 
 The palette strip always shows the artwork's true colors and carries no progress state. It describes what the piece contains. This differs from the board palette, where a swatch is an active control and can dim when its color is exhausted.
 

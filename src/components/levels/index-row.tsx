@@ -42,12 +42,7 @@ export function IndexRow({ level, onSelect, selected }: IndexRowProps) {
         onClick={() => onSelect(puzzle.id)}
         type="button"
       >
-        <LevelPreview
-          className="size-12 overflow-hidden rounded-[3px] bg-canvas"
-          colored={finished}
-          numbers
-          puzzle={puzzle}
-        />
+        <LevelPreview className="size-12 overflow-hidden rounded-[3px] bg-canvas" colored={finished} puzzle={puzzle} />
 
         <span className="min-w-0 truncate text-sm">{puzzle.name}</span>
 

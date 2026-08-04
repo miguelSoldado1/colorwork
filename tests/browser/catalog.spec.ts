@@ -44,6 +44,32 @@ test.describe("artwork catalog", () => {
     await expect(page.getByRole("heading", { name: "Ribbit" })).toBeVisible();
   });
 
+  test("keeps color numbers out of the artwork preview", async ({ page }) => {
+    await page.setViewportSize({ height: 844, width: 390 });
+    await page.goto("/");
+
+    const canvas = page.getByRole("complementary", { name: "Artwork preview" }).locator("canvas");
+    await expect.poll(() => canvas.evaluate((element) => (element as HTMLCanvasElement).width)).toBeGreaterThan(0);
+
+    const hasNonGrayPixel = await canvas.evaluate((element) => {
+      const preview = element as HTMLCanvasElement;
+      const context = preview.getContext("2d");
+      if (!context) {
+        throw new Error("Could not read the artwork preview.");
+      }
+
+      const pixels = context.getImageData(0, 0, preview.width, preview.height).data;
+      for (let index = 0; index < pixels.length; index += 4) {
+        if (pixels[index] !== pixels[index + 1] || pixels[index + 1] !== pixels[index + 2]) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    expect(hasNonGrayPixel).toBe(false);
+  });
+
   test("uses the full import budget and constrains unlocked dimensions", async ({ page }) => {
     await page.goto("/");
     await uploadGeneratedImage(page, 1000, 250);

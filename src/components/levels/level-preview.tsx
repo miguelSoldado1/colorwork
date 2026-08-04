@@ -7,11 +7,10 @@ interface LevelPreviewProps {
   colored: boolean;
   /** Names the artwork for assistive tech; omit where a nearby heading already does. */
   label?: string;
-  numbers?: boolean;
   puzzle: PuzzleDefinition;
 }
 
-export function LevelPreview({ className, colored, label, numbers = false, puzzle }: LevelPreviewProps) {
+export function LevelPreview({ className, colored, label, puzzle }: LevelPreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [frame, setFrame] = useState({ height: 0, width: 0 });
@@ -36,8 +35,8 @@ export function LevelPreview({ className, colored, label, numbers = false, puzzl
       return;
     }
 
-    renderLevelPreview({ canvas, colored, frame, numbers, puzzle });
-  }, [colored, frame, numbers, puzzle]);
+    renderLevelPreview({ canvas, colored, frame, puzzle });
+  }, [colored, frame, puzzle]);
 
   return (
     <div className={`grid place-items-center ${className}`} ref={frameRef}>

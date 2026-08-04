@@ -13,7 +13,6 @@ describe("renderLevelPreview", () => {
     const options = {
       canvas: harness.canvas,
       frame: { height: 20, width: 20 },
-      numbers: false,
       puzzle,
     };
 
