@@ -2,6 +2,7 @@ import type { PuzzleDefinition } from "./types";
 
 const BASE64_LINE_LENGTH = 100;
 const BASE64_ENCODING_CHUNK_SIZE = 32_768;
+const DIACRITIC_PATTERN = /[\u0300-\u036f]/g;
 const FILE_NAME_CHARACTER_PATTERN = /[^a-z0-9]+/gi;
 const FILE_NAME_EDGE_PATTERN = /^-|-$/g;
 
@@ -35,11 +36,12 @@ export function createPuzzleModuleSource(puzzle: PuzzleDefinition) {
 }
 
 export function downloadPuzzleModule(puzzle: PuzzleDefinition) {
-  const source = createPuzzleModuleSource(puzzle);
+  const id = createSimplifiedPuzzleId(puzzle.name);
+  const source = createPuzzleModuleSource({ ...puzzle, id });
   const url = URL.createObjectURL(new Blob([source], { type: "text/plain;charset=utf-8" }));
   const link = document.createElement("a");
 
-  link.download = `${createFileName(puzzle.id)}.ts`;
+  link.download = `${id}.ts`;
   link.href = url;
   document.body.append(link);
   link.click();
@@ -65,7 +67,12 @@ function splitIntoLines(value: string, lineLength: number) {
   return lines;
 }
 
-function createFileName(id: string) {
-  const fileName = id.toLowerCase().replaceAll(FILE_NAME_CHARACTER_PATTERN, "-").replace(FILE_NAME_EDGE_PATTERN, "");
-  return fileName || "custom-puzzle";
+export function createSimplifiedPuzzleId(name: string) {
+  const id = name
+    .normalize("NFD")
+    .replaceAll(DIACRITIC_PATTERN, "")
+    .toLowerCase()
+    .replaceAll(FILE_NAME_CHARACTER_PATTERN, "-")
+    .replace(FILE_NAME_EDGE_PATTERN, "");
+  return id || "custom-puzzle";
 }

@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { createPuzzleModuleSource } from "../../src/coloring/export-puzzle";
+import { createPuzzleModuleSource, createSimplifiedPuzzleId } from "../../src/coloring/export-puzzle";
+
+describe("createSimplifiedPuzzleId", () => {
+  it("turns a puzzle name into a stable export id", () => {
+    expect(createSimplifiedPuzzleId("  João's Café da Manhã!  ")).toBe("joao-s-cafe-da-manha");
+  });
+
+  it("falls back when the name has no usable characters", () => {
+    expect(createSimplifiedPuzzleId("🌈")).toBe("custom-puzzle");
+  });
+});
 
 describe("createPuzzleModuleSource", () => {
   it("creates a ready-to-drop module using the existing compact puzzle format", () => {
