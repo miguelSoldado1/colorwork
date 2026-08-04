@@ -1,8 +1,8 @@
+import { readThemeColor } from "./pixel-raster";
 import type { PuzzleDefinition } from "./types";
 
 export const MAX_IMPORT_CELL_COUNT = 65_536;
 export const MAX_IMPORT_GRID_SIDE = 512;
-const TRANSPARENT_PIXEL_COLOR = "#11141e";
 const MAX_INDEXED_COLORS = 255;
 const FILE_EXTENSION_PATTERN = /\.[^.]+$/;
 const FILE_NAME_SEPARATOR_PATTERN = /[-_]+/g;
@@ -125,7 +125,7 @@ function renderImage(bitmap: ImageBitmap, width: number, height: number) {
     throw new Error("This browser could not prepare the image.");
   }
 
-  context.fillStyle = TRANSPARENT_PIXEL_COLOR;
+  context.fillStyle = readThemeColor(document.documentElement, "--color-canvas");
   context.fillRect(0, 0, width, height);
   context.imageSmoothingEnabled = false;
   context.drawImage(bitmap, 0, 0, width, height);

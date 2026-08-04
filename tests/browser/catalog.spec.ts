@@ -65,6 +65,39 @@ test.describe("artwork catalog", () => {
     await expect(height).toHaveValue("128");
   });
 
+  test("uses the semantic canvas color behind transparent imports", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 2, 1, true);
+
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText("Generated palette (2)")).toBeVisible();
+
+    const colors = await dialog.locator("canvas").evaluate((preview) => {
+      const previewContext = (preview as HTMLCanvasElement).getContext("2d");
+      if (!previewContext) {
+        throw new Error("Could not read the import preview.");
+      }
+
+      const reference = document.createElement("canvas");
+      reference.width = 1;
+      reference.height = 1;
+      const referenceContext = reference.getContext("2d");
+      if (!referenceContext) {
+        throw new Error("Could not prepare the theme color reference.");
+      }
+
+      referenceContext.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--color-canvas");
+      referenceContext.fillRect(0, 0, 1, 1);
+
+      return {
+        imported: Array.from(previewContext.getImageData(1, 0, 1, 1).data),
+        theme: Array.from(referenceContext.getImageData(0, 0, 1, 1).data),
+      };
+    });
+
+    expect(colors.imported).toEqual(colors.theme);
+  });
+
   test("persists imported artwork across reloads and includes it in the catalog", async ({ page }) => {
     await page.goto("/");
     await uploadGeneratedImage(page, 8, 8);
@@ -119,10 +152,10 @@ test.describe("artwork catalog", () => {
   });
 });
 
-async function uploadGeneratedImage(page: Page, width: number, height: number) {
+async function uploadGeneratedImage(page: Page, width: number, height: number, transparent = false) {
   await expect(page.locator('input[type="file"]')).toBeAttached();
   await page.evaluate(
-    async ({ imageHeight, imageWidth }) => {
+    async ({ imageHeight, imageWidth, isTransparent }) => {
       const canvas = document.createElement("canvas");
       canvas.width = imageWidth;
       canvas.height = imageHeight;
@@ -130,13 +163,15 @@ async function uploadGeneratedImage(page: Page, width: number, height: number) {
       if (!context) {
         throw new Error("Could not prepare the import fixture.");
       }
-      context.fillStyle = "#8cad99";
-      context.fillRect(0, 0, imageWidth, imageHeight);
+      context.fillStyle = isTransparent ? "#ff0000" : "#8cad99";
+      context.fillRect(0, 0, isTransparent ? 1 : imageWidth, imageHeight);
 
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("Could not encode the fixture."))));
       });
-      const file = new File([blob], "wide-fixture.png", { type: "image/png" });
+      const file = new File([blob], isTransparent ? "transparent-fixture.png" : "wide-fixture.png", {
+        type: "image/png",
+      });
       const transfer = new DataTransfer();
       transfer.items.add(file);
       const input = document.querySelector<HTMLInputElement>('input[type="file"]');
@@ -146,6 +181,6 @@ async function uploadGeneratedImage(page: Page, width: number, height: number) {
       input.files = transfer.files;
       input.dispatchEvent(new Event("change", { bubbles: true }));
     },
-    { imageHeight: height, imageWidth: width }
+    { imageHeight: height, imageWidth: width, isTransparent: transparent }
   );
 }
