@@ -273,7 +273,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
           </p>
         ) : null}
         {isDebugMode ? (
-          <Button disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
+          <Button className="sm:mr-auto" disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
             Download .ts module
           </Button>
         ) : null}
