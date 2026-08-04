@@ -20,10 +20,9 @@
   --color-muted-foreground: oklch(68% 0.01 85);
   --color-accent: oklch(70% 0.068 152);
   --color-accent-foreground: oklch(19% 0.022 152);
-  --color-destructive: oklch(60.5% 0.135 32);
-  --color-destructive-foreground: oklch(95% 0.012 60);
+  --color-destructive: oklch(66.5% 0.135 32);
   --color-border: oklch(92.5% 0.008 85 / 18%);
-  --color-input: oklch(92.5% 0.008 85 / 28%);
+  --color-input: oklch(92.5% 0.008 85 / 40%);
   --color-ring: oklch(70% 0.068 152);
   --color-canvas: oklch(17.5% 0.004 85);
   --color-canvas-edge: oklch(38% 0.006 85);
