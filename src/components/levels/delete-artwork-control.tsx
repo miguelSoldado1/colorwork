@@ -93,7 +93,7 @@ export function DeleteArtworkControl({ level, onDeleted }: DeleteArtworkControlP
           tabIndex={confirming ? undefined : -1}
           variant="destructive"
         >
-          Delete forever
+          Yes, delete it
         </Button>
       </div>
       {deleteMutation.isError ? (
