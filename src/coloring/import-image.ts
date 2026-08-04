@@ -1,8 +1,7 @@
 import type { PuzzleDefinition } from "./types";
 
-const DEFAULT_GRID_LIMIT = 256;
-// A budget on cells, not on the long side: a board is as much work as it has cells, whatever its shape.
-const DEFAULT_CELL_BUDGET = 4096;
+export const MAX_IMPORT_CELL_COUNT = 65_536;
+export const MAX_IMPORT_GRID_SIDE = 512;
 const TRANSPARENT_PIXEL_COLOR = "#11141e";
 const MAX_INDEXED_COLORS = 255;
 const FILE_EXTENSION_PATTERN = /\.[^.]+$/;
@@ -51,14 +50,18 @@ export interface IndexedPixelData {
 export function getRecommendedGridSize(sourceWidth: number, sourceHeight: number) {
   const scale = Math.min(
     1,
-    DEFAULT_GRID_LIMIT / Math.max(sourceWidth, sourceHeight),
-    Math.sqrt(DEFAULT_CELL_BUDGET / (sourceWidth * sourceHeight))
+    MAX_IMPORT_GRID_SIDE / Math.max(sourceWidth, sourceHeight),
+    Math.sqrt(MAX_IMPORT_CELL_COUNT / (sourceWidth * sourceHeight))
   );
 
   return {
-    height: Math.max(1, Math.round(sourceHeight * scale)),
-    width: Math.max(1, Math.round(sourceWidth * scale)),
+    height: Math.max(1, Math.floor(sourceHeight * scale)),
+    width: Math.max(1, Math.floor(sourceWidth * scale)),
   };
+}
+
+export function getMaximumImportGridSide(otherSide: number) {
+  return Math.min(MAX_IMPORT_GRID_SIDE, Math.floor(MAX_IMPORT_CELL_COUNT / Math.max(1, otherSide)));
 }
 
 export function getImportName(fileName: string) {

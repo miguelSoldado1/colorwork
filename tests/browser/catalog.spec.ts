@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const PLAY_URL = /\/play\/[^/]+$/;
 const PIXEL_COUNT = /^\d+$/;
@@ -44,6 +44,26 @@ test.describe("artwork catalog", () => {
     await expect(page.getByRole("heading", { name: "Ribbit" })).toBeVisible();
   });
 
+  test("uses the full import budget and constrains unlocked dimensions", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 1000, 250);
+
+    const dialog = page.getByRole("dialog");
+    const width = dialog.getByLabel("Width");
+    const height = dialog.getByLabel("Height");
+    await expect(width).toHaveValue("512");
+    await expect(height).toHaveValue("128");
+
+    await dialog.getByRole("button", { name: "Unlock aspect ratio" }).click();
+    await height.fill("512");
+    await expect(width).toHaveValue("128");
+    await expect(height).toHaveValue("512");
+
+    await width.fill("512");
+    await expect(width).toHaveValue("512");
+    await expect(height).toHaveValue("128");
+  });
+
   test("opens every catalog entry and initializes its board", async ({ page }) => {
     await page.goto("/");
 
@@ -82,3 +102,33 @@ test.describe("artwork catalog", () => {
     await expect(page.getByRole("heading", { name: "Artworks" })).toBeVisible();
   });
 });
+
+async function uploadGeneratedImage(page: Page, width: number, height: number) {
+  await page.evaluate(
+    async ({ imageHeight, imageWidth }) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = imageWidth;
+      canvas.height = imageHeight;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        throw new Error("Could not prepare the import fixture.");
+      }
+      context.fillStyle = "#8cad99";
+      context.fillRect(0, 0, imageWidth, imageHeight);
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("Could not encode the fixture."))));
+      });
+      const file = new File([blob], "wide-fixture.png", { type: "image/png" });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+      if (!input) {
+        throw new Error("The image import input was not found.");
+      }
+      input.files = transfer.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    },
+    { imageHeight: height, imageWidth: width }
+  );
+}

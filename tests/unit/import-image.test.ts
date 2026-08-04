@@ -3,7 +3,10 @@ import {
   countPixelColors,
   createIndexedPixelData,
   getImportName,
+  getMaximumImportGridSide,
   getRecommendedGridSize,
+  MAX_IMPORT_CELL_COUNT,
+  MAX_IMPORT_GRID_SIDE,
 } from "../../src/coloring/import-image";
 
 const HEX_COLOR_PATTERN = /^#[\da-f]{6}$/;
@@ -28,29 +31,43 @@ const SKEWED_COLORS: ColorCount[] = [
 type ColorCount = [color: string, count: number];
 
 describe("getRecommendedGridSize", () => {
-  it("preserves images already inside the cell budget", () => {
+  it("preserves images already inside the grid limit", () => {
     expect(getRecommendedGridSize(64, 32)).toEqual({ height: 32, width: 64 });
   });
 
-  it("lands near the cell budget whatever the aspect ratio", () => {
+  it("uses the full cell budget while preserving the source aspect ratio", () => {
+    expect(getRecommendedGridSize(1000, 250)).toEqual({ height: 128, width: 512 });
+    expect(getRecommendedGridSize(1000, 500)).toEqual({ height: 181, width: 362 });
+    expect(getRecommendedGridSize(1000, 1000)).toEqual({ height: 256, width: 256 });
+  });
+
+  it("keeps every recommendation inside both import limits", () => {
     for (const [width, height] of [
-      [240, 160],
       [512, 256],
       [100, 400],
       [1000, 1000],
+      [1000, 100],
     ]) {
       const size = getRecommendedGridSize(width, height);
-      const cells = size.width * size.height;
 
-      expect(cells).toBeLessThanOrEqual(4096 * 1.05);
-      expect(cells).toBeGreaterThan(4096 * 0.9);
+      expect(size.width).toBeLessThanOrEqual(MAX_IMPORT_GRID_SIDE);
+      expect(size.height).toBeLessThanOrEqual(MAX_IMPORT_GRID_SIDE);
+      expect(size.width * size.height).toBeLessThanOrEqual(MAX_IMPORT_CELL_COUNT);
       expect(size.width / size.height).toBeCloseTo(width / height, 1);
     }
   });
 
   it("keeps both dimensions usable for extremely wide or tall images", () => {
-    expect(getRecommendedGridSize(10_000, 1)).toEqual({ height: 1, width: 256 });
-    expect(getRecommendedGridSize(1, 10_000)).toEqual({ height: 256, width: 1 });
+    expect(getRecommendedGridSize(10_000, 1)).toEqual({ height: 1, width: 512 });
+    expect(getRecommendedGridSize(1, 10_000)).toEqual({ height: 512, width: 1 });
+  });
+});
+
+describe("getMaximumImportGridSide", () => {
+  it("spends the remaining cell budget on an independently edited side", () => {
+    expect(getMaximumImportGridSide(128)).toBe(512);
+    expect(getMaximumImportGridSide(256)).toBe(256);
+    expect(getMaximumImportGridSide(512)).toBe(128);
   });
 });
 

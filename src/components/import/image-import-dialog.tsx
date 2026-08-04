@@ -3,8 +3,10 @@ import { downloadPuzzleModule } from "@/coloring/export-puzzle";
 import {
   createPuzzleFromImage,
   getImportName,
+  getMaximumImportGridSide,
   getRecommendedGridSize,
   type ImageImportSource,
+  MAX_IMPORT_GRID_SIDE,
 } from "@/coloring/import-image";
 import Check from "@/components/icons/check.svg?react";
 import Close from "@/components/icons/close.svg?react";
@@ -15,7 +17,6 @@ import { isDebugMode } from "@/debug/debug-mode";
 import type { PuzzleDefinition } from "@/coloring/types";
 
 const MIN_GRID_SIZE = 1;
-const MAX_GRID_SIZE = 256;
 const MIN_PALETTE_SIZE = 1;
 const MAX_PALETTE_SIZE = 32;
 // The slider still reaches 32; a board only opens with about as many colours as a catalogued one.
@@ -94,18 +95,34 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
 
   function updateWidth(nextWidth: number) {
     const safeWidth = clampGridSize(nextWidth);
-    setWidth(safeWidth);
     if (dimensionsLinked) {
-      setHeight(clampGridSize(Math.round((safeWidth / source.width) * source.height)));
+      const linkedSize = getRecommendedGridSize(
+        safeWidth,
+        Math.max(MIN_GRID_SIZE, Math.round((safeWidth / source.width) * source.height))
+      );
+      setWidth(linkedSize.width);
+      setHeight(linkedSize.height);
+      return;
     }
+
+    setWidth(safeWidth);
+    setHeight(Math.min(height, getMaximumImportGridSide(safeWidth)));
   }
 
   function updateHeight(nextHeight: number) {
     const safeHeight = clampGridSize(nextHeight);
-    setHeight(safeHeight);
     if (dimensionsLinked) {
-      setWidth(clampGridSize(Math.round((safeHeight / source.height) * source.width)));
+      const linkedSize = getRecommendedGridSize(
+        Math.max(MIN_GRID_SIZE, Math.round((safeHeight / source.height) * source.width)),
+        safeHeight
+      );
+      setWidth(linkedSize.width);
+      setHeight(linkedSize.height);
+      return;
     }
+
+    setWidth(Math.min(width, getMaximumImportGridSide(safeHeight)));
+    setHeight(safeHeight);
   }
 
   function confirmPuzzle() {
@@ -175,7 +192,13 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
           <fieldset>
             <legend className="mb-2 text-muted-foreground text-sm">Grid size</legend>
             <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
-              <NumberField label="Width" max={MAX_GRID_SIZE} min={MIN_GRID_SIZE} onChange={updateWidth} value={width} />
+              <NumberField
+                label="Width"
+                max={MAX_IMPORT_GRID_SIDE}
+                min={MIN_GRID_SIZE}
+                onChange={updateWidth}
+                value={width}
+              />
               <Button
                 aria-label={dimensionsLinked ? "Unlock aspect ratio" : "Lock aspect ratio"}
                 aria-pressed={dimensionsLinked}
@@ -188,7 +211,7 @@ export function ImageImportDialog({ onCancel, onConfirm, source }: ImageImportDi
               </Button>
               <NumberField
                 label="Height"
-                max={MAX_GRID_SIZE}
+                max={MAX_IMPORT_GRID_SIDE}
                 min={MIN_GRID_SIZE}
                 onChange={updateHeight}
                 value={height}
@@ -288,5 +311,5 @@ function clampGridSize(value: number) {
   if (!Number.isFinite(value)) {
     return MIN_GRID_SIZE;
   }
-  return Math.min(MAX_GRID_SIZE, Math.max(MIN_GRID_SIZE, Math.round(value)));
+  return Math.min(MAX_IMPORT_GRID_SIDE, Math.max(MIN_GRID_SIZE, Math.round(value)));
 }
