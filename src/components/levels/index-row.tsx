@@ -37,7 +37,7 @@ export function IndexRow({ level, onSelect, selected }: IndexRowProps) {
       <button
         aria-label={`${puzzle.name}${puzzle.artist ? `, artwork by ${puzzle.artist.name}` : ""}, ${puzzle.width} by ${puzzle.height} cells, ${completedColors} of ${puzzle.palette.length} colors finished, ${paintedCount} of ${totalPixels} pixels painted`}
         aria-pressed={selected}
-        className={`${INDEX_COLUMNS} relative w-full cursor-pointer px-4 py-3.5 text-left transition-colors duration-150 ease-out before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-primary before:opacity-0 before:transition-opacity before:duration-150 before:ease-out hover:bg-foreground/4 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 data-[selected=true]:bg-primary/8 data-[selected=true]:before:opacity-100 sm:px-6`}
+        className={`${INDEX_COLUMNS} w-full cursor-pointer px-4 py-3.5 text-left transition-colors duration-150 ease-out hover:bg-foreground/4 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 data-[selected=true]:bg-primary/8 sm:px-6`}
         data-selected={selected}
         onClick={() => onSelect(puzzle.id)}
         type="button"
