@@ -19,9 +19,11 @@ export function ToolButton({ children, label, onClick, pressed, shortcut }: Tool
         aria-keyshortcuts={shortcut}
         aria-label={label}
         aria-pressed={pressed}
-        className="shrink-0 aria-pressed:border-primary/30 aria-pressed:bg-primary/12 aria-pressed:text-primary"
+        className="shrink-0 aria-pressed:border-primary/40 aria-pressed:bg-primary/16 aria-pressed:text-primary"
+        focusTone="neutral"
         onClick={onClick}
         size="icon"
+        transition="press"
         variant="secondary"
         {...triggerProps}
       >

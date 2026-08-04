@@ -16,15 +16,35 @@ const sizes = {
   icon: "size-12 p-0",
 } as const;
 
+const focusTones = {
+  accent: "focus-visible:outline-ring",
+  neutral: "focus-visible:outline-foreground/80",
+} as const;
+
+const transitions = {
+  default: "transition-[transform,color,background-color,border-color,box-shadow,filter,opacity] duration-200 ease-out",
+  press: "transition-transform duration-150 ease-out",
+} as const;
+
 export interface ButtonProps extends ComponentProps<"button"> {
+  focusTone?: keyof typeof focusTones;
   size?: keyof typeof sizes;
+  transition?: keyof typeof transitions;
   variant?: keyof typeof variants;
 }
 
-export function Button({ className, size = "default", type = "button", variant = "secondary", ...props }: ButtonProps) {
+export function Button({
+  className,
+  focusTone = "accent",
+  size = "default",
+  transition = "default",
+  type = "button",
+  variant = "secondary",
+  ...props
+}: ButtonProps) {
   return (
     <button
-      className={`inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-md border font-inherit transition-[transform,color,background-color,border-color,box-shadow,filter,opacity] duration-200 ease-out focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className ?? ""}`}
+      className={`inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-md border font-inherit focus-visible:outline-2 focus-visible:outline-offset-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 ${focusTones[focusTone]} ${transitions[transition]} ${variants[variant]} ${sizes[size]} ${className ?? ""}`}
       type={type}
       {...props}
     />
