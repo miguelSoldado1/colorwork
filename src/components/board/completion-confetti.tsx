@@ -4,6 +4,8 @@ import type { CSSProperties } from "react";
 const CONFETTI = {
   count: 50,
   flightMs: 2000,
+  gravityPx: 18,
+  launchProgress: 0.28,
   /** Smallest pixel; the mix runs 5, 7, 9. */
   sizePx: 5,
   spreadPx: 50,
@@ -37,7 +39,7 @@ export function CompletionConfetti({ palette }: CompletionConfettiProps) {
 
 /** Spread around the perimeter and thrown outward. Derived from the index, so every board bursts alike. */
 function createPixel(index: number) {
-  const { count, sizePx, spreadPx, staggerMs } = CONFETTI;
+  const { count, gravityPx, launchProgress, sizePx, spreadPx, staggerMs } = CONFETTI;
   const wobble = ((index * 7) % 5) / 4;
   const drift = (wobble - 0.5) * 28;
   const distance = spreadPx + wobble * spreadPx;
@@ -52,12 +54,14 @@ function createPixel(index: number) {
 
   return {
     id: `confetti-${index}`,
-    paletteIndex: index,
+    paletteIndex: Math.floor(index / edges.length),
     style: {
       "--fly-delay": `${index * staggerMs}ms`,
+      "--fly-end-x": `${edge.x}px`,
+      "--fly-end-y": `${edge.y + gravityPx}px`,
+      "--fly-launch-x": `${edge.x * launchProgress}px`,
+      "--fly-launch-y": `${edge.y * launchProgress}px`,
       "--fly-size": `${sizePx + ((index * 5) % 3) * 2}px`,
-      "--fly-x": `${edge.x}px`,
-      "--fly-y": `${edge.y}px`,
       left: edge.left,
       top: edge.top,
     } as CSSProperties,

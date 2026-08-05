@@ -111,18 +111,12 @@
 
   14% {
     opacity: 1;
-    transform: translate3d(
-        calc(var(--fly-x) * 0.28),
-        calc(var(--fly-y) * 0.28),
-        0
-      )
-      scale(1);
+    transform: translate3d(var(--fly-launch-x), var(--fly-launch-y), 0) scale(1);
   }
 
   100% {
     opacity: 0;
-    transform: translate3d(var(--fly-x), calc(var(--fly-y) + 18px), 0)
-      scale(0.7);
+    transform: translate3d(var(--fly-end-x), var(--fly-end-y), 0) scale(0.7);
   }
 }
 
