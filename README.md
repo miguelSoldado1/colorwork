@@ -12,9 +12,9 @@ pnpm dev
 ```
 
 The artwork menu is available at `/`. Selecting an artwork opens its board at `/play/$levelId`.
-Production builds also generate a static XML sitemap at `/sitemap.xml` and a matching `/robots.txt` from the built-in puzzle files. Set `VITE_SITE_URL` when building outside Vercel to choose the sitemap origin.
+Production builds also generate a static XML sitemap at `/sitemap.xml` and a matching `/robots.txt` from the built-in puzzle files. On Vercel, the sitemap uses `VERCEL_PROJECT_PRODUCTION_URL`; set `SITE_URL` when building outside Vercel.
 
-Everything is stored locally in IndexedDB and nothing is uploaded. Progress on included artwork, along with imported artwork and its progress, survives a reload. Imported artwork can be deleted from its preview in the menu.
+Artwork definitions and progress are stored locally in IndexedDB; imported images are processed in this browser and never uploaded. There is no account or cloud sync, so clearing this browser's storage removes local progress and imported artwork. The site uses Vercel Web Analytics for page views. Imported artwork can be deleted from its preview in the menu.
 
 ## Playing
 

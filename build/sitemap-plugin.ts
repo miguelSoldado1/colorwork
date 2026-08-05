@@ -68,8 +68,8 @@ export function sitemapPlugin(options: SitemapPluginOptions = {}) {
       root = config.root;
       siteUrl = normalizeSiteUrl(
         options.siteUrl ??
-          process.env.SITE_URL ??
           process.env.VERCEL_PROJECT_PRODUCTION_URL ??
+          process.env.SITE_URL ??
           process.env.VERCEL_URL ??
           LOCAL_SITE_URL,
       );

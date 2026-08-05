@@ -3,8 +3,13 @@ import type { PuzzleDefinition } from "./types";
 
 export const MAX_IMPORT_CELL_COUNT = 65_536;
 export const MAX_IMPORT_GRID_SIDE = 512;
+export const MAX_IMPORT_FILE_BYTES = 12 * 1024 * 1024;
+export const MAX_SOURCE_PIXEL_COUNT = 25_000_000;
+export const IMPORT_ACCEPT = "image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp";
 const MAX_INDEXED_COLORS = 255;
 const FILE_EXTENSION_PATTERN = /\.[^.]+$/;
+const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const SUPPORTED_IMAGE_EXTENSION_PATTERN = /\.(?:png|jpe?g|webp)$/i;
 const FILE_NAME_SEPARATOR_PATTERN = /[-_]+/g;
 const PUZZLE_ID_CHARACTER_PATTERN = /[^a-z0-9]+/g;
 const PUZZLE_ID_EDGE_PATTERN = /^-|-$/g;
@@ -44,6 +49,26 @@ export interface ImageImportOptions {
 export interface IndexedPixelData {
   palette: string[];
   targetPixels: Uint8Array;
+}
+
+export function isSupportedImageFile(file: { name: string; type: string }) {
+  if (SUPPORTED_IMAGE_TYPES.has(file.type)) {
+    return true;
+  }
+
+  return (
+    (file.type === "" || file.type === "application/octet-stream") && SUPPORTED_IMAGE_EXTENSION_PATTERN.test(file.name)
+  );
+}
+
+export function isSourceImageSizeSupported(width: number, height: number) {
+  return (
+    Number.isSafeInteger(width) &&
+    Number.isSafeInteger(height) &&
+    width >= 1 &&
+    height >= 1 &&
+    width * height <= MAX_SOURCE_PIXEL_COUNT
+  );
 }
 
 // Import defaults and source metadata.

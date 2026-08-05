@@ -22,7 +22,7 @@ export default defineConfig(({ command, mode }) => {
       react(),
       babel({ presets: [reactCompilerPreset()] }),
       tailwindcss(),
-      sitemapPlugin({ siteUrl: fileEnv.VITE_SITE_URL }),
+      sitemapPlugin(),
     ],
     resolve: {
       tsconfigPaths: true,

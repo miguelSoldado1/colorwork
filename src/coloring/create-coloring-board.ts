@@ -144,6 +144,8 @@ export function createColoringBoard({
   let pendingTouch: PendingTouch | undefined;
   let pinchGesture: PinchGesture | undefined;
   let touchGestureWasPinch = false;
+  let keyboardCell: Cell | undefined;
+  let keyboardFocused = false;
   let previousCell: Cell | undefined;
   let previousPointerPosition: PointerPosition | undefined;
   let destroyed = false;
@@ -356,6 +358,7 @@ export function createColoringBoard({
     }
 
     drawNumbers();
+    drawKeyboardCursor();
 
     context.strokeStyle = theme.canvasEdge;
     context.lineWidth = 2;
@@ -518,6 +521,20 @@ export function createColoringBoard({
         );
       }
     }
+  }
+
+  function drawKeyboardCursor() {
+    if (!(keyboardFocused && keyboardCell)) {
+      return;
+    }
+
+    const inset = Math.min(2, geometry.cellSize / 5);
+    const left = geometry.x + keyboardCell.x * geometry.cellSize + inset;
+    const top = geometry.y + keyboardCell.y * geometry.cellSize + inset;
+    const size = Math.max(0, geometry.cellSize - inset * 2);
+    context.strokeStyle = theme.primary;
+    context.lineWidth = 2;
+    context.strokeRect(Math.floor(left) + 0.5, Math.floor(top) + 0.5, Math.floor(size), Math.floor(size));
   }
 
   function drawGrid() {
@@ -687,6 +704,104 @@ export function createColoringBoard({
     onSelectColor(puzzle.targetPixels[cell.y * puzzle.width + cell.x]);
   }
 
+  function selectCellColorAt(cell: Cell) {
+    onSelectColor(puzzle.targetPixels[cell.y * puzzle.width + cell.x]);
+  }
+
+  function getKeyboardCell() {
+    keyboardCell ??= { x: 0, y: 0 };
+    return keyboardCell;
+  }
+
+  function keepKeyboardCellVisible(cell: Cell) {
+    const halfVisibleWidth = viewportWidth / geometry.cellSize / 2;
+    const halfVisibleHeight = viewportHeight / geometry.cellSize / 2;
+    if (halfVisibleWidth < puzzle.width / 2) {
+      const left = cameraX - halfVisibleWidth;
+      const right = cameraX + halfVisibleWidth;
+      if (cell.x < left) {
+        cameraX = cell.x + halfVisibleWidth;
+      } else if (cell.x + 1 > right) {
+        cameraX = cell.x + 1 - halfVisibleWidth;
+      }
+    }
+    if (halfVisibleHeight < puzzle.height / 2) {
+      const top = cameraY - halfVisibleHeight;
+      const bottom = cameraY + halfVisibleHeight;
+      if (cell.y < top) {
+        cameraY = cell.y + halfVisibleHeight;
+      } else if (cell.y + 1 > bottom) {
+        cameraY = cell.y + 1 - halfVisibleHeight;
+      }
+    }
+
+    updateGeometry();
+    snapCameraToGrid();
+    cameraIsSettled = true;
+  }
+
+  function moveKeyboardCell(deltaX: number, deltaY: number) {
+    const current = getKeyboardCell();
+    keyboardCell = {
+      x: Math.min(puzzle.width - 1, Math.max(0, current.x + deltaX)),
+      y: Math.min(puzzle.height - 1, Math.max(0, current.y + deltaY)),
+    };
+    keepKeyboardCellVisible(keyboardCell);
+    scheduleRender();
+  }
+
+  function performKeyboardAction() {
+    const cell = getKeyboardCell();
+    if (selectedTool === "picker") {
+      selectCellColorAt(cell);
+    } else if (selectedTool === "bucket") {
+      fillConnectedArea(cell);
+    } else if (selectedTool === "pencil") {
+      paintCell(cell);
+    } else if (selectedTool === "zoom-in" || selectedTool === "zoom-out") {
+      const zoomFactor = selectedTool === "zoom-in" ? ZOOM_STEP : 1 / ZOOM_STEP;
+      zoomAt(
+        zoomFactor,
+        geometry.x + (cell.x + 0.5) * geometry.cellSize,
+        geometry.y + (cell.y + 0.5) * geometry.cellSize
+      );
+    }
+  }
+
+  function handleKeyboardDown(event: KeyboardEvent) {
+    if (event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+
+    const movement = {
+      ArrowDown: [0, 1],
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, -1],
+    }[event.key];
+    if (movement) {
+      event.preventDefault();
+      moveKeyboardCell(movement[0], movement[1]);
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+      event.preventDefault();
+      performKeyboardAction();
+    }
+  }
+
+  function handleCanvasFocus() {
+    keyboardFocused = true;
+    keepKeyboardCellVisible(getKeyboardCell());
+    scheduleRender();
+  }
+
+  function handleCanvasBlur() {
+    keyboardFocused = false;
+    scheduleRender();
+  }
+
   function panFromOverview(event: PointerEvent) {
     const bounds = overviewCanvas.getBoundingClientRect();
     if (bounds.width <= 0 || bounds.height <= 0) {
@@ -799,6 +914,9 @@ export function createColoringBoard({
     }
 
     const cell = eventToCell(event);
+    if (cell) {
+      keyboardCell = cell;
+    }
     if (event.button === 1) {
       selectCellColor(event, cell);
       return;
@@ -1065,6 +1183,9 @@ export function createColoringBoard({
   canvas.addEventListener("pointermove", handlePointerMove);
   canvas.addEventListener("pointerup", finishPointer);
   canvas.addEventListener("pointercancel", finishPointer);
+  canvas.addEventListener("keydown", handleKeyboardDown);
+  canvas.addEventListener("focus", handleCanvasFocus);
+  canvas.addEventListener("blur", handleCanvasBlur);
   overviewCanvas.addEventListener("pointerdown", handleOverviewPointerDown);
   overviewCanvas.addEventListener("pointermove", handleOverviewPointerMove);
   overviewCanvas.addEventListener("pointerup", finishOverviewPointer);
@@ -1083,6 +1204,9 @@ export function createColoringBoard({
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", finishPointer);
       canvas.removeEventListener("pointercancel", finishPointer);
+      canvas.removeEventListener("keydown", handleKeyboardDown);
+      canvas.removeEventListener("focus", handleCanvasFocus);
+      canvas.removeEventListener("blur", handleCanvasBlur);
       overviewCanvas.removeEventListener("pointerdown", handleOverviewPointerDown);
       overviewCanvas.removeEventListener("pointermove", handleOverviewPointerMove);
       overviewCanvas.removeEventListener("pointerup", finishOverviewPointer);

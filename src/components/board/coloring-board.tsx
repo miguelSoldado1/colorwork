@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef } from "react";
+import { useEffect, useEffectEvent, useId, useRef } from "react";
 import { createColoringBoard } from "@/coloring/create-coloring-board";
 import { CompletionConfetti } from "@/components/board/completion-confetti";
 import type { RefObject } from "react";
@@ -34,6 +34,7 @@ export function ColoringBoard({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const controllerRef = useRef<ReturnType<typeof createColoringBoard> | null>(null);
+  const boardInstructionsId = useId();
   const getBoardSettings = useEffectEvent(() => ({
     gridVisible: showGrid,
     highlightMissing,
@@ -93,13 +94,18 @@ export function ColoringBoard({
 
   return (
     <div className="grid h-full min-h-0 w-full min-w-0 place-items-center" ref={containerRef}>
+      <p className="sr-only" id={boardInstructionsId}>
+        Focus the board, then use the arrow keys to move the active cell. Press Enter or Space to use the selected tool.
+      </p>
       {/* Shrink-wraps the canvas so the confetti can fill this box instead of measuring the board. */}
       <div className="relative">
         <canvas
+          aria-describedby={boardInstructionsId}
           aria-label="Color-by-number puzzle. Choose a tool and interact with cells on the board."
-          className="block touch-none select-none bg-canvas shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border"
+          className="block touch-none select-none bg-canvas shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
           ref={canvasRef}
           role="img"
+          tabIndex={0}
         />
         {celebrateCompletion ? (
           <>

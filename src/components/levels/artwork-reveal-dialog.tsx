@@ -19,7 +19,20 @@ export function ArtworkRevealDialog({ onClose, puzzle }: ArtworkRevealDialogProp
   const [viewport, setViewport] = useState(() => ({ height: window.innerHeight, width: window.innerWidth }));
 
   useEffect(() => {
-    dialogRef.current?.showModal();
+    const dialog = dialogRef.current;
+    if (!dialog) {
+      return;
+    }
+
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+
+    return () => {
+      if (dialog.open) {
+        dialog.close();
+      }
+    };
   }, []);
 
   useEffect(() => {

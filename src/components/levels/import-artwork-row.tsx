@@ -1,7 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { countRenderedImageColors, getRecommendedGridSize } from "@/coloring/import-image";
+import {
+  countRenderedImageColors,
+  getRecommendedGridSize,
+  IMPORT_ACCEPT,
+  isSourceImageSizeSupported,
+  isSupportedImageFile,
+  MAX_IMPORT_FILE_BYTES,
+} from "@/coloring/import-image";
 import Image2Plus from "@/components/icons/image-plus.svg?react";
 import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { saveImportedPuzzle } from "@/levels/imported-levels";
@@ -26,22 +33,40 @@ export function ImportArtworkRow() {
     }
 
     setError("");
+    if (!isSupportedImageFile(file)) {
+      return setError("Choose a PNG, JPG, or WebP image.");
+    }
+    if (file.size > MAX_IMPORT_FILE_BYTES) {
+      return setError("Choose an image smaller than 12 MB.");
+    }
+
     const bitmapResult = await tryCatch(createImageBitmap(file));
     if (bitmapResult.error) {
       return setError("That image could not be opened. Try a PNG, JPG, or WebP file.");
     }
 
     const bitmap = bitmapResult.data;
-    const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height);
-    const detectedColorCount = countRenderedImageColors(bitmap, recommendedSize.width, recommendedSize.height);
+    if (!isSourceImageSizeSupported(bitmap.width, bitmap.height)) {
+      bitmap.close();
+      return setError("That image is too large to process. Choose one under 25 megapixels.");
+    }
 
-    setSource({
-      bitmap,
-      detectedColorCount,
-      fileName: file.name,
-      height: bitmap.height,
-      width: bitmap.width,
-    });
+    try {
+      const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height);
+      const detectedColorCount = countRenderedImageColors(bitmap, recommendedSize.width, recommendedSize.height);
+
+      source?.bitmap.close();
+      setSource({
+        bitmap,
+        detectedColorCount,
+        fileName: file.name,
+        height: bitmap.height,
+        width: bitmap.width,
+      });
+    } catch {
+      bitmap.close();
+      setError("That image could not be processed. Try a smaller PNG, JPG, or WebP file.");
+    }
   }
 
   function closeImporter() {
@@ -72,7 +97,14 @@ export function ImportArtworkRow() {
 
   return (
     <div>
-      <input accept="image/*" className="sr-only" onChange={selectImage} ref={fileInputRef} type="file" />
+      <input
+        accept={IMPORT_ACCEPT}
+        aria-label="Choose an image to import"
+        className="sr-only"
+        onChange={selectImage}
+        ref={fileInputRef}
+        type="file"
+      />
       <button
         className="flex w-full cursor-pointer items-center gap-4 px-4 py-3.5 text-left transition-colors duration-150 ease-out hover:bg-foreground/4 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2 sm:px-6"
         onClick={() => fileInputRef.current?.click()}

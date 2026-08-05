@@ -5,8 +5,11 @@ import {
   getImportName,
   getMaximumImportGridSide,
   getRecommendedGridSize,
+  isSourceImageSizeSupported,
+  isSupportedImageFile,
   MAX_IMPORT_CELL_COUNT,
   MAX_IMPORT_GRID_SIDE,
+  MAX_SOURCE_PIXEL_COUNT,
 } from "../../src/coloring/import-image";
 
 const HEX_COLOR_PATTERN = /^#[\da-f]{6}$/;
@@ -78,6 +81,26 @@ describe("getImportName", () => {
 
   it("falls back when the file name has no usable stem", () => {
     expect(getImportName(".png")).toBe("Custom puzzle");
+  });
+});
+
+describe("import guardrails", () => {
+  it("accepts supported image types and extension-only browser file types", () => {
+    expect(isSupportedImageFile({ name: "portrait.png", type: "image/png" })).toBe(true);
+    expect(isSupportedImageFile({ name: "portrait.jpg", type: "" })).toBe(true);
+    expect(isSupportedImageFile({ name: "portrait.webp", type: "application/octet-stream" })).toBe(true);
+  });
+
+  it("rejects unsupported or misleading image files", () => {
+    expect(isSupportedImageFile({ name: "portrait.gif", type: "image/gif" })).toBe(false);
+    expect(isSupportedImageFile({ name: "portrait.png", type: "image/svg+xml" })).toBe(false);
+  });
+
+  it("limits decoded source dimensions before raster processing", () => {
+    expect(isSourceImageSizeSupported(5000, 5000)).toBe(true);
+    expect(isSourceImageSizeSupported(5001, 5000)).toBe(false);
+    expect(isSourceImageSizeSupported(0, 1)).toBe(false);
+    expect(isSourceImageSizeSupported(1, MAX_SOURCE_PIXEL_COUNT + 1)).toBe(false);
   });
 });
 

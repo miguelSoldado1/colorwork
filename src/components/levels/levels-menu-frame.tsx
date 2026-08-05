@@ -12,7 +12,10 @@ export function LevelsMenuFrame({ children, summary }: LevelsMenuFrameProps) {
         <header className="min-w-0 border-border border-b pb-4 sm:pb-6">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Colorwork</p>
           <h1 className="mt-1 font-semibold text-xl leading-none sm:text-2xl">Artworks</h1>
-          <p className="mt-2 text-muted-foreground text-sm">{summary}</p>
+          <p className="mt-2 max-w-xl text-muted-foreground text-sm">
+            Images and progress stay in this browser. No account or cloud sync.
+          </p>
+          <p className="mt-1 text-muted-foreground text-xs">{summary}</p>
         </header>
         {children}
       </div>

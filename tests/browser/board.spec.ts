@@ -6,6 +6,7 @@ const IMPORTED_URL = /\/play\/two-color-fixture-/;
 const PAINTED_ANY = /[1-9][0-9,]* of [0-9,]+ pixels painted/;
 const RIBBIT_BUTTON = /^Ribbit/;
 const ZOOMED_IN = /^1\.8/;
+const ZOOMED_IN_TWICE = /^3\.24/;
 const FIXTURE = {
   buffer: Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFklEQVR4nGOIrvn1H4Q/Ho8GYwbSBQAv3i8R9w9IPAAAAABJRU5ErkJggg==",
@@ -66,6 +67,42 @@ test.describe("coloring board", () => {
     await expect(zoomButton).toHaveAttribute("aria-pressed", "true");
     await paintCell(page, 2, 2);
     await expect(page.getByRole("img", { name: BOARD_LABEL })).toHaveAttribute("data-zoom", ZOOMED_IN);
+  });
+
+  test("supports keyboard painting on the focused board", async ({ page }) => {
+    await openImportedPuzzle(page);
+
+    const canvas = page.getByRole("img", { name: BOARD_LABEL });
+    await expect(canvas).toHaveAttribute("tabindex", "0");
+    await canvas.focus();
+    await expect(canvas).toBeFocused();
+    await page.keyboard.press("Space");
+
+    await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
+  });
+
+  test("keeps the keyboard cursor visible across zoomed viewport edges", async ({ page }) => {
+    await page.goto("/play/gobbo");
+
+    const canvas = page.getByRole("img", { name: BOARD_LABEL });
+    await expect(canvas).toBeVisible();
+    await page.getByRole("button", { name: "Zoom in tool" }).click();
+    await canvas.focus();
+    await page.keyboard.press("Space");
+    await page.keyboard.press("Space");
+    await expect(canvas).toHaveAttribute("data-zoom", ZOOMED_IN_TWICE);
+
+    await page.getByRole("button", { name: "Pencil tool" }).click();
+    await canvas.focus();
+
+    await pressRepeatedly(page, "ArrowRight", 16);
+    await expect.poll(() => hasKeyboardCursor(canvas)).toBe(true);
+    await pressRepeatedly(page, "ArrowDown", 7);
+    await expect.poll(() => hasKeyboardCursor(canvas)).toBe(true);
+    await pressRepeatedly(page, "ArrowLeft", 16);
+    await expect.poll(() => hasKeyboardCursor(canvas)).toBe(true);
+    await pressRepeatedly(page, "ArrowUp", 7);
+    await expect.poll(() => hasKeyboardCursor(canvas)).toBe(true);
   });
 
   test("persists catalog progress and clears it from the menu", async ({ page }) => {
@@ -163,6 +200,42 @@ async function paintCell(page: Page, x: number, y: number) {
   }
 
   await page.mouse.click(box.x + ((x + 0.5) / 4) * box.width, box.y + ((y + 0.5) / 4) * box.height);
+}
+
+async function pressRepeatedly(page: Page, key: string, count: number) {
+  for (let index = 0; index < count; index += 1) {
+    // biome-ignore lint/performance/noAwaitInLoops: Keyboard input must preserve user-event order.
+    await page.keyboard.press(key);
+  }
+}
+
+function hasKeyboardCursor(canvas: ReturnType<Page["getByRole"]>) {
+  return canvas.evaluate((element) => {
+    const board = element as HTMLCanvasElement;
+    const context = board.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      throw new Error("Could not inspect the keyboard cursor.");
+    }
+
+    const reference = document.createElement("canvas");
+    reference.width = 1;
+    reference.height = 1;
+    const referenceContext = reference.getContext("2d", { willReadFrequently: true });
+    if (!referenceContext) {
+      throw new Error("Could not prepare the keyboard cursor color.");
+    }
+    referenceContext.fillStyle = getComputedStyle(board).getPropertyValue("--color-primary");
+    referenceContext.fillRect(0, 0, 1, 1);
+    const [red, green, blue] = referenceContext.getImageData(0, 0, 1, 1).data;
+    const pixels = context.getImageData(0, 0, board.width, board.height).data;
+
+    for (let index = 0; index < pixels.length; index += 4) {
+      if (pixels[index] === red && pixels[index + 1] === green && pixels[index + 2] === blue) {
+        return true;
+      }
+    }
+    return false;
+  });
 }
 
 function hasStoredProgress(page: Page, artworkId: string) {
