@@ -199,7 +199,7 @@ const encodedPixels = [
 export default {
   artist: {
     name: "Pixel-boy",
-    url: "https://forums.rpgmakerweb.com/threads/pixel-boy-backgrounds-asset-pack-2-resolutions.103487/?utm_source=chatgpt.com",
+    url: "https://forums.rpgmakerweb.com/threads/pixel-boy-backgrounds-asset-pack-2-resolutions.103487",
   },
   catalogOrder: 60,
   height: 90,
