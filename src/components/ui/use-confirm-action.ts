@@ -9,6 +9,7 @@ interface ConfirmActionOptions {
 
 export function useConfirmAction({ onConfirm, onDone }: ConfirmActionOptions) {
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const pointerDownWithinRootRef = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -75,9 +76,22 @@ export function useConfirmAction({ onConfirm, onDone }: ConfirmActionOptions) {
     pending: mutation.isPending,
     rootProps: {
       onBlur: (event: FocusEvent<HTMLDivElement>) => {
-        if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) {
+        if (
+          !(
+            pointerDownWithinRootRef.current ||
+            (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))
+          )
+        ) {
           dismiss();
         }
+      },
+      onPointerDownCapture: () => {
+        // Safari can report a null relatedTarget when pressing another button in this control.
+        // Keep that pointer-driven blur from dismissing the confirmation before the click lands.
+        pointerDownWithinRootRef.current = true;
+        window.setTimeout(() => {
+          pointerDownWithinRootRef.current = false;
+        }, 0);
       },
       ref: rootRef,
     },

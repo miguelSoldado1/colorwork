@@ -4,6 +4,7 @@ import { expect, type Page, test } from "@playwright/test";
 const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
 const GRID_SIDE = 4;
 const IMPORTED_URL = /\/play\/two-color-smoke-/;
+const TWO_COLOR_SMOKE_BUTTON = /^Two Color Smoke/;
 const FIXTURE = {
   buffer: Buffer.from(
     "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFklEQVR4nGOIrvn1H4Q/Ho8GYwbSBQAv3i8R9w9IPAAAAABJRU5ErkJggg==",
@@ -70,6 +71,21 @@ test.describe("cross-browser smoke", () => {
     await expect.poll(() => hasStoredProgress(page, artworkId)).toBe(true);
     await page.reload();
     await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
+  });
+
+  test("deletes imported artwork", async ({ page }) => {
+    await openImportedPuzzle(page);
+
+    await page.getByRole("link", { name: "All artworks" }).click();
+    await page.getByRole("button", { name: TWO_COLOR_SMOKE_BUTTON }).click();
+
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+    await preview.getByRole("button", { name: "Delete artwork" }).click();
+    await preview.getByRole("button", { name: "Yes, delete it" }).click();
+
+    await expect(page.getByRole("button", { name: TWO_COLOR_SMOKE_BUTTON })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("button", { name: TWO_COLOR_SMOKE_BUTTON })).toHaveCount(0);
   });
 
   test("uses pencil, bucket, and picker tools on the Canvas board", async ({ page }) => {
