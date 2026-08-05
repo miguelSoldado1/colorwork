@@ -21,6 +21,7 @@ import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
 import { artworkDefinitionQueryOptions, artworkProgressQueryOptions } from "@/query/artwork-queries";
+import { usePageMetadata } from "@/seo/use-page-metadata";
 import { loadUserPreferences, saveUserPreferences } from "@/user-preferences";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
@@ -88,6 +89,11 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   // A ref, not state: the Canvas can report progress while the reset is still awaiting storage.
   const resettingRef = useRef(false);
   const completedRef = useRef(isPuzzleComplete(summary));
+  usePageMetadata({
+    description: `Color ${puzzle.name}, a ${puzzle.width} by ${puzzle.height} pixel art color-by-number puzzle, in your browser.`,
+    path: `/play/${encodeURIComponent(puzzle.id)}`,
+    title: `${puzzle.name} - Colorwork`,
+  });
 
   useEffect(() => progressSaver.connect(), [progressSaver]);
 

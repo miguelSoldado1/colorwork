@@ -19,6 +19,7 @@ pnpm exec playwright install chromium firefox webkit
 
 The artwork menu is available at `/`. Selecting an artwork opens its board at `/play/$levelId`.
 Production builds also generate a static XML sitemap at `/sitemap.xml` and a matching `/robots.txt` from the built-in puzzle files. On Vercel, the sitemap uses `VERCEL_PROJECT_PRODUCTION_URL`; set `SITE_URL` when building outside Vercel.
+The static application shell contains the default search and social metadata. The social preview image is served from `/social-preview.png`. Built-in artwork routes set their own title, description, and canonical URL after the application loads.
 
 Artwork definitions and progress are stored locally in IndexedDB; imported images are processed in this browser and never uploaded. There is no account or cloud sync, so clearing this browser's storage removes local progress and imported artwork. The site uses Vercel Web Analytics for page views. Imported artwork can be deleted from its preview in the menu.
 

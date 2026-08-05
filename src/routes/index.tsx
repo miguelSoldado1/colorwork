@@ -8,6 +8,7 @@ import { LevelsMenuFrame, LevelsMenuLoadError, LevelsMenuLoading } from "@/compo
 import { MobileArtworkAction } from "@/components/levels/mobile-artwork-action";
 import { LEVELS } from "@/levels/level-catalog";
 import { artworkDescriptionsQueryOptions } from "@/query/artwork-queries";
+import { usePageMetadata } from "@/seo/use-page-metadata";
 import type { LevelDescription } from "@/levels/describe-level";
 
 export const Route = createFileRoute("/")({ component: IndexRoute });
@@ -15,6 +16,12 @@ export const Route = createFileRoute("/")({ component: IndexRoute });
 function IndexRoute() {
   const levelsQuery = useQuery(artworkDescriptionsQueryOptions());
   const [previewId, setPreviewId] = useState(() => LEVELS[0]?.id);
+  usePageMetadata({
+    description:
+      "Play a free pixel art color-by-number game in your browser. Choose an artwork or turn your own image into a numbered coloring board.",
+    path: "/",
+    title: "Colorwork - Pixel Art Coloring",
+  });
 
   if (levelsQuery.isPending) {
     return <LevelsMenuLoading />;
