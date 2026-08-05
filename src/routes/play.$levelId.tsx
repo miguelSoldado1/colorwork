@@ -185,8 +185,8 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
             />
           </aside>
 
-          {/* Clipped, not hidden, with room for the completion burst to fly past the board edge. */}
-          <section className="min-h-0 min-w-0 flex-1 overflow-clip [overflow-clip-margin:8rem]">
+          {/* The page shell clips viewport overflow; this stays visible so Safari does not crop the burst. */}
+          <section className="min-h-0 min-w-0 flex-1 overflow-visible">
             <ColoringBoard
               celebrateCompletion={celebrateCompletion}
               highlightMissing={highlightMissing}
