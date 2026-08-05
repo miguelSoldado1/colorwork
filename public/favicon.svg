@@ -2,12 +2,12 @@
   <title>Colorwork</title>
   <style>
   path {
-    fill: #242620;
+    fill: #000;
   }
 
   @media (prefers-color-scheme: dark) {
     path {
-      fill: #f3f1ec;
+      fill: #fff;
     }
   }
   </style>
