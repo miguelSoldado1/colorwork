@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { downloadPuzzleModule } from "@/coloring/export-puzzle";
 import {
+  createImportedPuzzleId,
   createPuzzleFromImage,
   getImportName,
   getMaximumImportGridSide,
@@ -136,9 +137,11 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
 
   function confirmPuzzle() {
     if (puzzle) {
+      const finalName = name.trim() || "Custom puzzle";
       onConfirm({
         ...puzzle,
-        name: name.trim() || "Custom puzzle",
+        id: createImportedPuzzleId(finalName),
+        name: finalName,
       });
     }
   }

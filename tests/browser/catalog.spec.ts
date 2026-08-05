@@ -1,6 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
 const PLAY_URL = /\/play\/[^/]+$/;
+const RENAMED_IMPORT_URL = /\/play\/joao-s-cafe-da-manha-[a-z0-9]+$/;
 const ROOT_URL = /\/$/;
 const RIBBIT_BUTTON = /^Ribbit/;
 const GOBBO_BUTTON = /^Gobbo/;
@@ -156,6 +157,18 @@ test.describe("artwork catalog", () => {
     await expect(imported.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toBeVisible();
     const catalog = page.getByRole("list", { name: "Built-in artwork" });
     await expect(catalog.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toHaveCount(0);
+  });
+
+  test("uses the edited puzzle name in the imported artwork id", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 8, 8);
+
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Puzzle name").fill("João's Café da Manhã");
+    await dialog.getByRole("button", { name: "Import this puzzle" }).click();
+
+    await expect(page).toHaveURL(RENAMED_IMPORT_URL);
+    await expect(page.getByRole("heading", { name: "João's Café da Manhã" })).toBeVisible();
   });
 
   test("deletes imported artwork and offers no delete for the built-in catalog", async ({ page }) => {

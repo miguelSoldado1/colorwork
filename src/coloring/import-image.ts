@@ -1,3 +1,4 @@
+import { createSimplifiedPuzzleId } from "./export-puzzle";
 import { readThemeColor } from "./pixel-raster";
 import type { PuzzleDefinition } from "./types";
 
@@ -11,8 +12,6 @@ const FILE_EXTENSION_PATTERN = /\.[^.]+$/;
 const SUPPORTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const SUPPORTED_IMAGE_EXTENSION_PATTERN = /\.(?:png|jpe?g|webp)$/i;
 const FILE_NAME_SEPARATOR_PATTERN = /[-_]+/g;
-const PUZZLE_ID_CHARACTER_PATTERN = /[^a-z0-9]+/g;
-const PUZZLE_ID_EDGE_PATTERN = /^-|-$/g;
 
 interface WeightedColor {
   blue: number;
@@ -110,11 +109,15 @@ export function createPuzzleFromImage(source: ImageImportSource, options: ImageI
 
   return {
     height: options.height,
-    id: createPuzzleId(options.name),
+    id: createImportedPuzzleId(options.name),
     name: options.name.trim() || "Custom puzzle",
     ...indexedPixels,
     width: options.width,
   };
+}
+
+export function createImportedPuzzleId(name: string) {
+  return `${createSimplifiedPuzzleId(name)}-${Date.now().toString(36)}`;
 }
 
 export function createIndexedPixelData(data: Uint8ClampedArray, paletteSize: number): IndexedPixelData {
@@ -347,11 +350,6 @@ function toHexColor(color: WeightedColor) {
   return `#${color.red.toString(16).padStart(2, "0")}${color.green
     .toString(16)
     .padStart(2, "0")}${color.blue.toString(16).padStart(2, "0")}`;
-}
-
-function createPuzzleId(name: string) {
-  const slug = name.toLowerCase().replaceAll(PUZZLE_ID_CHARACTER_PATTERN, "-").replace(PUZZLE_ID_EDGE_PATTERN, "");
-  return `${slug || "custom-puzzle"}-${Date.now().toString(36)}`;
 }
 
 function validatePixelData(data: Uint8ClampedArray) {

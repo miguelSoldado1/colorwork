@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   countPixelColors,
+  createImportedPuzzleId,
   createIndexedPixelData,
   getImportName,
   getMaximumImportGridSide,
@@ -81,6 +82,16 @@ describe("getImportName", () => {
 
   it("falls back when the file name has no usable stem", () => {
     expect(getImportName(".png")).toBe("Custom puzzle");
+  });
+});
+
+describe("createImportedPuzzleId", () => {
+  it("uses the export id normalizer and keeps imported artwork ids unique", () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_234_567_890);
+
+    expect(createImportedPuzzleId("  João's Café da Manhã!  ")).toBe("joao-s-cafe-da-manha-kf12oi");
+
+    vi.restoreAllMocks();
   });
 });
 
