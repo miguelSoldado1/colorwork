@@ -1,3 +1,4 @@
+import { SiteFooter } from "@/components/app/site-footer";
 import type { ReactNode } from "react";
 
 interface LevelsMenuFrameProps {
@@ -18,6 +19,7 @@ export function LevelsMenuFrame({ children, summary }: LevelsMenuFrameProps) {
           <p className="mt-1 text-muted-foreground text-xs">{summary}</p>
         </header>
         {children}
+        <SiteFooter />
       </div>
     </main>
   );

@@ -34,7 +34,7 @@ export function readSitemapPuzzles(root: string) {
 }
 
 export function renderSitemapXml(puzzles: readonly SitemapPuzzle[], siteUrl: string) {
-  const paths = ["/", ...puzzles.map((puzzle) => puzzle.path)];
+  const paths = ["/", "/privacy", ...puzzles.map((puzzle) => puzzle.path)];
   const urls = paths
     .map((path) => `  <url>\n    <loc>${escapeXml(new URL(path, siteUrl).toString())}</loc>\n  </url>`)
     .join("\n");
