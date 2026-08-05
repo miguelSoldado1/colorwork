@@ -34,13 +34,42 @@ test.describe("artwork catalog", () => {
     await expect(preview.getByRole("button", { name: "See full artwork" })).toBeVisible();
   });
 
+  test("keeps the selected artwork action visible while browsing on phones", async ({ page }) => {
+    await page.setViewportSize({ height: 844, width: 390 });
+    await page.goto("/");
+
+    const selectedAction = page.getByRole("region", { name: "Selected artwork action" });
+    const artworkList = page.getByRole("list", { name: "Built-in artwork" });
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+
+    await expect(selectedAction).toContainText("Gobbo");
+    await expect(selectedAction.getByRole("link", { name: "Start painting" })).toBeInViewport();
+    await expect
+      .poll(async () => {
+        const listBox = await artworkList.boundingBox();
+        const previewBox = await preview.boundingBox();
+        return listBox && previewBox ? listBox.y < previewBox.y : false;
+      })
+      .toBe(true);
+
+    const ribbit = page.getByRole("button", { name: RIBBIT_BUTTON });
+    await ribbit.scrollIntoViewIfNeeded();
+    await ribbit.click();
+
+    await expect(selectedAction).toContainText("Ribbit");
+    await expect(selectedAction.getByRole("link", { name: "Start painting" })).toBeInViewport();
+  });
+
   test("keeps the tapped row in place when selecting an artwork", async ({ page }) => {
     await page.setViewportSize({ height: 952, width: 539 });
     await page.goto("/");
 
-    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
+    const ribbit = page.getByRole("button", { name: RIBBIT_BUTTON });
+    await ribbit.scrollIntoViewIfNeeded();
+    const scrollY = await page.evaluate(() => window.scrollY);
+    await ribbit.click();
     await expect(page).toHaveURL(ROOT_URL);
-    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrollY);
     await expect(page.getByRole("heading", { name: "Ribbit" })).toBeVisible();
   });
 

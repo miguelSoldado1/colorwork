@@ -5,6 +5,7 @@ import { ArtworkPreviewPanel } from "@/components/levels/artwork-preview-panel";
 import { CatalogMenu } from "@/components/levels/catalog-menu";
 import { ImportedMenu } from "@/components/levels/imported-menu";
 import { LevelsMenuFrame, LevelsMenuLoadError, LevelsMenuLoading } from "@/components/levels/levels-menu-frame";
+import { MobileArtworkAction } from "@/components/levels/mobile-artwork-action";
 import { LEVELS } from "@/levels/level-catalog";
 import { artworkDescriptionsQueryOptions } from "@/query/artwork-queries";
 import type { LevelDescription } from "@/levels/describe-level";
@@ -35,6 +36,7 @@ function IndexRoute() {
         </div>
         {preview ? <ArtworkPreviewPanel level={preview} /> : null}
       </div>
+      {preview ? <MobileArtworkAction level={preview} /> : null}
     </LevelsMenuFrame>
   );
 

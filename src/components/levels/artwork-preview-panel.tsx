@@ -15,7 +15,7 @@ interface ArtworkPreviewPanelProps {
 }
 
 const ACTION_LINK =
-  "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-md border px-4 transition-[filter,transform,color,border-color] duration-200 ease-out focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-px";
+  "hidden min-h-11 cursor-pointer items-center justify-center rounded-md border px-4 transition-[filter,transform,color,border-color] duration-200 ease-out focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 active:translate-y-px lg:inline-flex";
 
 export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
   const panelRef = useRef<HTMLElement>(null);

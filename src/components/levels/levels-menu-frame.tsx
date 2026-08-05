@@ -7,7 +7,7 @@ interface LevelsMenuFrameProps {
 
 export function LevelsMenuFrame({ children, summary }: LevelsMenuFrameProps) {
   return (
-    <main className="min-h-svh px-3 py-5 text-foreground sm:px-6 sm:py-8">
+    <main className="min-h-svh px-3 pt-5 pb-24 text-foreground sm:px-6 sm:pt-8 lg:pb-8">
       <div className="mx-auto flex min-w-0 max-w-384 flex-col gap-6 sm:gap-8">
         <header className="min-w-0 border-border border-b pb-4 sm:pb-6">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Colorwork</p>
