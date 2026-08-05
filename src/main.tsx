@@ -3,12 +3,14 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { Analytics } from "@vercel/analytics/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { AppErrorBoundary } from "@/components/app/app-error-boundary";
+import { AppErrorFallback } from "@/components/app/app-error-fallback";
 import { ProgressQueryInvalidation } from "@/query/progress-query-invalidation";
 import { queryClient } from "@/query/query-client";
 import { routeTree } from "@/routeTree.gen";
 import "@/styles/index.css";
 
-const router = createRouter({ routeTree });
+const router = createRouter({ defaultErrorComponent: AppErrorFallback, routeTree });
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -23,10 +25,12 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <Analytics />
-    <QueryClientProvider client={queryClient}>
-      <ProgressQueryInvalidation />
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <Analytics />
+      <QueryClientProvider client={queryClient}>
+        <ProgressQueryInvalidation />
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </AppErrorBoundary>
   </StrictMode>
 );

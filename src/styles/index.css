@@ -91,6 +91,18 @@
   }
 }
 
+/* An anchored confirmation grows from its own control. Closing is not animated, as with the dialog. */
+.popover-surface {
+  transition:
+    opacity 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
 
@@ -111,18 +123,12 @@
 
   14% {
     opacity: 1;
-    transform: translate3d(
-        calc(var(--fly-x) * 0.28),
-        calc(var(--fly-y) * 0.28),
-        0
-      )
-      scale(1);
+    transform: translate3d(var(--fly-launch-x), var(--fly-launch-y), 0) scale(1);
   }
 
   100% {
     opacity: 0;
-    transform: translate3d(var(--fly-x), calc(var(--fly-y) + 18px), 0)
-      scale(0.7);
+    transform: translate3d(var(--fly-end-x), var(--fly-end-y), 0) scale(0.7);
   }
 }
 

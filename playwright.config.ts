@@ -10,7 +10,25 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: "**/mobile.smoke.spec.ts",
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "firefox-smoke",
+      testIgnore: "**/mobile.smoke.spec.ts",
+      testMatch: "**/*.smoke.spec.ts",
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit-smoke",
+      testIgnore: "**/mobile.smoke.spec.ts",
+      testMatch: "**/*.smoke.spec.ts",
+      use: { ...devices["Desktop Safari"] },
+    },
+    {
+      name: "webkit-mobile-smoke",
+      testMatch: "**/mobile.smoke.spec.ts",
+      use: { ...devices["iPhone 15 Pro"] },
     },
   ],
   reporter: "list",

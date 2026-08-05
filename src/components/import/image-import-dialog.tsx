@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { downloadPuzzleModule } from "@/coloring/export-puzzle";
 import {
+  createImportedPuzzleId,
   createPuzzleFromImage,
   getImportName,
   getMaximumImportGridSide,
@@ -49,7 +50,15 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
       return;
     }
 
-    dialog.showModal();
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+
+    return () => {
+      if (dialog.open) {
+        dialog.close();
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -128,9 +137,11 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
 
   function confirmPuzzle() {
     if (puzzle) {
+      const finalName = name.trim() || "Custom puzzle";
       onConfirm({
         ...puzzle,
-        name: name.trim() || "Custom puzzle",
+        id: createImportedPuzzleId(finalName),
+        name: finalName,
       });
     }
   }
@@ -146,6 +157,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
 
   return (
     <dialog
+      aria-describedby="import-description"
       aria-labelledby="import-title"
       className="dialog-surface m-auto max-h-[calc(100svh-2rem)] w-[min(46rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-border bg-card p-0 text-card-foreground shadow-[0_32px_90px_-24px_rgba(0,0,0,0.85)] backdrop:bg-background/75 backdrop:backdrop-blur-sm"
       onCancel={onCancel}
@@ -158,7 +170,9 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
             <h2 className="mt-1 text-2xl" id="import-title">
               Tune your pixel grid
             </h2>
-            <p className="text-muted-foreground text-xs">Saved in this browser — nothing is uploaded.</p>
+            <p className="text-muted-foreground text-xs" id="import-description">
+              Processed in this browser — your image and progress stay local. No account or cloud sync.
+            </p>
           </div>
           <Button aria-label="Cancel image import" className="shrink-0" onClick={onCancel} size="icon" variant="ghost">
             <Close height={22} width={22} />

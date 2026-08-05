@@ -11,9 +11,16 @@ pnpm install
 pnpm dev
 ```
 
-The artwork menu is available at `/`. Selecting an artwork opens its board at `/play/$levelId`.
+Install the Playwright browser engines before running browser tests:
 
-Everything is stored locally in IndexedDB and nothing is uploaded. Progress on included artwork, along with imported artwork and its progress, survives a reload. Imported artwork can be deleted from its preview in the menu.
+```sh
+pnpm exec playwright install chromium firefox webkit
+```
+
+The artwork menu is available at `/`. Selecting an artwork opens its board at `/play/$levelId`.
+Production builds also generate a static XML sitemap at `/sitemap.xml` and a matching `/robots.txt` from the built-in puzzle files. On Vercel, the sitemap uses `VERCEL_PROJECT_PRODUCTION_URL`; set `SITE_URL` when building outside Vercel.
+
+Artwork definitions and progress are stored locally in IndexedDB; imported images are processed in this browser and never uploaded. There is no account or cloud sync, so clearing this browser's storage removes local progress and imported artwork. The site uses Vercel Web Analytics for page views. Imported artwork can be deleted from its preview in the menu.
 
 ## Playing
 
@@ -53,11 +60,23 @@ For the product and interaction rationale behind the implementation, see [Design
 pnpm dev           # Start the development server
 pnpm test          # Run unit tests
 pnpm test:watch    # Run unit tests in watch mode
-pnpm test:browser  # Run Playwright browser tests
+pnpm test:browser  # Run Playwright tests (full Chromium + cross-browser smoke)
 pnpm typecheck     # Check TypeScript
 pnpm check         # Run repository checks
 pnpm build         # Create a production build
 pnpm preview       # Preview the production build
+```
+
+Run only the Firefox and WebKit smoke projects with:
+
+```sh
+pnpm test:browser --project=firefox-smoke --project=webkit-smoke
+```
+
+Run the desktop and mobile Safari/WebKit smoke projects with:
+
+```sh
+pnpm test:browser --project=webkit-smoke --project=webkit-mobile-smoke
 ```
 
 Set `VITE_DEBUG=1` when starting the development server to show a development-only fill control. It can temporarily complete the current board and restore the preceding progress. Production builds never include the control.
