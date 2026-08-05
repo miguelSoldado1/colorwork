@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import Check from "@/assets/icons/check.svg?react";
+import Close from "@/assets/icons/close.svg?react";
+import Link from "@/assets/icons/link.svg?react";
+import Unlink from "@/assets/icons/unlink.svg?react";
 import { downloadPuzzleModule } from "@/coloring/export-puzzle";
 import {
   createImportedPuzzleId,
@@ -9,10 +13,6 @@ import {
   type ImageImportSource,
   MAX_IMPORT_GRID_SIDE,
 } from "@/coloring/import-image";
-import Check from "@/components/icons/check.svg?react";
-import Close from "@/components/icons/close.svg?react";
-import Link from "@/components/icons/link.svg?react";
-import Unlink from "@/components/icons/unlink.svg?react";
 import { Button } from "@/components/ui/button";
 import { isDebugMode } from "@/debug/debug-mode";
 import type { PuzzleDefinition } from "@/coloring/types";

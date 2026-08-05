@@ -1,5 +1,5 @@
+import Check from "@/assets/icons/check.svg?react";
 import { readableInk } from "@/coloring/readable-ink";
-import Check from "@/components/icons/check.svg?react";
 import { Button } from "@/components/ui/button";
 
 interface PaletteColorProps {

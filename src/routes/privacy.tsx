@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import ArrowLeft from "@/components/icons/arrow-left.svg?react";
+import ArrowLeft from "@/assets/icons/arrow-left.svg?react";
 import { usePageMetadata } from "@/seo/use-page-metadata";
 
 export const Route = createFileRoute("/privacy")({ component: PrivacyRoute });

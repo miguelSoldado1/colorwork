@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import Close from "@/components/icons/close.svg?react";
+import Close from "@/assets/icons/close.svg?react";
 import { LevelPreview } from "@/components/levels/level-preview";
 import { Button } from "@/components/ui/button";
 import { fitCellSize } from "@/levels/render-level-preview";

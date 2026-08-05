@@ -1,5 +1,5 @@
+import Reload from "@/assets/icons/reload.svg?react";
 import { clearPuzzleProgress } from "@/coloring/progress-storage";
-import Reload from "@/components/icons/reload.svg?react";
 import { Button } from "@/components/ui/button";
 import { useConfirmAction } from "@/components/ui/use-confirm-action";
 import { CONFIRM_LAYER } from "./confirm-layer";

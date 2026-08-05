@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
+import Trash from "@/assets/icons/trash.svg?react";
 import { clearPuzzleProgress } from "@/coloring/progress-storage";
-import Trash from "@/components/icons/trash.svg?react";
 import { Button } from "@/components/ui/button";
 import { useConfirmAction } from "@/components/ui/use-confirm-action";
 import { deleteImportedPuzzle } from "@/levels/imported-levels";

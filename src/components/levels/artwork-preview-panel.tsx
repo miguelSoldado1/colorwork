@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import Eye from "@/assets/icons/eye.svg?react";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
-import Eye from "@/components/icons/eye.svg?react";
 import { ArtworkRevealDialog } from "@/components/levels/artwork-reveal-dialog";
 import { DeleteArtworkControl } from "@/components/levels/delete-artwork-control";
 import { LevelPreview } from "@/components/levels/level-preview";

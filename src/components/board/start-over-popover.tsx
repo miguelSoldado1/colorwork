@@ -1,5 +1,5 @@
 import { useEffect, useId } from "react";
-import Reload from "@/components/icons/reload.svg?react";
+import Reload from "@/assets/icons/reload.svg?react";
 import { Button } from "@/components/ui/button";
 import { useTooltip } from "@/components/ui/tooltip";
 import { useConfirmAction } from "@/components/ui/use-confirm-action";

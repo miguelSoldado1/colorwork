@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import Image2Plus from "@/assets/icons/image-plus.svg?react";
 import {
   countRenderedImageColors,
   getRecommendedGridSize,
@@ -9,7 +10,6 @@ import {
   isSupportedImageFile,
   MAX_IMPORT_FILE_BYTES,
 } from "@/coloring/import-image";
-import Image2Plus from "@/components/icons/image-plus.svg?react";
 import { ImageImportDialog } from "@/components/import/image-import-dialog";
 import { saveImportedPuzzle } from "@/levels/imported-levels";
 import { artworkQueryKeys } from "@/query/artwork-queries";

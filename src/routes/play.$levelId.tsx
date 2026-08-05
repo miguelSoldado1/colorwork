@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import ArrowLeft from "@/assets/icons/arrow-left.svg?react";
 import { clonePuzzleProgress, createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import {
   clearPuzzleProgress,
@@ -13,7 +14,6 @@ import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
 import { StartOverPopover } from "@/components/board/start-over-popover";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
-import ArrowLeft from "@/components/icons/arrow-left.svg?react";
 import { Palette } from "@/components/palette/palette";
 import { ProgressDisplay } from "@/components/progress/progress-display";
 import { SaveStatus } from "@/components/progress/save-status";
