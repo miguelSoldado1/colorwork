@@ -29,35 +29,32 @@ describe("search and social metadata", () => {
     expect(image.readUInt32BE(20)).toBe(630);
   });
 
-  it("uses stable adaptive favicon URLs", () => {
+  it("uses the generated favicon package", () => {
     const html = readFileSync(resolve(projectRoot, "index.html"), "utf8");
-    const svg = readFileSync(resolve(projectRoot, "public/favicon.svg"), "utf8");
-    const lightPng = readFileSync(resolve(projectRoot, "public/favicon-48x48-light.png"));
-    const darkPng = readFileSync(resolve(projectRoot, "public/favicon-48x48-dark.png"));
-    const defaultIco = readFileSync(resolve(projectRoot, "public/favicon.ico"));
-    const lightIco = readFileSync(resolve(projectRoot, "public/favicon-light.ico"));
-    const darkIco = readFileSync(resolve(projectRoot, "public/favicon-dark.ico"));
+    const favicon = readFileSync(resolve(projectRoot, "public/favicon-96x96.png"));
+    const appleTouchIcon = readFileSync(resolve(projectRoot, "public/apple-touch-icon.png"));
+    const manifestIcon = readFileSync(resolve(projectRoot, "public/web-app-manifest-512x512.png"));
+    const ico = readFileSync(resolve(projectRoot, "public/favicon.ico"));
+    const manifest = JSON.parse(readFileSync(resolve(projectRoot, "public/site.webmanifest"), "utf8"));
 
     expect(html).toContain('href="/favicon.svg"');
-    expect(html).toContain('href="/favicon-48x48-light.png"');
-    expect(html).toContain('href="/favicon-48x48-dark.png"');
-    expect(html).toContain('href="/favicon-light.ico"');
-    expect(html).toContain('href="/favicon-dark.ico"');
-    expect(html).toContain('media="(prefers-color-scheme: light)"');
-    expect(html).toContain('media="(prefers-color-scheme: dark)"');
-    expect(svg).toContain('height="48"');
-    expect(svg).toContain('width="48"');
-    expect(svg).toContain("fill: #000");
-    expect(svg).toContain("fill: #fff");
-    for (const png of [lightPng, darkPng]) {
+    expect(html).toContain('href="/favicon-96x96.png"');
+    expect(html).toContain('href="/favicon.ico"');
+    expect(html).toContain('href="/apple-touch-icon.png"');
+    expect(html).toContain('name="apple-mobile-web-app-title"');
+    expect(html).toContain('href="/site.webmanifest"');
+    expect(manifest.icons).toHaveLength(2);
+    for (const [png, size] of [
+      [favicon, 96],
+      [appleTouchIcon, 180],
+      [manifestIcon, 512],
+    ] as const) {
       expect(png.subarray(1, 4).toString("ascii")).toBe("PNG");
-      expect(png.readUInt32BE(16)).toBe(48);
-      expect(png.readUInt32BE(20)).toBe(48);
+      expect(png.readUInt32BE(16)).toBe(size);
+      expect(png.readUInt32BE(20)).toBe(size);
     }
-    for (const ico of [defaultIco, lightIco, darkIco]) {
-      expect(ico.readUInt16LE(0)).toBe(0);
-      expect(ico.readUInt16LE(2)).toBe(1);
-      expect(ico.readUInt16LE(4)).toBeGreaterThan(0);
-    }
+    expect(ico.readUInt16LE(0)).toBe(0);
+    expect(ico.readUInt16LE(2)).toBe(1);
+    expect(ico.readUInt16LE(4)).toBeGreaterThan(0);
   });
 });
