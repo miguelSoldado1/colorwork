@@ -263,6 +263,31 @@ export function createProgressSaveController({
     maximumTimer ??= setTimeout(() => startFlush(true), MAXIMUM_SAVE_DELAY);
   }
 
+  function dropPendingWork() {
+    clearSaveTimers();
+    clearRetryTimer();
+    clearStatusTimer();
+    latestProgress = undefined;
+    // Advancing past `savedRevision` also keeps an in-flight write from announcing "saved" afterwards.
+    latestRevision += 1;
+    retryAttempt = 0;
+    failureStartedAt = undefined;
+    errorVisible = false;
+  }
+
+  async function discard() {
+    dropPendingWork();
+
+    // A write already in IndexedDB cannot be cancelled, and a failing one arms a retry as it settles.
+    while (writePromise) {
+      // biome-ignore lint/performance/noAwaitInLoops: The write queue is serialized by design.
+      await writePromise;
+      dropPendingWork();
+    }
+
+    reportStatus("idle");
+  }
+
   function connect() {
     retryEnabled = true;
     statusEnabled = true;
@@ -294,7 +319,7 @@ export function createProgressSaveController({
     };
   }
 
-  return { connect, flush, schedule };
+  return { connect, discard, flush, schedule };
 }
 
 function encodeBitset(progress: PuzzleProgress) {

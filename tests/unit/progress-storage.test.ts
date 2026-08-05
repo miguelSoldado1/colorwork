@@ -226,6 +226,66 @@ describe("progress save controller", () => {
     await expect(loadPuzzleProgress(puzzle, repository)).resolves.toEqual(progress);
   });
 
+  it("discards debounced writes and cancels retries before a reset", async () => {
+    vi.useFakeTimers();
+    const repository = new MemoryProgressRepository();
+    repository.failWrites = true;
+    const statuses: string[] = [];
+    const controller = createProgressSaveController({
+      onStatus: (status) => statuses.push(status),
+      puzzle,
+      repository,
+    });
+
+    controller.schedule(createPuzzleProgress(puzzle), false);
+    await controller.discard();
+    expect(repository.writeAttempts).toBe(0);
+
+    controller.schedule(createPuzzleProgress(puzzle), true);
+    await controller.flush(true);
+    expect(repository.writeAttempts).toBe(1);
+
+    await controller.discard();
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(repository.writeAttempts).toBe(1);
+    expect(statuses.at(-1)).toBe("idle");
+  });
+
+  it("waits for an in-flight write and discards the queued follow-up", async () => {
+    vi.useFakeTimers();
+    const repository = new ControlledProgressRepository();
+    const statuses: string[] = [];
+    const controller = createProgressSaveController({
+      onStatus: (status) => statuses.push(status),
+      puzzle,
+      repository,
+    });
+    const progress = createPuzzleProgress(puzzle);
+    paintCells(progress, puzzle, [0]);
+
+    controller.schedule(progress, true);
+    expect(repository.writeAttempts).toBe(1);
+
+    paintCells(progress, puzzle, [3]);
+    controller.schedule(progress, false);
+    let discarded = false;
+    const discardPromise = controller.discard().then(() => {
+      discarded = true;
+    });
+
+    await Promise.resolve();
+    expect(discarded).toBe(false);
+
+    repository.completeNextWrite();
+    await discardPromise;
+    await vi.runAllTimersAsync();
+
+    expect(repository.writeAttempts).toBe(1);
+    expect(repository.pendingWrites).toHaveLength(0);
+    expect(statuses.at(-1)).toBe("idle");
+  });
+
   it("retries a transient failure without exposing an error", async () => {
     vi.useFakeTimers();
     const repository = new MemoryProgressRepository();

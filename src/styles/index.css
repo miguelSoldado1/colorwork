@@ -91,6 +91,18 @@
   }
 }
 
+/* An anchored confirmation grows from its own control. Closing is not animated, as with the dialog. */
+.popover-surface {
+  transition:
+    opacity 150ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
 

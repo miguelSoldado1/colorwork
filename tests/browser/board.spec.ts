@@ -81,6 +81,52 @@ test.describe("coloring board", () => {
     await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
   });
 
+  test("clears progress without leaving the board", async ({ page }) => {
+    await openImportedPuzzle(page);
+    const artworkId = new URL(page.url()).pathname.split("/").pop();
+    if (!artworkId) {
+      throw new Error("The imported artwork URL did not include an id.");
+    }
+
+    await paintCell(page, 0, 0);
+    await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
+
+    const startOver = page.getByRole("button", { name: "Start over" });
+    const confirmation = page.getByRole("dialog", { name: "Start over" });
+    const clear = page.getByRole("button", { exact: true, name: "Clear" });
+
+    await startOver.click();
+    await expect(confirmation).toBeVisible();
+    await expect(startOver).toHaveAttribute("aria-haspopup", "dialog");
+    const confirmationId = await confirmation.getAttribute("id");
+    expect(confirmationId).toBeTruthy();
+    await expect(startOver).toHaveAttribute("aria-controls", confirmationId ?? "");
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(clear).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(confirmation).toBeHidden();
+
+    await startOver.focus();
+    await startOver.click();
+    await expect(confirmation).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(confirmation).toBeHidden();
+    await expect(startOver).toBeFocused();
+
+    await startOver.click();
+    await page.getByRole("img", { name: BOARD_LABEL }).click({ position: { x: 2, y: 2 } });
+    await expect(confirmation).toBeHidden();
+    await expect(page.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
+
+    await startOver.click();
+    await clear.click();
+    await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeVisible();
+    await expect(confirmation).toBeHidden();
+    await expect(startOver).toBeDisabled();
+    await expect.poll(() => hasStoredProgress(page, artworkId)).toBe(false);
+  });
+
   test("keeps the keyboard cursor visible across zoomed viewport edges", async ({ page }) => {
     await page.goto("/play/gobbo");
 

@@ -33,9 +33,13 @@ The palette strip always shows the artwork's true colors and carries no progress
 
 ### Starting over
 
-"Start over" clears stored progress through `clearPuzzleProgress` and is disabled for an untouched board. It confirms inline because the preview already identifies the affected artwork; a modal would obscure and repeat that context.
+"Start over" clears stored progress through `clearPuzzleProgress` and is disabled for an untouched board. It is available in the menu preview and in the board header, so resetting never requires leaving the artwork. The board discards pending autosaves before removing the stored record, then rebuilds its live progress from an empty state. Neither control opens a modal: the surrounding artwork context already identifies what will be cleared, and a modal would obscure and repeat it.
 
-The normal and confirmation states share one grid cell so the panel does not shift. Escape cancels confirmation. The control sits below a hairline rule, separate from the primary actions, and remains visually muted until interaction so the destructive action does not outweigh the main action.
+The two views speak different languages, so the control is written twice on one shared confirm flow rather than reskinned with props. `useConfirmAction` owns the pending state, the focus handoff, and Escape; each control owns its own layout and wording.
+
+The menu labels its buttons, so `StartOverControl` is a labelled button whose two states cross-fade inside one grid cell, below a hairline rule that separates it from the primary actions. The board is entirely icons with tooltips, so `StartOverPopover` matches: a muted icon in the header's action group, left of the hairline, with the progress meter kept as the rightmost thing in the header. Its confirmation is an anchored panel that scales from the control's top corner and sits directly beneath it. It crosses the header rule on the way down: reading as part of the control matters more than an unbroken hairline, and a larger offset made the panel look like it grew out of the header instead. Pressing elsewhere dismisses it and leaves focus where the player pressed; moving keyboard focus outside dismisses it too. Escape dismisses it and returns focus to the control. Once clearing begins, the confirmation remains in place until the operation succeeds or fails.
+
+The board deliberately keeps the destructive control out of the title row. A touch-sized button there inflates the row that carries the artwork's name, which is identity rather than action.
 
 Clearing progress is also the only way to repaint a finished artwork. Opening a finished piece restores its completed board, which is why its primary action says "Open the finished board."
 

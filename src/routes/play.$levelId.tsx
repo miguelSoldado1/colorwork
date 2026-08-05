@@ -1,12 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { clonePuzzleProgress, createProgressSummary } from "@/coloring/progress";
-import { createProgressSaveController, type ProgressSaveStatus } from "@/coloring/progress-storage";
+import { clonePuzzleProgress, createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
+import {
+  clearPuzzleProgress,
+  createProgressSaveController,
+  type ProgressSaveStatus,
+} from "@/coloring/progress-storage";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { ArtworkLoadError, ArtworkLoading } from "@/components/artwork/artwork-load-state";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
+import { StartOverPopover } from "@/components/board/start-over-popover";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
 import ArrowLeft from "@/components/icons/arrow-left.svg?react";
 import { Palette } from "@/components/palette/palette";
@@ -79,6 +84,9 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const [saveStatus, setSaveStatus] = useState<ProgressSaveStatus>("idle");
   const [progressSaver] = useState(() => createProgressSaveController({ onStatus: setSaveStatus, puzzle }));
   const [celebrateCompletion, setCelebrateCompletion] = useState(false);
+  const [resetVersion, setResetVersion] = useState(0);
+  // A ref, not state: the Canvas can report progress while the reset is still awaiting storage.
+  const resettingRef = useRef(false);
   const completedRef = useRef(isPuzzleComplete(summary));
 
   useEffect(() => progressSaver.connect(), [progressSaver]);
@@ -118,6 +126,10 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   }
 
   function updateBoardProgress(nextSummary: ProgressSummary) {
+    if (resettingRef.current) {
+      return;
+    }
+
     updateProgressSummary(nextSummary);
     progressSaver.schedule(progress, isPuzzleComplete(nextSummary));
   }
@@ -134,14 +146,41 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   }
 
   function replaceDebugProgress(nextProgress: PuzzleProgress) {
+    if (resettingRef.current) {
+      return;
+    }
+
     setProgress(nextProgress);
     progressSaver.schedule(nextProgress, nextProgress.paintedCount >= puzzle.width * puzzle.height);
+  }
+
+  async function resetBoard() {
+    resettingRef.current = true;
+
+    try {
+      await progressSaver.discard();
+      await clearPuzzleProgress(puzzle);
+
+      const emptyProgress = createPuzzleProgress(puzzle);
+      completedRef.current = false;
+      setCelebrateCompletion(false);
+      setProgress(emptyProgress);
+      setSummary(createProgressSummary(puzzle, emptyProgress));
+      setResetVersion((version) => version + 1);
+    } catch (error) {
+      // Discard removes the pending snapshot; restore it if deleting the stored record fails.
+      progressSaver.schedule(progress, true);
+      throw error;
+    } finally {
+      resettingRef.current = false;
+    }
   }
 
   return (
     <main className="relative h-svh overflow-hidden p-3 text-foreground sm:p-5">
       <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4">
-        <header className="flex min-w-0 items-end justify-between gap-4 border-border border-b px-1 pb-3 sm:pb-4">
+        {/* Stacked so the start-over confirmation opens over the board, not under it. */}
+        <header className="relative z-10 flex min-w-0 items-end justify-between gap-3 border-border border-b px-1 pb-3 sm:gap-4 sm:pb-4">
           <div className="min-w-0">
             <Link
               className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
@@ -156,17 +195,19 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
             </div>
             <ArtworkCredit artist={puzzle.artist} />
           </div>
-          <div className="flex min-h-11 shrink-0 items-center gap-3 sm:gap-5">
-            <div className="w-24 sm:w-56">
-              <ProgressDisplay summary={summary} />
-            </div>
+          <div className="flex min-h-11 shrink-0 items-center gap-2 sm:gap-4">
             <DebugFillControl
-              key={puzzle.id}
+              key={`${puzzle.id}-${resetVersion}`}
               onProgress={replaceDebugProgress}
               onSummary={updateProgressSummary}
               progress={progress}
               puzzle={puzzle}
             />
+            <StartOverPopover onStartOver={resetBoard} painted={summary.paintedCount > 0} />
+            <div aria-hidden className="h-6 w-px shrink-0 self-center bg-border" />
+            <div className="w-20 sm:w-56">
+              <ProgressDisplay summary={summary} />
+            </div>
           </div>
         </header>
 
