@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { trackArtworkOpened, trackPuzzleCompleted, trackPuzzleReset, trackPuzzleStarted } from "@/analytics/posthog";
@@ -13,6 +13,7 @@ import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { ArtworkLoadError, ArtworkLoading } from "@/components/artwork/artwork-load-state";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
+import { RenameArtworkTitle } from "@/components/board/rename-artwork-title";
 import { StartOverPopover } from "@/components/board/start-over-popover";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
 import { Palette } from "@/components/palette/palette";
@@ -21,8 +22,14 @@ import { SaveStatus } from "@/components/progress/save-status";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
+import { renameImportedPuzzle } from "@/levels/imported-levels";
 import { findLevel } from "@/levels/level-catalog";
-import { artworkDefinitionQueryOptions, artworkProgressQueryOptions } from "@/query/artwork-queries";
+import {
+  artworkDefinitionQueryOptions,
+  artworkDescriptionsQueryOptions,
+  artworkProgressQueryOptions,
+  artworkQueryKeys,
+} from "@/query/artwork-queries";
 import { usePageMetadata } from "@/seo/use-page-metadata";
 import { loadUserPreferences, saveUserPreferences } from "@/user-preferences";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
@@ -76,7 +83,11 @@ interface ColoringAppProps {
 }
 
 function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
+  const queryClient = useQueryClient();
   const overviewCanvasRef = useRef<HTMLCanvasElement>(null);
+  const persistedArtworkNameRef = useRef(puzzle.name);
+  const [artworkName, setArtworkName] = useState(puzzle.name);
+  const [renaming, setRenaming] = useState(false);
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [preferences, setPreferences] = useState(loadUserPreferences);
@@ -93,9 +104,9 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const startedRef = useRef(initialProgress.paintedCount > 0);
 
   usePageMetadata({
-    description: `Color ${puzzle.name}, a ${puzzle.width} by ${puzzle.height} pixel art color-by-number puzzle, in your browser.`,
+    description: `Color ${artworkName}, a ${puzzle.width} by ${puzzle.height} pixel art color-by-number puzzle, in your browser.`,
     path: `/play/${encodeURIComponent(puzzle.id)}`,
-    title: `${puzzle.name} - Colorwork`,
+    title: `${artworkName} - Colorwork`,
   });
 
   const artworkSource = findLevel(puzzle.id) ? "catalog" : "imported";
@@ -106,6 +117,22 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   }, [artworkSource, initialProgress, puzzle, totalCells]);
 
   useEffect(() => progressSaver.connect(), [progressSaver]);
+
+  useEffect(
+    () => () => {
+      const nextName = persistedArtworkNameRef.current;
+      if (nextName === puzzle.name) {
+        return;
+      }
+
+      // Updating this active query during play would replace `puzzle` and rebuild the Canvas.
+      // Refresh it once the route is leaving, so a client-side return starts with the new name.
+      queryClient.setQueryData(artworkQueryKeys.definition(puzzle.id), (cachedPuzzle) =>
+        cachedPuzzle ? { ...cachedPuzzle, name: nextName } : cachedPuzzle
+      );
+    },
+    [puzzle.id, puzzle.name, queryClient]
+  );
 
   useEffect(() => {
     saveUserPreferences(preferences);
@@ -178,6 +205,17 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
     progressSaver.schedule(nextProgress, nextProgress.paintedCount >= puzzle.width * puzzle.height);
   }
 
+  async function renameArtwork(nextName: string) {
+    await renameImportedPuzzle(puzzle.id, nextName);
+    persistedArtworkNameRef.current = nextName;
+    setArtworkName(nextName);
+    queryClient.setQueryData(artworkDescriptionsQueryOptions().queryKey, (levels) =>
+      levels?.map((level) =>
+        level.puzzle.id === puzzle.id ? { ...level, puzzle: { ...level.puzzle, name: nextName } } : level
+      )
+    );
+  }
+
   async function resetBoard() {
     resettingRef.current = true;
     const paintedCellsBeforeReset = summary.paintedCount;
@@ -208,7 +246,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
       <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4">
         {/* Stacked so the start-over confirmation opens over the board, not under it. */}
         <header className="relative z-10 flex min-w-0 items-end justify-between gap-3 border-border border-b px-1 pb-3 sm:gap-4 sm:pb-4">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <Link
               className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
               to="/"
@@ -217,12 +255,24 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
               All artworks
             </Link>
             <div className="mt-1 flex min-w-0 items-center gap-2">
-              <h1 className="min-w-0 truncate font-semibold text-xl leading-none sm:text-2xl">{puzzle.name}</h1>
-              <SaveStatus status={saveStatus} />
+              {artworkSource === "imported" ? (
+                <RenameArtworkTitle
+                  editing={renaming}
+                  name={artworkName}
+                  onEditingChange={setRenaming}
+                  onRename={renameArtwork}
+                />
+              ) : (
+                <h1 className="min-w-0 truncate font-semibold text-xl leading-none sm:text-2xl">{artworkName}</h1>
+              )}
+              <div className={renaming ? "hidden" : undefined}>
+                <SaveStatus status={saveStatus} />
+              </div>
             </div>
             <ArtworkCredit artist={puzzle.artist} />
           </div>
-          <div className="flex min-h-11 shrink-0 items-center gap-2 sm:gap-4">
+          {/* Below `lg` the rename form and the board actions cannot share a row, so the name wins. */}
+          <div className={`${renaming ? "hidden lg:flex" : "flex"} min-h-11 shrink-0 items-center gap-2 sm:gap-4`}>
             <DebugFillControl
               key={`${puzzle.id}-${resetVersion}`}
               onProgress={replaceDebugProgress}

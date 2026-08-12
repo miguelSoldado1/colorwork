@@ -2,9 +2,13 @@ import { Buffer } from "node:buffer";
 import { expect, type Page, test } from "@playwright/test";
 
 const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
+const EVENING_TILES_BUTTON = /^Evening Tiles/;
 const IMPORTED_URL = /\/play\/two-color-fixture-/;
+const MAX_LENGTH_NAME = "Sunset Over The Harbour With Boats And A Tall Lighthouse Abc";
+const PAINT_ACTION_LINK = /^(Keep painting|Start painting)$/;
 const PAINTED_ANY = /[1-9][0-9,]* of [0-9,]+ pixels painted/;
 const RIBBIT_BUTTON = /^Ribbit/;
+const TWO_COLOR_FIXTURE_BUTTON = /^Two Color Fixture/;
 const ZOOMED_IN = /^1\.8/;
 const ZOOMED_IN_TWICE = /^3\.24/;
 const FIXTURE = {
@@ -67,6 +71,220 @@ test.describe("coloring board", () => {
     await expect(zoomButton).toHaveAttribute("aria-pressed", "true");
     await paintCell(page, 2, 2);
     await expect(page.getByRole("img", { name: BOARD_LABEL })).toHaveAttribute("data-zoom", ZOOMED_IN);
+  });
+
+  test("renames imported artwork without disturbing the live board", async ({ page }) => {
+    await page.setViewportSize({ height: 880, width: 945 });
+    await openImportedPuzzle(page);
+    const artworkUrl = page.url();
+    const headerLocator = page.locator("header");
+    const canvas = page.getByRole("img", { name: BOARD_LABEL });
+    // The title is the rename control, so it carries no width or height of its own.
+    const rename = page.getByRole("heading").getByRole("button");
+    const saveStatus = page.getByRole("status");
+    const importedTitle = page.getByRole("heading", { name: "Two Color Fixture" });
+    const [initialHeaderBox, initialCanvasBox, initialSaveStatusBox, renameBox, importedTitleBox] = await Promise.all([
+      headerLocator.boundingBox(),
+      canvas.boundingBox(),
+      saveStatus.boundingBox(),
+      rename.boundingBox(),
+      importedTitle.boundingBox(),
+    ]);
+    if (!(initialHeaderBox && initialCanvasBox && initialSaveStatusBox && renameBox && importedTitleBox)) {
+      throw new Error("The desktop board header did not receive its initial layout boxes.");
+    }
+    // Pins the no-credit desktop header geometry from before imported artwork could be renamed.
+    expect(initialHeaderBox.height).toBe(69);
+    expect(initialCanvasBox.y).toBe(105);
+    expect(importedTitleBox.y).toBe(48);
+    expect(importedTitleBox.height).toBe(24);
+    expect(renameBox).toEqual(importedTitleBox);
+    expect(initialSaveStatusBox.x - (renameBox.x + renameBox.width)).toBe(8);
+
+    await rename.click();
+    const nameInput = page.getByRole("textbox", { name: "Artwork name" });
+    const cancel = page.getByRole("button", { name: "Cancel" });
+    const save = page.getByRole("button", { name: "Save" });
+    await expect(nameInput).toBeFocused();
+    await expect(cancel.locator("svg + span")).toBeVisible();
+    await expect(save.locator("svg + span")).toBeVisible();
+    const [inputBox, cancelBox, saveBox] = await Promise.all([
+      nameInput.boundingBox(),
+      cancel.boundingBox(),
+      save.boundingBox(),
+    ]);
+    // The field takes the title's exact place; only its actions are taller than the title line.
+    expect(inputBox).toEqual(importedTitleBox);
+    expect(cancelBox?.height).toBe(40);
+    expect(saveBox?.height).toBe(40);
+    expect(await headerLocator.boundingBox()).toEqual(initialHeaderBox);
+    expect(await canvas.boundingBox()).toEqual(initialCanvasBox);
+    await expect(saveStatus).toBeHidden();
+    // Below `lg` the board actions yield the row to the name.
+    await expect(page.getByRole("button", { name: "Start over" })).toBeHidden();
+    await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeHidden();
+    await expect
+      .poll(() =>
+        nameInput.evaluate((input) => ({
+          end: (input as HTMLInputElement).selectionEnd,
+          length: (input as HTMLInputElement).value.length,
+          start: (input as HTMLInputElement).selectionStart,
+        }))
+      )
+      .toEqual({ end: 17, length: 17, start: 0 });
+
+    await nameInput.fill("Discard this name");
+    await page.keyboard.press("Escape");
+    await expect(rename).toHaveText("Two Color Fixture");
+    await expect(rename).toBeFocused();
+    expect(await saveStatus.boundingBox()).toEqual(initialSaveStatusBox);
+    await expect(page.getByRole("button", { name: "Start over" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeVisible();
+
+    await rename.click();
+    await nameInput.fill("Discard this one too");
+    await canvas.click({ position: { x: 2, y: 2 } });
+    await expect(nameInput).toBeHidden();
+    await expect(rename).toHaveText("Two Color Fixture");
+
+    await page.getByRole("button", { name: "Zoom in tool" }).click();
+    await canvas.click({ position: { x: 10, y: 10 } });
+    await expect(canvas).toHaveAttribute("data-zoom", ZOOMED_IN);
+
+    await rename.click();
+    await nameInput.fill("Failure preview");
+    const headerHeight = await page.locator("header").evaluate((header) => header.getBoundingClientRect().height);
+    await page.evaluate(() => {
+      const originalPut = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function failOnce() {
+        IDBObjectStore.prototype.put = originalPut;
+        throw new DOMException("Simulated storage failure", "QuotaExceededError");
+      };
+    });
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(nameInput).toHaveAttribute("aria-invalid", "true");
+    await expect(nameInput).toHaveCSS("animation-duration", "0.24s");
+    await expect(page.getByRole("alert").filter({ hasText: "Couldn’t rename artwork. Try again." })).toBeVisible();
+    // Saving disables the field, so the failure has to hand focus back rather than drop it on the body.
+    await expect(nameInput).toBeFocused();
+    await expect
+      .poll(() => page.locator("header").evaluate((header) => header.getBoundingClientRect().height))
+      .toBe(headerHeight);
+
+    await nameInput.fill("  Evening Tiles  ");
+    await expect(nameInput).not.toHaveAttribute("aria-invalid");
+    await page.keyboard.press("Enter");
+
+    await expect(rename).toHaveText("Evening Tiles");
+    await expect(page).toHaveTitle("Evening Tiles - Colorwork");
+    await expect(page).toHaveURL(artworkUrl);
+    await expect(canvas).toHaveAttribute("data-zoom", ZOOMED_IN);
+    await expect(rename).toBeFocused();
+
+    await page.getByRole("link", { name: "All artworks" }).click();
+    const imported = page.getByRole("list", { name: "Your artwork" });
+    await expect(imported.getByRole("button", { name: EVENING_TILES_BUTTON })).toBeVisible();
+    await expect(imported.getByRole("button", { name: TWO_COLOR_FIXTURE_BUTTON })).toHaveCount(0);
+
+    await imported.getByRole("button", { name: EVENING_TILES_BUTTON }).click();
+    await page.setViewportSize({ height: 880, width: 1440 });
+    await page
+      .getByRole("complementary", { name: "Artwork preview" })
+      .getByRole("link", { name: PAINT_ACTION_LINK })
+      .click();
+    await expect(page).toHaveURL(artworkUrl);
+    await expect(page.getByRole("heading", { name: "Evening Tiles" })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Evening Tiles" })).toBeVisible();
+
+    await page.goto("/play/ribbit");
+    await expect(page.getByRole("heading", { name: "Ribbit" })).toBeVisible();
+    await expect(page.getByRole("heading").getByRole("button")).toHaveCount(0);
+  });
+
+  test("sizes long names to their text and gives short names a clear editing surface", async ({ page }) => {
+    await page.setViewportSize({ height: 880, width: 1440 });
+    await openImportedPuzzle(page);
+
+    const trigger = page.getByRole("heading").getByRole("button");
+    const input = page.getByRole("textbox", { name: "Artwork name" });
+    await trigger.click();
+    await input.fill(MAX_LENGTH_NAME);
+    await page.keyboard.press("Enter");
+    await expect(trigger).toHaveText(MAX_LENGTH_NAME);
+
+    // A name at the limit is far wider than any fixed field, so the field is sized by its text.
+    const titleBox = await trigger.boundingBox();
+    await trigger.click();
+    expect(await input.boundingBox()).toEqual(titleBox);
+    // From `lg` up the row holds both, so the board actions stay put while the name is edited.
+    await expect(page.getByRole("button", { name: "Start over" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeVisible();
+
+    await input.fill("Short");
+    await page.keyboard.press("Enter");
+    const shortTitleBox = await trigger.boundingBox();
+    await trigger.click();
+    const shortInputBox = await input.boundingBox();
+    if (!(shortInputBox && shortTitleBox)) {
+      throw new Error("The short artwork name did not receive its read and edit layout boxes.");
+    }
+    expect(shortInputBox.width).toBeGreaterThan(shortTitleBox.width);
+    expect(shortInputBox.width).toBeGreaterThanOrEqual(192);
+  });
+
+  test("keeps mobile rename actions inline without shrinking their touch targets", async ({ page }) => {
+    await page.setViewportSize({ height: 568, width: 320 });
+    await openImportedPuzzle(page);
+
+    const header = page.locator("header");
+    const initialHeaderHeight = await header.evaluate((element) => element.getBoundingClientRect().height);
+    const rename = page.getByRole("heading").getByRole("button");
+    const titleBox = await rename.boundingBox();
+    if (!titleBox) {
+      throw new Error("The mobile artwork title did not receive a layout box.");
+    }
+
+    // The title keeps its own height; a pseudo-element carries the touch target above and below it.
+    expect(titleBox.height).toBeLessThan(24);
+    await page.mouse.click(titleBox.x + 4, titleBox.y - 10);
+
+    const input = page.getByRole("textbox", { name: "Artwork name" });
+    await expect(input).toBeFocused();
+    const cancel = page.getByRole("button", { name: "Cancel" });
+    const save = page.getByRole("button", { name: "Save" });
+    const [inputBox, cancelBox, saveBox] = await Promise.all([
+      input.boundingBox(),
+      cancel.boundingBox(),
+      save.boundingBox(),
+    ]);
+    if (!(inputBox && cancelBox && saveBox)) {
+      throw new Error("The mobile rename controls did not receive layout boxes.");
+    }
+
+    expect(inputBox.width).toBeGreaterThan(0);
+    expect(cancelBox.width).toBe(48);
+    expect(saveBox.width).toBe(48);
+    // Full-size touch targets centred on the name, which keeps the title line's own height.
+    expect(cancelBox.height).toBe(48);
+    expect(saveBox.height).toBe(48);
+    expect(cancelBox.y + cancelBox.height / 2).toBe(inputBox.y + inputBox.height / 2);
+    expect(saveBox.y + saveBox.height / 2).toBe(inputBox.y + inputBox.height / 2);
+    const headerBox = await header.boundingBox();
+    expect(saveBox.x + saveBox.width).toBeLessThanOrEqual((headerBox?.x ?? 0) + (headerBox?.width ?? 0));
+    await expect(page.getByRole("button", { name: "Start over" })).toBeHidden();
+    await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeHidden();
+    await expect
+      .poll(() => header.evaluate((element) => element.getBoundingClientRect().height))
+      .toBe(initialHeaderHeight);
+    // The title line reserves no more height than the name needs, so the controls overhang it into
+    // the header's padding. They have to stop short of the rule.
+    const headerBottom = await header.evaluate((element) => element.getBoundingClientRect().bottom);
+    expect(saveBox.y + saveBox.height).toBeLessThan(headerBottom);
+
+    await cancel.click();
+    await expect(page.getByRole("button", { name: "Start over" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeVisible();
   });
 
   test("supports keyboard painting on the focused board", async ({ page }) => {

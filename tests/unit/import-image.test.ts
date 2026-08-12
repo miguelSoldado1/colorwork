@@ -83,6 +83,10 @@ describe("getImportName", () => {
   it("falls back when the file name has no usable stem", () => {
     expect(getImportName(".png")).toBe("Custom puzzle");
   });
+
+  it("constrains a filename-derived default to the puzzle name limit", () => {
+    expect(getImportName(`${"a".repeat(80)}.png`)).toBe(`A${"a".repeat(59)}`);
+  });
 });
 
 describe("createImportedPuzzleId", () => {

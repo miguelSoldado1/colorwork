@@ -1,3 +1,4 @@
+import { isArtworkNameWithinLimit, normalizeArtworkName } from "@/levels/artwork-name";
 import { getColorworkDatabase } from "@/storage/colorwork-database";
 import type { PuzzleDefinition } from "@/coloring/types";
 import type { StoredArtworkV1 } from "@/storage/colorwork-database";
@@ -52,6 +53,28 @@ export async function saveImportedPuzzle(
 
 export async function deleteImportedPuzzle(id: string, repository: ArtworkRepository = indexedDbArtworkRepository) {
   await repository.delete(id);
+}
+
+export async function renameImportedPuzzle(
+  id: string,
+  name: string,
+  repository: ArtworkRepository = indexedDbArtworkRepository
+) {
+  const normalizedName = normalizeArtworkName(name);
+  if (!isArtworkNameWithinLimit(normalizedName)) {
+    throw new RangeError("Artwork names must fit within the supported length.");
+  }
+
+  const stored = await repository.get(id);
+  if (!stored) {
+    throw new Error("The imported artwork could not be found.");
+  }
+
+  await repository.put({
+    ...stored,
+    name: normalizedName,
+    updatedAt: Date.now(),
+  });
 }
 
 export async function findImportedPuzzle(id: string, repository: ArtworkRepository = indexedDbArtworkRepository) {

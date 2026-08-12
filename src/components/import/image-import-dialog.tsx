@@ -15,6 +15,7 @@ import {
 } from "@/coloring/import-image";
 import { Button } from "@/components/ui/button";
 import { isDebugMode } from "@/debug/debug-mode";
+import { constrainArtworkName, MAX_ARTWORK_NAME_LENGTH } from "@/levels/artwork-name";
 import type { PuzzleDefinition } from "@/coloring/types";
 
 const MIN_GRID_SIZE = 1;
@@ -137,7 +138,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
 
   function confirmPuzzle() {
     if (puzzle) {
-      const finalName = name.trim() || "Custom puzzle";
+      const finalName = constrainArtworkName(name);
       onConfirm({
         ...puzzle,
         id: createImportedPuzzleId(finalName),
@@ -150,7 +151,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
     if (puzzle) {
       downloadPuzzleModule({
         ...puzzle,
-        name: name.trim() || "Custom puzzle",
+        name: constrainArtworkName(name),
       });
     }
   }
@@ -199,7 +200,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
             <span className="text-muted-foreground">Puzzle name</span>
             <input
               className="h-11 rounded-md border border-input bg-background px-3 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
-              maxLength={60}
+              maxLength={MAX_ARTWORK_NAME_LENGTH}
               onChange={(event) => setName(event.target.value)}
               value={name}
             />

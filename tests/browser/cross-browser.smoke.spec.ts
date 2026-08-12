@@ -73,6 +73,23 @@ test.describe("cross-browser smoke", () => {
     await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
   });
 
+  test("renames imported artwork with keyboard controls", async ({ page }) => {
+    await openImportedPuzzle(page);
+
+    const rename = page.getByRole("heading").getByRole("button");
+    await rename.click();
+    const input = page.getByRole("textbox", { name: "Artwork name" });
+    await input.fill("Renamed Smoke");
+    await page.keyboard.press("Enter");
+    await expect(rename).toHaveText("Renamed Smoke");
+
+    await rename.click();
+    await input.fill("Discarded name");
+    await page.keyboard.press("Escape");
+    await expect(rename).toHaveText("Renamed Smoke");
+    await expect(rename).toBeFocused();
+  });
+
   test("deletes imported artwork", async ({ page }) => {
     await openImportedPuzzle(page);
 

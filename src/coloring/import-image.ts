@@ -1,3 +1,4 @@
+import { constrainArtworkName } from "@/levels/artwork-name";
 import { createSimplifiedPuzzleId } from "./export-puzzle";
 import { readThemeColor } from "./pixel-raster";
 import type { PuzzleDefinition } from "./types";
@@ -90,11 +91,7 @@ export function getMaximumImportGridSide(otherSide: number) {
 
 export function getImportName(fileName: string) {
   const name = fileName.replace(FILE_EXTENSION_PATTERN, "").replaceAll(FILE_NAME_SEPARATOR_PATTERN, " ").trim();
-  if (!name) {
-    return "Custom puzzle";
-  }
-
-  return name.replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return constrainArtworkName(name.replace(/\b\w/g, (letter) => letter.toUpperCase()));
 }
 
 export function countRenderedImageColors(bitmap: ImageBitmap, width: number, height: number) {
@@ -106,11 +103,12 @@ export function countRenderedImageColors(bitmap: ImageBitmap, width: number, hei
 export function createPuzzleFromImage(source: ImageImportSource, options: ImageImportOptions): PuzzleDefinition {
   const data = renderImage(source.bitmap, options.width, options.height);
   const indexedPixels = createIndexedPixelData(data, options.paletteSize);
+  const name = constrainArtworkName(options.name);
 
   return {
     height: options.height,
-    id: createImportedPuzzleId(options.name),
-    name: options.name.trim() || "Custom puzzle",
+    id: createImportedPuzzleId(name),
+    name,
     ...indexedPixels,
     width: options.width,
   };

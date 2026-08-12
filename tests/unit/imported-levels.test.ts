@@ -4,6 +4,7 @@ import {
   deleteImportedPuzzle,
   findImportedPuzzle,
   loadImportedPuzzles,
+  renameImportedPuzzle,
   saveImportedPuzzle,
 } from "@/levels/imported-levels";
 import type { PuzzleDefinition } from "@/coloring/types";
@@ -82,6 +83,49 @@ describe("imported artwork storage", () => {
     const repository = new MemoryArtworkRepository();
 
     await expect(deleteImportedPuzzle("never-imported", repository)).resolves.toBeUndefined();
+  });
+
+  it("renames an imported puzzle without changing its identity or pixel data", async () => {
+    const repository = new MemoryArtworkRepository();
+    await saveImportedPuzzle(puzzle, repository);
+    const before = repository.values.get(puzzle.id);
+    if (!before) {
+      throw new Error("The artwork fixture was not stored.");
+    }
+
+    await renameImportedPuzzle(puzzle.id, "  Better name  ", repository);
+
+    const after = repository.values.get(puzzle.id);
+    expect(after).toMatchObject({
+      createdAt: before.createdAt,
+      height: puzzle.height,
+      id: puzzle.id,
+      name: "Better name",
+      palette: puzzle.palette,
+      targetPixels: puzzle.targetPixels,
+      width: puzzle.width,
+    });
+    expect(after?.updatedAt).toBeGreaterThanOrEqual(before.updatedAt);
+  });
+
+  it("uses the default name for an empty rename", async () => {
+    const repository = new MemoryArtworkRepository();
+    await saveImportedPuzzle(puzzle, repository);
+
+    await renameImportedPuzzle(puzzle.id, "   ", repository);
+
+    await expect(findImportedPuzzle(puzzle.id, repository)).resolves.toMatchObject({ name: "Custom puzzle" });
+  });
+
+  it("rejects overlong names and missing imported artwork", async () => {
+    const repository = new MemoryArtworkRepository();
+    await saveImportedPuzzle(puzzle, repository);
+
+    await expect(renameImportedPuzzle(puzzle.id, "x".repeat(61), repository)).rejects.toBeInstanceOf(RangeError);
+    await expect(renameImportedPuzzle("missing-artwork", "New name", repository)).rejects.toThrow(
+      "The imported artwork could not be found."
+    );
+    await expect(findImportedPuzzle(puzzle.id, repository)).resolves.toEqual(puzzle);
   });
 
   it("ignores malformed records instead of opening a broken board", async () => {
