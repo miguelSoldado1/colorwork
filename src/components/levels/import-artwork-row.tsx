@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import { trackCustomArtworkImported } from "@/analytics/posthog";
 import Image2Plus from "@/assets/icons/image-plus.svg?react";
 import {
   countRenderedImageColors,
@@ -75,11 +76,18 @@ export function ImportArtworkRow() {
   }
 
   async function openPuzzle(puzzle: PuzzleDefinition) {
+    const importSource = source;
+    if (!importSource) {
+      return setError("The image import expired. Choose the image again.");
+    }
+
     setError("");
     const saveResult = await tryCatch(saveImportedPuzzle(puzzle));
     if (saveResult.error) {
       return setError("Your artwork could not be saved. Check browser storage and try again.");
     }
+
+    trackCustomArtworkImported(puzzle, importSource.width, importSource.height);
 
     const filters = { queryKey: artworkQueryKeys.descriptions, refetchType: "none" as const };
     const invalidationResult = await tryCatch(queryClient.invalidateQueries(filters));
@@ -92,7 +100,7 @@ export function ImportArtworkRow() {
       return setError("Your artwork was saved, but its board could not be opened. Try opening it from the catalog.");
     }
 
-    source?.bitmap.close();
+    importSource.bitmap.close();
   }
 
   return (

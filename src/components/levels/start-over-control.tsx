@@ -1,3 +1,4 @@
+import { trackPuzzleReset } from "@/analytics/posthog";
 import Reload from "@/assets/icons/reload.svg?react";
 import { clearPuzzleProgress } from "@/coloring/progress-storage";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,12 @@ interface StartOverControlProps {
 
 export function StartOverControl({ level }: StartOverControlProps) {
   const { cancelProps, confirmationProps, confirming, confirmProps, failed, rootProps, triggerProps } =
-    useConfirmAction({ onConfirm: () => clearPuzzleProgress(level.puzzle) });
+    useConfirmAction({
+      onConfirm: async () => {
+        await clearPuzzleProgress(level.puzzle);
+        trackPuzzleReset(level.puzzle, level.source, level.paintedCount, "menu");
+      },
+    });
 
   return (
     <div className="grid *:col-start-1 *:row-start-1" {...rootProps}>

@@ -5,6 +5,7 @@ import { usePageMetadata } from "@/seo/use-page-metadata";
 export const Route = createFileRoute("/privacy")({ component: PrivacyRoute });
 
 const VERCEL_PRIVACY_URL = "https://vercel.com/docs/analytics/privacy-policy";
+const POSTHOG_PRIVACY_URL = "https://posthog.com/privacy";
 
 function PrivacyRoute() {
   usePageMetadata({
@@ -32,14 +33,14 @@ function PrivacyRoute() {
             Colorwork has no user accounts. It does not upload your imported artwork or puzzle progress to a Colorwork
             server.
           </p>
-          <p className="mt-3 text-muted-foreground text-xs">Last updated: August 5, 2026</p>
+          <p className="mt-3 text-muted-foreground text-xs">Last updated: August 12, 2026</p>
         </header>
 
         <section aria-labelledby="data-boundary-heading" className="py-7 sm:py-10">
           <h2 className="sr-only" id="data-boundary-heading">
             Where your data goes
           </h2>
-          <div className="grid overflow-hidden rounded-xl border border-border sm:grid-cols-2">
+          <div className="grid overflow-hidden rounded-xl border border-border sm:grid-cols-3">
             <DataBoundary
               detail="Artwork data, puzzle progress, and board preferences"
               label="Stays on this device"
@@ -48,6 +49,11 @@ function PrivacyRoute() {
             <DataBoundary
               detail="Anonymous page-view data for site analytics"
               label="Sent to Vercel"
+              marker="Network"
+            />
+            <DataBoundary
+              detail="Explicit, cookieless product events for artwork and board usage"
+              label="Sent to PostHog"
               marker="Network"
             />
           </div>
@@ -99,6 +105,31 @@ function PrivacyRoute() {
           </div>
         </div>
 
+        <div className="grid gap-8 border-border border-t py-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-12 sm:py-10">
+          <h2 className="font-semibold text-lg">Product analytics</h2>
+          <div className="space-y-5 text-muted-foreground text-sm leading-6">
+            <p>
+              Colorwork uses PostHog for a small set of explicit product events: artwork opens, puzzle starts and
+              completions, custom artwork imports, and resets.
+            </p>
+            <p>
+              PostHog is configured for cookieless server-hash mode. Person profiles, interaction autocapture, page
+              views, page-leave events, dead clicks, heatmaps, performance capture, session recording, surveys, and
+              feature flags are disabled. Events do not include imported image data, filenames, puzzle names, URL paths,
+              referrers, pixel data, or color values.
+            </p>
+            <p>PostHog is disabled in development and when the production configuration is missing.</p>
+            <a
+              className="inline-flex min-h-11 items-center text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+              href={POSTHOG_PRIVACY_URL}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Read the PostHog privacy information
+            </a>
+          </div>
+        </div>
+
         <div className="grid gap-8 border-border border-y py-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-12 sm:py-10">
           <h2 className="font-semibold text-lg">Changes</h2>
           <p className="text-muted-foreground text-sm leading-6">
@@ -119,7 +150,7 @@ interface DataBoundaryProps {
 
 function DataBoundary({ detail, label, marker }: DataBoundaryProps) {
   return (
-    <div className="border-border p-5 first:border-b sm:p-6 sm:first:border-r sm:first:border-b-0">
+    <div className="border-border border-t p-5 first:border-t-0 last:border-r-0 sm:border-t-0 sm:border-r sm:p-6">
       <p className="text-[10px] text-primary uppercase tracking-[0.2em]">{marker}</p>
       <p className="mt-2 font-semibold text-base">{label}</p>
       <p className="mt-2 text-muted-foreground text-xs leading-5">{detail}</p>

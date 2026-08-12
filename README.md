@@ -23,6 +23,17 @@ The static application shell contains the default search and social metadata. Th
 
 Artwork definitions and progress are stored locally in IndexedDB; imported images are processed in this browser and never uploaded. There is no account or cloud sync, so clearing this browser's storage removes local progress and imported artwork. The site uses Vercel Web Analytics for page views. Imported artwork can be deleted from its preview in the menu.
 
+## Analytics
+
+Production can also send a small set of explicit, cookieless product events to PostHog. PostHog is disabled in development and when either environment variable is missing:
+
+```dotenv
+VITE_POSTHOG_PROJECT_TOKEN=phc_your_project_token
+VITE_POSTHOG_HOST=https://us.i.posthog.com
+```
+
+The event layer measures artwork opens, puzzle starts and completions, custom artwork imports, and resets. It does not send imported image data, filenames, puzzle names, pixel data, URL paths, referrers, or per-cell events. Configure the PostHog project for cookieless server-hash mode and keep person profiles, autocapture, page views, page-leave events, dead clicks, heatmaps, performance capture, session recording, surveys, and feature flags disabled.
+
 ## Playing
 
 - Choose a numbered swatch, then use the pencil to paint matching cells. Incorrect colors are ignored.

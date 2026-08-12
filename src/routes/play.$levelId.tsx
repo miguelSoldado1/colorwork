@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { trackArtworkOpened, trackPuzzleCompleted, trackPuzzleReset, trackPuzzleStarted } from "@/analytics/posthog";
 import ArrowLeft from "@/assets/icons/arrow-left.svg?react";
 import { clonePuzzleProgress, createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import {
@@ -20,6 +21,7 @@ import { SaveStatus } from "@/components/progress/save-status";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
+import { findLevel } from "@/levels/level-catalog";
 import { artworkDefinitionQueryOptions, artworkProgressQueryOptions } from "@/query/artwork-queries";
 import { usePageMetadata } from "@/seo/use-page-metadata";
 import { loadUserPreferences, saveUserPreferences } from "@/user-preferences";
@@ -86,14 +88,22 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const [progressSaver] = useState(() => createProgressSaveController({ onStatus: setSaveStatus, puzzle }));
   const [celebrateCompletion, setCelebrateCompletion] = useState(false);
   const [resetVersion, setResetVersion] = useState(0);
-  // A ref, not state: the Canvas can report progress while the reset is still awaiting storage.
   const resettingRef = useRef(false);
   const completedRef = useRef(isPuzzleComplete(summary));
+  const startedRef = useRef(initialProgress.paintedCount > 0);
+
   usePageMetadata({
     description: `Color ${puzzle.name}, a ${puzzle.width} by ${puzzle.height} pixel art color-by-number puzzle, in your browser.`,
     path: `/play/${encodeURIComponent(puzzle.id)}`,
     title: `${puzzle.name} - Colorwork`,
   });
+
+  const artworkSource = findLevel(puzzle.id) ? "catalog" : "imported";
+  const totalCells = puzzle.width * puzzle.height;
+
+  useEffect(() => {
+    trackArtworkOpened(puzzle, artworkSource, initialProgress.paintedCount, totalCells);
+  }, [artworkSource, initialProgress, puzzle, totalCells]);
 
   useEffect(() => progressSaver.connect(), [progressSaver]);
 
@@ -143,9 +153,17 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   function updateProgressSummary(nextSummary: ProgressSummary) {
     const nextComplete = isPuzzleComplete(nextSummary);
 
+    if (!startedRef.current && nextSummary.paintedCount > 0) {
+      startedRef.current = true;
+      trackPuzzleStarted(puzzle, artworkSource, nextSummary.paintedCount);
+    }
+
     if (nextComplete !== completedRef.current) {
       completedRef.current = nextComplete;
       setCelebrateCompletion(nextComplete);
+      if (nextComplete) {
+        trackPuzzleCompleted(puzzle, artworkSource);
+      }
     }
 
     setSummary(nextSummary);
@@ -162,12 +180,15 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
 
   async function resetBoard() {
     resettingRef.current = true;
+    const paintedCellsBeforeReset = summary.paintedCount;
 
     try {
       await progressSaver.discard();
       await clearPuzzleProgress(puzzle);
 
       const emptyProgress = createPuzzleProgress(puzzle);
+      trackPuzzleReset(puzzle, artworkSource, paintedCellsBeforeReset, "board");
+      startedRef.current = false;
       completedRef.current = false;
       setCelebrateCompletion(false);
       setProgress(emptyProgress);
