@@ -47,7 +47,6 @@ function getClient(): Promise<PostHog | null> {
         person_profiles: "never",
         property_denylist: [
           "$current_url",
-          "$host",
           "$pathname",
           "$referrer",
           "$referring_domain",
