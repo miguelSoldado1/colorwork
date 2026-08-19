@@ -9,7 +9,7 @@ const POSTHOG_PRIVACY_URL = "https://posthog.com/privacy";
 
 function PrivacyRoute() {
   usePageMetadata({
-    description: "Learn what Colorwork stores on your device and what anonymous page-view data it collects.",
+    description: "How Colorwork stores data on your device and what it sends to its analytics providers.",
     path: "/privacy",
     title: "Privacy - Colorwork",
   });
@@ -30,10 +30,9 @@ function PrivacyRoute() {
             Your work stays in your browser.
           </h1>
           <p className="mt-5 max-w-2xl text-muted-foreground text-sm leading-6 sm:text-base">
-            Colorwork has no user accounts. It does not upload your imported artwork or puzzle progress to a Colorwork
-            server.
+            Colorwork has no user accounts. Your imported artwork and puzzle progress stay on your device.
           </p>
-          <p className="mt-3 text-muted-foreground text-xs">Last updated: August 12, 2026</p>
+          <p className="mt-3 text-muted-foreground text-xs">Last updated: August 19, 2026</p>
         </header>
 
         <section aria-labelledby="data-boundary-heading" className="py-7 sm:py-10">
@@ -42,7 +41,7 @@ function PrivacyRoute() {
           </h2>
           <div className="grid overflow-hidden rounded-xl border border-border sm:grid-cols-3">
             <DataBoundary
-              detail="Artwork data, puzzle progress, and board preferences"
+              detail="Artwork data, puzzle progress, and board settings"
               label="Stays on this device"
               marker="Local"
             />
@@ -63,12 +62,12 @@ function PrivacyRoute() {
           <h2 className="font-semibold text-lg">Data on your device</h2>
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
             <p>
-              Colorwork uses IndexedDB to save your puzzle progress and imported artwork. Saved artwork data can include
-              its name, size, palette, and converted pixel data. The original image file is not uploaded.
+              Colorwork saves your puzzle progress and imported artwork in IndexedDB. For each saved artwork, this can
+              include the name, size, palette, and converted pixel data. Colorwork does not upload the original image.
             </p>
             <p>
-              Colorwork uses local storage to remember if you show the grid and cell numbers. This storage is necessary
-              to save the choices that you make in the app.
+              Colorwork uses local storage to remember whether the grid and cell numbers are on. These settings stay on
+              your device.
             </p>
           </div>
         </div>
@@ -76,9 +75,9 @@ function PrivacyRoute() {
         <div className="grid gap-8 border-border border-t py-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-12 sm:py-10">
           <h2 className="font-semibold text-lg">Delete local data</h2>
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
-            <p>Use “Start over” to delete the saved progress for one artwork.</p>
-            <p>Delete an imported artwork from the artwork menu to remove that artwork from this device.</p>
-            <p>Clear the site data for Colorwork in your browser to remove all artwork, progress, and preferences.</p>
+            <p>Use "Start over" to delete the saved progress for one artwork.</p>
+            <p>To remove an imported artwork from this device, delete it from the artwork menu.</p>
+            <p>To remove all artwork, progress, and settings, clear the Colorwork site data in your browser.</p>
           </div>
         </div>
 
@@ -90,8 +89,8 @@ function PrivacyRoute() {
               location, browser, operating system, and device type.
             </p>
             <p>
-              Vercel Web Analytics does not use cookies. It creates a daily identifier from the web request and uses the
-              data for aggregated statistics. It does not use the identifier to follow you across websites.
+              Vercel Web Analytics does not use cookies. It makes a new identifier from the web request each day and
+              uses it for aggregate statistics. Vercel does not use this identifier to follow you across websites.
             </p>
             <p>Colorwork does not send imported artwork or puzzle progress to Vercel Web Analytics.</p>
             <a
@@ -109,14 +108,23 @@ function PrivacyRoute() {
           <h2 className="font-semibold text-lg">Product analytics</h2>
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
             <p>
-              Colorwork uses PostHog for a small set of explicit product events: artwork opens, puzzle starts and
-              completions, custom artwork imports, and resets.
+              Colorwork sends these product events to PostHog: artwork opens, puzzle starts and completions, custom
+              artwork imports, and progress resets.
             </p>
             <p>
-              PostHog is configured for cookieless server-hash mode. Person profiles, interaction autocapture, page
-              views, page-leave events, dead clicks, heatmaps, performance capture, session recording, surveys, and
-              feature flags are disabled. Events do not include imported image data, filenames, puzzle names, URL paths,
-              referrers, pixel data, or color values.
+              PostHog runs in cookieless server-hash mode. It combines the request IP address, browser details,
+              hostname, and a salt to make a daily identifier. The salt changes each day. PostHog does not store the
+              identifier in cookies or browser storage.
+            </p>
+            <p>
+              For page views and page leaves, PostHog can receive the page URL and path, referring site, campaign
+              parameters, browser, operating system, and device details. Colorwork has turned off person profiles,
+              interaction autocapture, dead clicks, heatmaps, performance capture, session recording, surveys, and
+              feature flags.
+            </p>
+            <p>
+              Colorwork does not send imported image data, filenames, imported artwork names, pixel data, or color
+              values to PostHog.
             </p>
             <p>PostHog is disabled in development and when the production configuration is missing.</p>
             <a
@@ -133,8 +141,7 @@ function PrivacyRoute() {
         <div className="grid gap-8 border-border border-y py-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-12 sm:py-10">
           <h2 className="font-semibold text-lg">Changes</h2>
           <p className="text-muted-foreground text-sm leading-6">
-            This page will change if Colorwork changes how it stores or collects data. The date at the top will show
-            when this notice was last changed.
+            If Colorwork changes how it stores or collects data, this page and the date above will also change.
           </p>
         </div>
       </article>

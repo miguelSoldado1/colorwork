@@ -12,9 +12,9 @@ test("opens the privacy notice from the artwork menu", async ({ page }) => {
   await expect(page).toHaveURL(PRIVACY_URL);
   await expect(page).toHaveTitle("Privacy - Colorwork");
   await expect(page.getByRole("heading", { name: "Your work stays in your browser." })).toBeVisible();
-  await expect(page.getByText("Colorwork uses IndexedDB")).toBeVisible();
+  await expect(page.getByText("Colorwork saves your puzzle progress")).toBeVisible();
   await expect(page.getByText("Colorwork uses Vercel Web Analytics")).toBeVisible();
-  await expect(page.getByText("Colorwork uses PostHog")).toBeVisible();
+  await expect(page.getByText("Colorwork sends these product events to PostHog")).toBeVisible();
 
   await page.getByRole("link", { name: "All artworks" }).click();
   await expect(page).toHaveURL(ROOT_URL);
