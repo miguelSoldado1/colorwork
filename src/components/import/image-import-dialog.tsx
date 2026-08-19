@@ -172,7 +172,8 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
               Tune your pixel grid
             </h2>
             <p className="text-muted-foreground text-xs" id="import-description">
-              Processed in this browser — your image and progress stay local. No account or cloud sync.
+              Colorwork processes your image in this browser. Your image and progress stay on this device. There is no
+              account or cloud sync.
             </p>
           </div>
           <Button aria-label="Cancel image import" className="shrink-0" onClick={onCancel} size="icon" variant="ghost">

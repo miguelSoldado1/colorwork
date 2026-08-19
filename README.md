@@ -25,14 +25,14 @@ Artwork definitions and progress are stored locally in IndexedDB; imported image
 
 ## Analytics
 
-Production can also send a small set of explicit, cookieless product events to PostHog. PostHog is disabled in development and when either environment variable is missing:
+In production, Colorwork sends product events to PostHog when a player opens artwork, starts or completes a puzzle, imports custom artwork, or resets progress. It also sends page-view and page-leave events. PostHog is disabled in development and when either environment variable is missing:
 
 ```dotenv
 VITE_POSTHOG_PROJECT_TOKEN=phc_your_project_token
 VITE_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
-The event layer measures artwork opens, puzzle starts and completions, custom artwork imports, and resets. It does not send imported image data, filenames, puzzle names, pixel data, URL paths, referrers, or per-cell events. Configure the PostHog project for cookieless server-hash mode and keep person profiles, autocapture, page views, page-leave events, dead clicks, heatmaps, performance capture, session recording, surveys, and feature flags disabled.
+Product events do not include imported image data, filenames, imported artwork names, pixel data, color values, or per-cell events. Page events can include the URL and path, referring site, campaign parameters, browser, operating system, and device details. Configure PostHog for cookieless server-hash mode. Keep person profiles, autocapture, dead clicks, heatmaps, performance capture, session recording, surveys, and feature flags disabled.
 
 ## Playing
 
