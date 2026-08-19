@@ -984,8 +984,8 @@ export function createColoringBoard({
     return true;
   }
 
-  function movePendingPencil(event: PointerEvent) {
-    if (!pendingTouch || selectedTool !== "pencil") {
+  function movePendingPaint(event: PointerEvent) {
+    if (!pendingTouch || (selectedTool !== "bucket" && selectedTool !== "pencil")) {
       return;
     }
 
@@ -1033,7 +1033,7 @@ export function createColoringBoard({
     }
 
     if (pendingTouch) {
-      movePendingPencil(event);
+      movePendingPaint(event);
       return true;
     }
     return false;

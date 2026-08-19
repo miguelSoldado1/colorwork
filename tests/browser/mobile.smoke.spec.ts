@@ -4,6 +4,7 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
 const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
 const GRID_SIDE = 4;
 const IMPORTED_URL = /\/play\/two-color-mobile-/;
+const PAINTED_ANY = /[1-9][0-9]* of 16 pixels painted/;
 const ZOOMED_IN = /^1\.8/;
 const FIXTURE = {
   buffer: Buffer.from(
@@ -87,6 +88,30 @@ test.describe("mobile Safari smoke", () => {
 
     await expect.poll(async () => Buffer.compare(overviewBeforePan, await overview.screenshot())).not.toBe(0);
   });
+
+  test("starts painting when a bucket touch becomes a drag", async ({ page }) => {
+    await openImportedPuzzle(page);
+
+    const canvas = page.getByRole("img", { name: BOARD_LABEL });
+    const artworkId = new URL(page.url()).pathname.split("/").pop();
+    if (!artworkId) {
+      throw new Error("The imported artwork URL did not include an id.");
+    }
+
+    const adjacentCells = await findAdjacentCells(page, artworkId);
+    await page.getByRole("button", { name: new RegExp(`^Color ${adjacentCells.colorIndex + 1}:`) }).tap();
+    await page.getByRole("button", { name: "Bucket fill tool" }).tap();
+
+    const boardBox = await canvas.boundingBox();
+    if (!boardBox) {
+      throw new Error("The board canvas did not receive a layout box.");
+    }
+
+    await dispatchTouchPointer(canvas, "pointerdown", adjacentCells.start, boardBox);
+    await dispatchTouchPointer(canvas, "pointermove", adjacentCells.end, boardBox);
+    await expect(page.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
+    await dispatchTouchPointer(canvas, "pointerup", adjacentCells.end, boardBox);
+  });
 });
 
 async function openImportedPuzzle(page: Page) {
@@ -158,4 +183,39 @@ async function dragCanvas(
   await page.mouse.down();
   await page.mouse.move(end.x, end.y, { steps: 4 });
   await page.mouse.up();
+}
+
+async function dispatchTouchPointer(
+  canvas: Locator,
+  type: "pointerdown" | "pointermove" | "pointerup",
+  cell: { x: number; y: number },
+  box: { height: number; width: number; x: number; y: number }
+) {
+  const position = {
+    x: box.x + ((cell.x + 0.5) / GRID_SIDE) * box.width,
+    y: box.y + ((cell.y + 0.5) / GRID_SIDE) * box.height,
+  };
+
+  await canvas.evaluate(
+    (element, pointer) => {
+      const board = element as HTMLCanvasElement;
+      if (pointer.type === "pointerdown") {
+        board.setPointerCapture = () => undefined;
+        board.hasPointerCapture = () => false;
+      }
+      board.dispatchEvent(
+        new PointerEvent(pointer.type, {
+          bubbles: true,
+          button: 0,
+          buttons: pointer.type === "pointerup" ? 0 : 1,
+          clientX: pointer.x,
+          clientY: pointer.y,
+          isPrimary: true,
+          pointerId: 1,
+          pointerType: "touch",
+        })
+      );
+    },
+    { ...position, type }
+  );
 }
