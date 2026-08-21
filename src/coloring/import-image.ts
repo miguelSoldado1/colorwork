@@ -1,5 +1,6 @@
 import { constrainArtworkName } from "@/levels/artwork-name";
 import { createSimplifiedPuzzleId } from "./export-puzzle";
+import { getImageCropRect, type ImageCrop } from "./image-crop";
 import { readThemeColor } from "./pixel-raster";
 import type { PuzzleDefinition } from "./types";
 
@@ -40,6 +41,7 @@ export interface ImageImportSource {
 }
 
 export interface ImageImportOptions {
+  crop?: ImageCrop;
   height: number;
   name: string;
   paletteSize: number;
@@ -94,14 +96,14 @@ export function getImportName(fileName: string) {
   return constrainArtworkName(name.replace(/\b\w/g, (letter) => letter.toUpperCase()));
 }
 
-export function countRenderedImageColors(bitmap: ImageBitmap, width: number, height: number) {
-  const data = renderImage(bitmap, width, height);
+export function countRenderedImageColors(bitmap: ImageBitmap, width: number, height: number, crop?: ImageCrop) {
+  const data = renderImage(bitmap, width, height, crop);
   return countPixelColors(data);
 }
 
 // Rasterize the source and turn its colors into a canvas-ready puzzle definition.
 export function createPuzzleFromImage(source: ImageImportSource, options: ImageImportOptions): PuzzleDefinition {
-  const data = renderImage(source.bitmap, options.width, options.height);
+  const data = renderImage(source.bitmap, options.width, options.height, options.crop);
   const indexedPixels = createIndexedPixelData(data, options.paletteSize);
   const name = constrainArtworkName(options.name);
 
@@ -142,7 +144,7 @@ export function countPixelColors(data: Uint8ClampedArray) {
 }
 
 // Render at the logical grid size with crisp sampling and a paintable color behind transparency.
-function renderImage(bitmap: ImageBitmap, width: number, height: number) {
+function renderImage(bitmap: ImageBitmap, width: number, height: number, crop?: ImageCrop) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
@@ -154,7 +156,12 @@ function renderImage(bitmap: ImageBitmap, width: number, height: number) {
   context.fillStyle = readThemeColor(document.documentElement, "--color-canvas");
   context.fillRect(0, 0, width, height);
   context.imageSmoothingEnabled = false;
-  context.drawImage(bitmap, 0, 0, width, height);
+  if (crop) {
+    const rect = getImageCropRect(crop, bitmap, { height, width });
+    context.drawImage(bitmap, rect.x, rect.y, rect.width, rect.height, 0, 0, width, height);
+  } else {
+    context.drawImage(bitmap, 0, 0, width, height);
+  }
 
   return context.getImageData(0, 0, width, height).data;
 }

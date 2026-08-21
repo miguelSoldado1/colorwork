@@ -170,6 +170,69 @@ test.describe("artwork catalog", () => {
     expect(colors.imported).toEqual(colors.theme);
   });
 
+  test("restores the processed preview after canceling crop adjustments", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 8, 8);
+
+    const dialog = page.getByRole("dialog");
+    const preview = dialog.getByLabel("Processed pixel art preview");
+    await expect(preview).toBeVisible();
+    await expect.poll(async () => (await readPreviewEdgeColors(preview)).left[3]).toBe(255);
+    const beforeCrop = await readPreviewEdgeColors(preview);
+
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+    await dialog.getByRole("button", { exact: true, name: "Cancel" }).click();
+
+    await expect(preview).toBeVisible();
+    await expect.poll(() => readPreviewEdgeColors(preview)).toEqual(beforeCrop);
+  });
+
+  test("crops an imported image and recenters it from the crop editor", async ({ page }) => {
+    await page.goto("/");
+    await uploadColorBands(page);
+
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Unlock aspect ratio" }).click();
+    await dialog.getByLabel("Height").fill("4");
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+
+    const cropCanvas = dialog.getByLabel("Image crop area");
+    await expect(cropCanvas).toBeFocused();
+    // Cropping replaces the import actions, so the puzzle cannot be imported mid-adjustment.
+    await expect(dialog.getByRole("button", { name: "Import this puzzle" })).toHaveCount(0);
+
+    const box = await cropCanvas.boundingBox();
+    if (!box) {
+      throw new Error("The crop Canvas did not receive a layout box.");
+    }
+
+    const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await page.mouse.move(center.x, center.y);
+    await page.mouse.down();
+    await page.mouse.move(center.x - (box.height - 36) / 2, center.y, { steps: 6 });
+    await page.mouse.up();
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+
+    await expect(dialog.getByRole("button", { name: "Import this puzzle" })).toBeDisabled();
+    await expect(dialog.getByText("Generated palette (2)")).toBeVisible();
+    await expect
+      .poll(() => readPreviewEdgeColors(dialog.locator('canvas[aria-label="Processed pixel art preview"]')))
+      .toEqual({
+        left: [0, 0, 255, 255],
+        right: [255, 255, 0, 255],
+      });
+
+    await dialog.getByRole("button", { name: "Edit crop" }).click();
+    await dialog.getByRole("button", { name: "Reset" }).click();
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+    await expect
+      .poll(() => readPreviewEdgeColors(dialog.locator('canvas[aria-label="Processed pixel art preview"]')))
+      .toEqual({
+        left: [0, 255, 0, 255],
+        right: [0, 0, 255, 255],
+      });
+  });
+
   test("persists imported artwork across reloads and includes it in the catalog", async ({ page }) => {
     await page.goto("/");
     await uploadGeneratedImage(page, 8, 8);
@@ -298,4 +361,49 @@ async function uploadGeneratedImage(page: Page, width: number, height: number, t
     },
     { imageHeight: height, imageWidth: width, isTransparent: transparent }
   );
+}
+
+async function uploadColorBands(page: Page) {
+  await expect(page.locator('input[type="file"]')).toBeAttached();
+  await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 4;
+    canvas.height = 2;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Could not prepare the crop fixture.");
+    }
+
+    for (const [index, color] of ["#ff0000", "#00ff00", "#0000ff", "#ffff00"].entries()) {
+      context.fillStyle = color;
+      context.fillRect(index, 0, 1, 2);
+    }
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((result) => (result ? resolve(result) : reject(new Error("Could not encode the crop fixture."))));
+    });
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "color-bands.png", { type: "image/png" }));
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!input) {
+      throw new Error("The image import input was not found.");
+    }
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+
+function readPreviewEdgeColors(preview: ReturnType<Page["locator"]>) {
+  return preview.evaluate((element) => {
+    const canvas = element as HTMLCanvasElement;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Could not read the import preview.");
+    }
+
+    return {
+      left: Array.from(context.getImageData(0, 0, 1, 1).data),
+      right: Array.from(context.getImageData(canvas.width - 1, 0, 1, 1).data),
+    };
+  });
 }

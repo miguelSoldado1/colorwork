@@ -131,6 +131,30 @@ test.describe("cross-browser smoke", () => {
     await expect(page.getByRole("group", { name: "16 of 16 pixels painted" })).toBeVisible();
   });
 
+  test("adjusts an image crop with keyboard controls and cancels with Escape", async ({ page }) => {
+    const dialog = await openImportDialog(page);
+    const preview = dialog.getByLabel("Processed pixel art preview");
+    await expect.poll(async () => (await readCanvasPixels(preview))[3]).toBe(255);
+    const beforeCrop = await readCanvasPixels(preview);
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+
+    const canvas = dialog.getByLabel("Image crop area");
+    const zoom = dialog.getByRole("slider", { name: "Crop zoom" });
+    await expect(canvas).toBeFocused();
+    await zoom.fill("2");
+    const beforeMove = await canvas.screenshot();
+
+    await canvas.focus();
+    await canvas.press("Shift+ArrowRight");
+    await expect.poll(async () => Buffer.compare(beforeMove, await canvas.screenshot())).not.toBe(0);
+
+    await canvas.press("Escape");
+    await expect(dialog.getByRole("button", { name: "Adjust crop" })).toBeFocused();
+    await expect(dialog.getByLabel("Image crop area")).toHaveCount(0);
+    await expect(dialog.getByRole("button", { name: "Import this puzzle" })).toBeEnabled();
+    await expect.poll(() => readCanvasPixels(preview)).toEqual(beforeCrop);
+  });
+
   for (const fixture of IMAGE_FIXTURES) {
     test(`imports ${fixture.label} images and can cancel the dialog`, async ({ page }) => {
       await page.goto("/");
@@ -148,13 +172,18 @@ test.describe("cross-browser smoke", () => {
 });
 
 async function openImportedPuzzle(page: Page) {
+  const dialog = await openImportDialog(page);
+  await dialog.getByRole("button", { name: "Import this puzzle" }).click();
+}
+
+async function openImportDialog(page: Page) {
   await page.goto("/");
   await page.locator('input[type="file"]').setInputFiles(FIXTURE);
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Import this puzzle" })).toBeEnabled();
-  await dialog.getByRole("button", { name: "Import this puzzle" }).click();
+  return dialog;
 }
 
 async function paintCell(page: Page, x: number, y: number) {
@@ -165,6 +194,17 @@ async function paintCell(page: Page, x: number, y: number) {
   }
 
   await page.mouse.click(box.x + ((x + 0.5) / GRID_SIDE) * box.width, box.y + ((y + 0.5) / GRID_SIDE) * box.height);
+}
+
+function readCanvasPixels(canvas: ReturnType<Page["locator"]>) {
+  return canvas.evaluate((element) => {
+    const preview = element as HTMLCanvasElement;
+    const context = preview.getContext("2d");
+    if (!context) {
+      throw new Error("Could not read the import preview.");
+    }
+    return Array.from(context.getImageData(0, 0, preview.width, preview.height).data);
+  });
 }
 
 async function uploadGeneratedImage(page: Page, fixture: (typeof IMAGE_FIXTURES)[number]) {
