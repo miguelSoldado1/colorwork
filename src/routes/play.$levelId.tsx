@@ -13,6 +13,7 @@ import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { ArtworkLoadError, ArtworkLoading } from "@/components/artwork/artwork-load-state";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
+import { DownloadArtworkButton } from "@/components/board/download-artwork-button";
 import { RenameArtworkTitle } from "@/components/board/rename-artwork-title";
 import { StartOverPopover } from "@/components/board/start-over-popover";
 import { DebugFillControl } from "@/components/debug/debug-fill-control";
@@ -280,7 +281,14 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
               progress={progress}
               puzzle={puzzle}
             />
-            <StartOverPopover onStartOver={resetBoard} painted={summary.paintedCount > 0} />
+            <div className="flex items-center gap-2">
+              {artworkSource === "imported" ? (
+                <div className="hidden sm:block">
+                  <DownloadArtworkButton complete={complete} name={artworkName} puzzle={puzzle} />
+                </div>
+              ) : null}
+              <StartOverPopover onStartOver={resetBoard} painted={summary.paintedCount > 0} />
+            </div>
             <div aria-hidden className="h-6 w-px shrink-0 self-center bg-border" />
             <div className="w-20 sm:w-56">
               <ProgressDisplay summary={summary} />
@@ -328,6 +336,11 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
             puzzleHeight={puzzle.height}
             puzzleWidth={puzzle.width}
           />
+          {artworkSource === "imported" ? (
+            <div className="shrink-0 sm:hidden">
+              <DownloadArtworkButton complete={complete} name={artworkName} puzzle={puzzle} />
+            </div>
+          ) : null}
           <div className="min-w-0 flex-1">
             <Palette
               complete={complete}

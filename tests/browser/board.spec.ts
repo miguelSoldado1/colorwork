@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { readFile } from "node:fs/promises";
 import { expect, type Page, test } from "@playwright/test";
 
 const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
@@ -25,6 +26,12 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test.describe("coloring board", () => {
   test("imports a tiny puzzle and completes it with pencil, picker, and bucket tools", async ({ page }) => {
     await openImportedPuzzle(page);
+    const artworkId = new URL(page.url()).pathname.split("/").pop();
+    if (!artworkId) {
+      throw new Error("The imported artwork URL did not include an id.");
+    }
+
+    await expect(page.getByRole("button", { name: "Finish the artwork to download" })).toBeDisabled();
 
     await paintCell(page, 0, 0);
     await expect(page.getByRole("group", { name: "1 of 16 pixels painted" })).toBeVisible();
@@ -51,6 +58,32 @@ test.describe("coloring board", () => {
     await expect(
       page.locator('[role="status"]').filter({ hasText: "Puzzle complete. Every pixel is painted." })
     ).toBeAttached();
+
+    const downloadButton = page.getByRole("button", { name: "Download artwork" });
+    await expect(downloadButton).toBeVisible();
+    await expect(downloadButton).toBeEnabled();
+    const downloadEvent = page.waitForEvent("download");
+    await downloadButton.click();
+    const download = await downloadEvent;
+    expect(download.suggestedFilename()).toBe("two-color-fixture.png");
+
+    const downloadPath = await download.path();
+    if (!downloadPath) {
+      throw new Error("The completed artwork download did not create a file.");
+    }
+    const png = await readFile(downloadPath);
+    expect(png.subarray(1, 4).toString()).toBe("PNG");
+    expect(png.readUInt32BE(16)).toBe(1024);
+    expect(png.readUInt32BE(20)).toBe(1024);
+
+    await expect.poll(() => getStoredPaintedCount(page, artworkId)).toBe(16);
+    await page.getByRole("link", { name: "All artworks" }).click();
+    await page.getByRole("button", { name: TWO_COLOR_FIXTURE_BUTTON }).click();
+
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+    await expect(preview.getByRole("button", { name: "Download artwork" })).toBeVisible();
+    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
+    await expect(preview.getByRole("button", { name: "Download artwork" })).toHaveCount(0);
   });
 
   test("toggles board display preferences and tool pressed states", async ({ page }) => {
@@ -515,6 +548,42 @@ function hasStoredProgress(page: Page, artworkId: string) {
         const request = database.transaction("progress").objectStore("progress").get(id);
         request.onerror = () => reject(request.error);
         request.onsuccess = () => resolve(request.result !== undefined);
+      });
+    } finally {
+      database.close();
+    }
+  }, artworkId);
+}
+
+function getStoredPaintedCount(page: Page, artworkId: string) {
+  return page.evaluate(async (id) => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("colorwork");
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+
+    try {
+      return await new Promise<number | undefined>((resolve, reject) => {
+        const request = database.transaction("progress").objectStore("progress").get(id);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const paintedCells = request.result?.paintedCells as Uint8Array | undefined;
+          if (!paintedCells) {
+            resolve(undefined);
+            return;
+          }
+
+          let paintedCount = 0;
+          for (const byte of paintedCells) {
+            let remaining = byte;
+            while (remaining > 0) {
+              paintedCount += remaining % 2;
+              remaining = Math.floor(remaining / 2);
+            }
+          }
+          resolve(paintedCount);
+        };
       });
     } finally {
       database.close();

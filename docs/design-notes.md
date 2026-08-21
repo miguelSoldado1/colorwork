@@ -55,6 +55,8 @@ Importing starts from the menu because the board is focused on painting one artw
 
 Imported names are trimmed, fall back to "Custom puzzle" when empty, and are limited to 60 characters. Filename-derived defaults are constrained before import. Existing stored names that predate the limit remain unchanged until the player chooses a valid replacement. A successful board rename refreshes the menu's summarized artwork data while preserving the artwork id, progress, and live board state.
 
+An imported artwork exposes its download action on the board and in its menu preview. The action stays disabled until the artwork is finished, matching Start over's stable placement and preventing completion from shifting the board header. On phones, the board action sits beside the overview instead of crowding the title and progress controls. Built-in artwork does not expose the action. The download is a PNG of the finished pixel artwork, not the original source image: importing has already reduced the source to the chosen grid and palette. Whole-pixel scaling brings the PNG's long side up to 1,024 pixels where possible, so small artwork remains crisp and useful outside Colorwork. The current artwork name supplies the file name.
+
 ## Coloring board
 
 The Canvas controller owns rendering, camera state, input, painting, progress mutation, and render scheduling. React surrounds it with tools, palette, progress, and save status, receiving only summarized updates. This boundary keeps large boards from producing a React state update or DOM node per pixel.

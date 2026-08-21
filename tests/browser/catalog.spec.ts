@@ -183,9 +183,14 @@ test.describe("artwork catalog", () => {
 
     await page.getByRole("link", { name: "All artworks" }).click();
     const imported = page.getByRole("list", { name: "Your artwork" });
-    await expect(imported.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toBeVisible();
+    const importedArtwork = imported.getByRole("button", { name: WIDE_FIXTURE_BUTTON });
+    await expect(importedArtwork).toBeVisible();
     const catalog = page.getByRole("list", { name: "Built-in artwork" });
     await expect(catalog.getByRole("button", { name: WIDE_FIXTURE_BUTTON })).toHaveCount(0);
+
+    await importedArtwork.click();
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+    await expect(preview.getByRole("button", { name: "Finish the artwork to download" })).toBeDisabled();
   });
 
   test("uses the edited puzzle name in the imported artwork id", async ({ page }) => {
