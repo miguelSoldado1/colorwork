@@ -4,7 +4,6 @@ import Eye from "@/assets/icons/eye.svg?react";
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { ArtworkRevealDialog } from "@/components/levels/artwork-reveal-dialog";
 import { DeleteArtworkControl } from "@/components/levels/delete-artwork-control";
-import { DownloadArtworkControl } from "@/components/levels/download-artwork-control";
 import { LevelPreview } from "@/components/levels/level-preview";
 import { describeLevelState, LevelSpecs, paintActionLabel } from "@/components/levels/level-specs";
 import { StartOverControl } from "@/components/levels/start-over-control";
@@ -60,10 +59,6 @@ export function ArtworkPreviewPanel({ level }: ArtworkPreviewPanelProps) {
             <Eye height={19} width={19} />
             See full artwork
           </Button>
-
-          {level.source === "imported" ? (
-            <DownloadArtworkControl complete={level.finished} puzzle={level.puzzle} />
-          ) : null}
 
           {/* Keyed by artwork so a pending confirmation never carries over to another piece. */}
           <div className="mt-1 flex flex-col gap-2 border-border border-t pt-3">
