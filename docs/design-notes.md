@@ -14,6 +14,8 @@ The menu pairs a dense artwork table with `ArtworkPreviewPanel`. The table commu
 
 Selection is client-side and never changes the URL. The first catalog entry is selected initially, so the preview column is never an empty hole and needs neither a no-selection state nor a close button.
 
+The preview panel keeps its primary painting action at every viewport size. On phones, the fixed action is an additional shortcut while the player browses the artwork lists.
+
 When text describes completion, it uses painted and total cell counts rather than a rounded percentage. A meter can use a percentage because it is only a proportional visual; text such as `100%` can be false while cells remain unfinished on a large board.
 
 ### Preview states

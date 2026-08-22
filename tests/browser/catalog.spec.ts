@@ -59,6 +59,11 @@ test.describe("artwork catalog", () => {
 
     await expect(selectedAction).toContainText("Ribbit");
     await expect(selectedAction.getByRole("link", { name: "Start painting" })).toBeInViewport();
+
+    const previewAction = preview.getByRole("link", { name: "Start painting" });
+    await previewAction.scrollIntoViewIfNeeded();
+    await expect(previewAction).toBeInViewport();
+    await expect(selectedAction.getByRole("link", { name: "Start painting" })).toBeInViewport();
   });
 
   test("keeps the tapped row in place when selecting an artwork", async ({ page }) => {
