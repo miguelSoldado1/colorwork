@@ -48,6 +48,11 @@ export interface ImageImportOptions {
   width: number;
 }
 
+export interface ImageImportPreview {
+  detectedColorCount: number;
+  puzzle: PuzzleDefinition;
+}
+
 export interface IndexedPixelData {
   palette: string[];
   targetPixels: Uint8Array;
@@ -104,6 +109,20 @@ export function countRenderedImageColors(bitmap: ImageBitmap, width: number, hei
 // Rasterize the source and turn its colors into a canvas-ready puzzle definition.
 export function createPuzzleFromImage(source: ImageImportSource, options: ImageImportOptions): PuzzleDefinition {
   const data = renderImage(source.bitmap, options.width, options.height, options.crop);
+  return createPuzzleFromPixelData(data, options);
+}
+
+/** Also describes the exact rendered crop so import controls can follow its available colors. */
+export function createImageImportPreview(source: ImageImportSource, options: ImageImportOptions): ImageImportPreview {
+  const data = renderImage(source.bitmap, options.width, options.height, options.crop);
+
+  return {
+    detectedColorCount: countPixelColors(data),
+    puzzle: createPuzzleFromPixelData(data, options),
+  };
+}
+
+function createPuzzleFromPixelData(data: Uint8ClampedArray, options: ImageImportOptions) {
   const indexedPixels = createIndexedPixelData(data, options.paletteSize);
   const name = constrainArtworkName(options.name);
 

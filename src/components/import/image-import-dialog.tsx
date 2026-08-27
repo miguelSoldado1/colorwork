@@ -5,10 +5,10 @@ import Link from "@/assets/icons/link.svg?react";
 import Target from "@/assets/icons/target.svg?react";
 import Unlink from "@/assets/icons/unlink.svg?react";
 import { downloadPuzzleModule } from "@/coloring/export-puzzle";
-import { DEFAULT_IMAGE_CROP, type ImageCrop } from "@/coloring/image-crop";
+import { constrainImageCrop, DEFAULT_IMAGE_CROP, type ImageCrop } from "@/coloring/image-crop";
 import {
+  createImageImportPreview,
   createImportedPuzzleId,
-  createPuzzleFromImage,
   getImportName,
   getMaximumImportGridSide,
   getRecommendedGridSize,
@@ -39,17 +39,19 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previewRef = useRef<HTMLCanvasElement>(null);
   const recommendedSize = getRecommendedGridSize(source.width, source.height);
-  const paletteMaximum = Math.min(MAX_PALETTE_SIZE, Math.max(MIN_PALETTE_SIZE, source.detectedColorCount));
   const initialName = getImportName(source.fileName);
   const [name, setName] = useState(initialName);
   const [width, setWidth] = useState(recommendedSize.width);
   const [height, setHeight] = useState(recommendedSize.height);
-  const [paletteSize, setPaletteSize] = useState(Math.min(paletteMaximum, DEFAULT_PALETTE_SIZE));
+  const [detectedColorCount, setDetectedColorCount] = useState(source.detectedColorCount);
+  const [requestedPaletteSize, setRequestedPaletteSize] = useState(DEFAULT_PALETTE_SIZE);
   const [crop, setCrop] = useState<ImageCrop>();
   const [editingCrop, setEditingCrop] = useState(false);
   const draftCropRef = useRef<ImageCrop>(DEFAULT_IMAGE_CROP);
   const [puzzle, setPuzzle] = useState<PuzzleDefinition | null>(null);
   const [processingError, setProcessingError] = useState("");
+  const paletteMaximum = Math.min(MAX_PALETTE_SIZE, Math.max(MIN_PALETTE_SIZE, detectedColorCount));
+  const paletteSize = Math.min(requestedPaletteSize, paletteMaximum);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -74,7 +76,15 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
 
     const timeout = window.setTimeout(() => {
       try {
-        setPuzzle(createPuzzleFromImage(source, { crop, height, name: initialName, paletteSize, width }));
+        const preview = createImageImportPreview(source, {
+          crop,
+          height,
+          name: initialName,
+          paletteSize: requestedPaletteSize,
+          width,
+        });
+        setDetectedColorCount(preview.detectedColorCount);
+        setPuzzle(preview.puzzle);
       } catch (error) {
         return setProcessingError(error instanceof Error ? error.message : "The image could not be processed.");
       }
@@ -83,7 +93,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [crop, height, initialName, paletteSize, source, width]);
+  }, [crop, height, initialName, requestedPaletteSize, source, width]);
 
   useEffect(() => {
     if (editingCrop) {
@@ -131,7 +141,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
   }
 
   function openCropEditor() {
-    draftCropRef.current = crop ?? DEFAULT_IMAGE_CROP;
+    draftCropRef.current = constrainImageCrop(crop ?? DEFAULT_IMAGE_CROP, source, { height, width });
     setEditingCrop(true);
   }
 
@@ -249,13 +259,13 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
                     disabled={paletteMaximum === MIN_PALETTE_SIZE}
                     max={paletteMaximum}
                     min={MIN_PALETTE_SIZE}
-                    onChange={(event) => setPaletteSize(event.target.valueAsNumber)}
+                    onChange={(event) => setRequestedPaletteSize(event.target.valueAsNumber)}
                     type="range"
                     value={paletteSize}
                   />
                   <span className="text-muted-foreground text-xs">
-                    Detected {source.detectedColorCount.toLocaleString()}{" "}
-                    {source.detectedColorCount === 1 ? "color" : "colors"} at the initial grid size.
+                    Detected {detectedColorCount.toLocaleString()} {detectedColorCount === 1 ? "color" : "colors"} in
+                    the current preview.
                   </span>
                 </label>
 

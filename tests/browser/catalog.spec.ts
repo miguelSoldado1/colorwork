@@ -233,6 +233,59 @@ test.describe("artwork catalog", () => {
       });
   });
 
+  test("updates the palette capacity for colors revealed by a crop", async ({ page }) => {
+    await page.goto("/");
+    await uploadHiddenCropColors(page);
+
+    const dialog = page.getByRole("dialog");
+    const paletteSize = dialog.getByRole("slider", { name: "Palette colors" });
+    await expect(paletteSize).toHaveAttribute("max", "2");
+    await expect(paletteSize).toHaveValue("2");
+    await expect(dialog.getByText("Generated palette (2)")).toBeVisible();
+
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+    await dialog.getByRole("slider", { name: "Crop zoom" }).fill("4");
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+
+    await expect(paletteSize).toHaveAttribute("max", "4");
+    await expect(paletteSize).toHaveValue("4");
+    await expect(paletteSize).toBeEnabled();
+    await expect(dialog.getByText("Generated palette (4)")).toBeVisible();
+  });
+
+  test("applies the latest crop gesture before its preview frame renders", async ({ page }) => {
+    await page.goto("/");
+    await uploadColorBands(page);
+
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+    const cropCanvas = dialog.getByLabel("Image crop area");
+    await expect(cropCanvas).toBeFocused();
+
+    await cropCanvas.evaluate((element) => {
+      const canvas = element as HTMLCanvasElement;
+      const bounds = canvas.getBoundingClientRect();
+      canvas.dispatchEvent(
+        new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          clientX: bounds.left + bounds.width / 2,
+          clientY: bounds.top + bounds.height / 2,
+          deltaY: -500,
+        })
+      );
+      const apply = Array.from(canvas.closest("dialog")?.querySelectorAll("button") ?? []).find((button) =>
+        button.textContent?.includes("Apply crop")
+      );
+      apply?.click();
+    });
+
+    await dialog.getByRole("button", { name: "Edit crop" }).click();
+    await expect
+      .poll(async () => Number(await dialog.getByRole("slider", { name: "Crop zoom" }).inputValue()))
+      .toBeGreaterThan(2);
+  });
+
   test("persists imported artwork across reloads and includes it in the catalog", async ({ page }) => {
     await page.goto("/");
     await uploadGeneratedImage(page, 8, 8);
@@ -384,6 +437,41 @@ async function uploadColorBands(page: Page) {
     });
     const transfer = new DataTransfer();
     transfer.items.add(new File([blob], "color-bands.png", { type: "image/png" }));
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]');
+    if (!input) {
+      throw new Error("The image import input was not found.");
+    }
+    input.files = transfer.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+
+async function uploadHiddenCropColors(page: Page) {
+  await expect(page.locator('input[type="file"]')).toBeAttached();
+  await page.evaluate(async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("Could not prepare the hidden-color crop fixture.");
+    }
+
+    context.fillStyle = "#ff0000";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    const colors = ["#00ff00", "#0000ff", "#ff0000", "#ffff00"];
+    for (let x = 384; x < 640; x += 1) {
+      context.fillStyle = colors[x % colors.length];
+      context.fillRect(x, 384, 1, 256);
+    }
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((result) =>
+        result ? resolve(result) : reject(new Error("Could not encode the hidden-color crop fixture."))
+      );
+    });
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([blob], "hidden-crop-colors.png", { type: "image/png" }));
     const input = document.querySelector<HTMLInputElement>('input[type="file"]');
     if (!input) {
       throw new Error("The image import input was not found.");

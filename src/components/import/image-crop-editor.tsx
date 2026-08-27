@@ -110,11 +110,6 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
     );
   }, [cropCenterX, cropCenterY, cropZoom, frameHeight, frameWidth, outputHeight, outputWidth, source]);
 
-  // A grid change can reshape the selection, so the dialog always hears the constrained value.
-  useEffect(() => {
-    onDraftChange({ centerX: cropCenterX, centerY: cropCenterY, zoom: cropZoom });
-  }, [cropCenterX, cropCenterY, cropZoom, onDraftChange]);
-
   useEffect(() => {
     wheelRef.current = zoomWithWheel;
   });
@@ -137,7 +132,15 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
   function updateCrop(nextCrop: ImageCrop) {
     const next = constrainImageCrop(nextCrop, source, output);
     cropRef.current = next;
+    onDraftChange(next);
     setCrop(next);
+  }
+
+  function updateCropBeforeRender(nextCrop: ImageCrop) {
+    const next = constrainImageCrop(nextCrop, source, output);
+    cropRef.current = next;
+    onDraftChange(next);
+    scheduleCropRender();
   }
 
   /** Pointer and wheel gestures outrun the frame rate, so they settle once per frame. */
@@ -169,25 +172,19 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
       x: clamp01((event.clientX - bounds.left - cropFrame.x) / cropFrame.width),
       y: clamp01((event.clientY - bounds.top - cropFrame.y) / cropFrame.height),
     };
-    cropRef.current = zoomImageCrop(
-      cropRef.current,
-      cropRef.current.zoom * Math.exp(-event.deltaY * WHEEL_ZOOM_RATE),
-      anchor,
-      source,
-      output
+    updateCropBeforeRender(
+      zoomImageCrop(
+        cropRef.current,
+        cropRef.current.zoom * Math.exp(-event.deltaY * WHEEL_ZOOM_RATE),
+        anchor,
+        source,
+        output
+      )
     );
-    scheduleCropRender();
   }
 
   function startDrag(event: PointerEvent<HTMLCanvasElement>) {
     if (!(event.isPrimary && event.button === 0)) {
-      return;
-    }
-
-    const cropFrame = getStageCropFrame(frame, output);
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const point = { x: event.clientX - bounds.left, y: event.clientY - bounds.top };
-    if (!containsPoint(cropFrame, point)) {
       return;
     }
 
@@ -209,13 +206,17 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
     const deltaX = event.clientX - previous.x;
     const deltaY = event.clientY - previous.y;
     dragRef.current = { ...previous, x: event.clientX, y: event.clientY };
-    cropRef.current = moveImageCrop(
-      cropRef.current,
-      { x: -deltaX / cropFrame.width, y: -deltaY / cropFrame.height },
-      source,
-      output
+    updateCropBeforeRender(
+      moveImageCrop(
+        cropRef.current,
+        {
+          x: -deltaX / cropFrame.width,
+          y: -deltaY / cropFrame.height,
+        },
+        source,
+        output
+      )
     );
-    scheduleCropRender();
   }
 
   function stopDrag(event: PointerEvent<HTMLCanvasElement>) {
@@ -453,10 +454,6 @@ function drawCropFrame(context: CanvasRenderingContext2D, frame: CropRect, foreg
   }
   context.stroke();
   context.restore();
-}
-
-function containsPoint(rect: CropRect, point: { x: number; y: number }) {
-  return point.x >= rect.x && point.x <= rect.x + rect.width && point.y >= rect.y && point.y <= rect.y + rect.height;
 }
 
 function clamp01(value: number) {

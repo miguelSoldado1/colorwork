@@ -5,6 +5,7 @@ import {
   fitCropFrame,
   getImageCropRect,
   moveImageCrop,
+  zoomImageCrop,
 } from "../../src/coloring/image-crop";
 
 describe("image crop geometry", () => {
@@ -52,6 +53,18 @@ describe("image crop geometry", () => {
         { height: 100, width: 100 }
       )
     ).toEqual({ centerX: 0.625, centerY: 0.375, zoom: 2 });
+  });
+
+  it("keeps the selected source point still while zooming", () => {
+    const source = { height: 500, width: 1000 };
+    const output = { height: 100, width: 100 };
+    const crop = DEFAULT_IMAGE_CROP;
+    const before = getImageCropRect(crop, source, output);
+    const zoomed = zoomImageCrop(crop, 2, { x: 0, y: 0 }, source, output);
+    const after = getImageCropRect(zoomed, source, output);
+
+    expect({ x: after.x, y: after.y }).toEqual({ x: before.x, y: before.y });
+    expect(after).toEqual({ height: 250, width: 250, x: 250, y: 0 });
   });
 
   it("fits wide and tall output frames without changing their ratio", () => {
