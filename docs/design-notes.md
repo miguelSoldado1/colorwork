@@ -83,6 +83,16 @@ Completion is the interface's one deliberately colorful moment. Every particle t
 
 The particle geometry lives in the `CONFETTI` constant, while CSS consumes its `--fly-*` custom properties. A shrink-wrapping element gives the effect the board's bounds without runtime measurement. Transforms stay off that wrapper chain because they would blur otherwise axis-aligned particles.
 
+## Achievements
+
+An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it.
+
+The card reads in one direction: a framed mark, the label, the achievement's name, then its description. The mark is the only badge-like surface in the interface. That is what separates an award from the ordinary confirmations that will share the same card.
+
+Toasts sit top right at every viewport. Bottom placement covers the palette on phones, and the palette is a control the player has a hand on. The header it covers instead is text, and that text returns when the toast leaves. At desktop sizes the card stays inside the header band and never reaches the canvas, so a finished artwork is not covered by the message celebrating it.
+
+The toast keeps one gesture. A sage hairline along the bottom edge runs out with the toast's own six seconds, so the card shows how long it will stay without carrying a close control. It pauses where Sonner pauses, when the pointer enters the stack, and holds still under reduced motion, where it reads as a plain accent rule. A drag dismisses it early. The duration is declared once in `showAchievementToast` and reaches CSS as `--achievement-toast-duration`, so the hairline and the timer cannot disagree.
+
 ## Responsive layout and accessibility
 
 On phones, the tool rail is a horizontal scrolling strip above the board. From the `sm` breakpoint upward, it becomes a vertical rail beside the board. Overflowing panels need `min-w-0`; otherwise grid and flex sizing floors them at their min-content width and causes clipping instead of scrolling.

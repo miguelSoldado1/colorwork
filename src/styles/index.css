@@ -251,3 +251,42 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * An unlock gets one gesture: a sage hairline along the toast's bottom edge that runs out with the
+ * toast's own timer, so the card says how long it will stay without adding a control. It pauses
+ * where Sonner pauses, when the pointer enters the stack.
+ */
+@keyframes achievement-toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@utility achievement-toast {
+  &::after {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    content: "";
+    background: var(--color-primary);
+    opacity: 0.5;
+    transform-origin: left;
+    animation: achievement-toast-timer var(--achievement-toast-duration, 6s)
+      linear both;
+  }
+
+  [data-sonner-toaster]:hover &::after {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      animation: none;
+    }
+  }
+}
