@@ -12,10 +12,10 @@ import {
   moveImageCrop,
   zoomImageCrop,
 } from "@/coloring/image-crop";
+import { getCropGridSize, type ImageImportSource } from "@/coloring/import-image";
 import { getCanvasContext, readThemeColor } from "@/coloring/pixel-raster";
 import { Button } from "@/components/ui/button";
 import type { KeyboardEvent, PointerEvent } from "react";
-import type { ImageImportSource } from "@/coloring/import-image";
 
 const FRAME_PADDING = 26;
 const KEYBOARD_STEP = 0.015;
@@ -61,12 +61,15 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
   const zoomId = useId();
   const wheelRef = useRef<(event: WheelEvent) => void>(() => undefined);
   const [crop, setCrop] = useState(() => constrainImageCrop(initialCrop, source, output));
+  const initialZoomRef = useRef(crop.zoom);
   const cropRef = useRef(crop);
   const [frame, setFrame] = useState({ height: 0, width: 0 });
   const constrainedCrop = constrainImageCrop(crop, source, output);
   const cropCenterX = constrainedCrop.centerX;
   const cropCenterY = constrainedCrop.centerY;
   const cropZoom = constrainedCrop.zoom;
+  const cropZoomPercent = Math.round(cropZoom * 100);
+  const resultSize = getCropGridSize(output, initialZoomRef.current, cropZoom);
   const frameHeight = frame.height;
   const frameWidth = frame.width;
   const outputHeight = output.height;
@@ -277,15 +280,24 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
       </div>
 
       <div className={`${IMPORT_STAGE_FOOTER_CLASS} flex flex-wrap items-center justify-between gap-x-10 gap-y-3`}>
-        <p className="min-w-0 text-muted-foreground text-xs" id={instructionsId}>
-          Drag to move, scroll to zoom, arrow keys to nudge.
-        </p>
+        <div className="min-w-0">
+          <p className="text-xs">
+            <span className="text-muted-foreground">Result</span>{" "}
+            <strong className="font-medium tabular-nums">
+              {resultSize.width} × {resultSize.height} cells
+            </strong>
+          </p>
+          <p className="mt-1 text-muted-foreground text-xs" id={instructionsId}>
+            Drag to move, scroll to zoom, arrow keys to nudge.
+          </p>
+        </div>
 
         <div className="flex min-w-0 flex-1 items-center justify-end gap-3 text-sm">
           <label className="shrink-0 text-muted-foreground" htmlFor={zoomId}>
             Crop zoom
           </label>
           <input
+            aria-valuetext={`${cropZoomPercent}% zoom, ${resultSize.width} by ${resultSize.height} cells`}
             className="h-6 min-w-0 max-w-72 flex-1 accent-primary"
             id={zoomId}
             max={MAX_IMAGE_CROP_ZOOM}
@@ -295,7 +307,9 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
             type="range"
             value={cropZoom}
           />
-          <strong className="w-11 shrink-0 text-right tabular-nums">{Math.round(cropZoom * 100)}%</strong>
+          <strong aria-hidden="true" className="w-11 shrink-0 text-right tabular-nums">
+            {cropZoomPercent}%
+          </strong>
           <Button
             className="-mr-3 shrink-0 px-2 text-xs"
             onClick={() => updateCrop(DEFAULT_IMAGE_CROP)}
@@ -328,7 +342,6 @@ function renderCropPreview(
 
   const context = getCanvasContext(canvas, { alpha: false });
   context.setTransform(dpr, 0, 0, dpr, 0, 0);
-  context.imageSmoothingEnabled = true;
   const canvasColor = readThemeColor(canvas, "--color-canvas");
   context.fillStyle = canvasColor;
   context.fillRect(0, 0, frame.width, frame.height);
@@ -336,6 +349,8 @@ function renderCropPreview(
   const cropFrame = getStageCropFrame(frame, output);
   const cropRect = getImageCropRect(crop, source, output);
   const scale = cropFrame.width / cropRect.width;
+  // Keep enlarged source pixels crisp while still smoothing large images that must shrink to fit.
+  context.imageSmoothingEnabled = scale < 1;
   context.drawImage(
     source.bitmap,
     cropFrame.x - cropRect.x * scale,

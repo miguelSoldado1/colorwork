@@ -9,6 +9,7 @@ import { constrainImageCrop, DEFAULT_IMAGE_CROP, type ImageCrop } from "@/colori
 import {
   createImageImportPreview,
   createImportedPuzzleId,
+  getCropGridSize,
   getImportName,
   getMaximumImportGridSide,
   getRecommendedGridSize,
@@ -146,9 +147,15 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
   }
 
   function applyCrop() {
+    const nextCrop = draftCropRef.current;
+    const previousZoom = crop?.zoom ?? DEFAULT_IMAGE_CROP.zoom;
+    const nextSize = getCropGridSize({ height, width }, previousZoom, nextCrop.zoom);
+
     setPuzzle(null);
     setProcessingError("");
-    setCrop(draftCropRef.current);
+    setWidth(nextSize.width);
+    setHeight(nextSize.height);
+    setCrop(nextCrop);
     closeCropEditor();
   }
 

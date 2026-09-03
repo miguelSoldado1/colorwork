@@ -118,7 +118,11 @@ test.describe("mobile Safari smoke", () => {
     await dialog.getByRole("button", { name: "Adjust crop" }).tap();
 
     const canvas = dialog.getByLabel("Image crop area");
-    await dialog.getByRole("slider", { name: "Crop zoom" }).fill("2");
+    const cropZoom = dialog.getByRole("slider", { name: "Crop zoom" });
+    await cropZoom.fill("2");
+    await expect(cropZoom).toHaveAttribute("aria-valuetext", "200% zoom, 2 by 2 cells");
+    await expect(dialog.getByText("2 × 2 cells")).toBeVisible();
+    await expect.poll(() => dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
     const beforeMove = await canvas.screenshot();
     const box = await canvas.boundingBox();
     if (!box) {

@@ -92,6 +92,15 @@ export function getRecommendedGridSize(sourceWidth: number, sourceHeight: number
   };
 }
 
+/** Keeps the current cell density as the crop moves between zoom levels. */
+export function getCropGridSize(grid: { height: number; width: number }, previousZoom: number, nextZoom: number) {
+  const scale = previousZoom / nextZoom;
+  return getRecommendedGridSize(
+    Math.max(1, Math.round(grid.width * scale)),
+    Math.max(1, Math.round(grid.height * scale))
+  );
+}
+
 export function getMaximumImportGridSide(otherSide: number) {
   return Math.min(MAX_IMPORT_GRID_SIDE, Math.floor(MAX_IMPORT_CELL_COUNT / Math.max(1, otherSide)));
 }

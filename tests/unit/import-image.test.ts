@@ -3,6 +3,7 @@ import {
   countPixelColors,
   createImportedPuzzleId,
   createIndexedPixelData,
+  getCropGridSize,
   getImportName,
   getMaximumImportGridSide,
   getRecommendedGridSize,
@@ -64,6 +65,18 @@ describe("getRecommendedGridSize", () => {
   it("keeps both dimensions usable for extremely wide or tall images", () => {
     expect(getRecommendedGridSize(10_000, 1)).toEqual({ height: 1, width: 512 });
     expect(getRecommendedGridSize(1, 10_000)).toEqual({ height: 512, width: 1 });
+  });
+});
+
+describe("getCropGridSize", () => {
+  it("reports the grid that preserves cell density across crop zooms", () => {
+    expect(getCropGridSize({ height: 96, width: 96 }, 1, 2)).toEqual({ height: 48, width: 48 });
+    expect(getCropGridSize({ height: 48, width: 48 }, 2, 4)).toEqual({ height: 24, width: 24 });
+    expect(getCropGridSize({ height: 24, width: 24 }, 4, 1)).toEqual({ height: 96, width: 96 });
+  });
+
+  it("keeps the adjusted grid inside the import limits", () => {
+    expect(getCropGridSize({ height: 512, width: 512 }, 4, 1)).toEqual({ height: 256, width: 256 });
   });
 });
 

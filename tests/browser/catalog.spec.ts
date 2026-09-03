@@ -187,6 +187,52 @@ test.describe("artwork catalog", () => {
     await expect.poll(() => readPreviewEdgeColors(preview)).toEqual(beforeCrop);
   });
 
+  test("keeps enlarged crop previews crisp", async ({ page }) => {
+    await page.goto("/");
+    await uploadColorBands(page);
+
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+    const cropCanvas = dialog.getByLabel("Image crop area");
+
+    await expect
+      .poll(() =>
+        cropCanvas.evaluate((element) => (element as HTMLCanvasElement).getContext("2d")?.imageSmoothingEnabled)
+      )
+      .toBe(false);
+  });
+
+  test("scales the grid with the applied crop zoom without compounding", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 96, 96);
+
+    const dialog = page.getByRole("dialog");
+    const width = dialog.getByLabel("Width");
+    const height = dialog.getByLabel("Height");
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+    const cropZoom = dialog.getByRole("slider", { name: "Crop zoom" });
+    await cropZoom.fill("2");
+    await expect(cropZoom).toHaveAttribute("aria-valuetext", "200% zoom, 48 by 48 cells");
+    await expect(dialog.getByText("48 × 48 cells")).toBeVisible();
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+    await expect(width).toHaveValue("48");
+    await expect(height).toHaveValue("48");
+
+    await dialog.getByRole("button", { name: "Edit crop" }).click();
+    await cropZoom.fill("4");
+    await expect(cropZoom).toHaveAttribute("aria-valuetext", "400% zoom, 24 by 24 cells");
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+    await expect(width).toHaveValue("24");
+    await expect(height).toHaveValue("24");
+
+    await dialog.getByRole("button", { name: "Edit crop" }).click();
+    await dialog.getByRole("button", { name: "Reset" }).click();
+    await expect(cropZoom).toHaveAttribute("aria-valuetext", "100% zoom, 96 by 96 cells");
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+    await expect(width).toHaveValue("96");
+    await expect(height).toHaveValue("96");
+  });
+
   test("crops an imported image and recenters it from the crop editor", async ({ page }) => {
     await page.goto("/");
     await uploadColorBands(page);
