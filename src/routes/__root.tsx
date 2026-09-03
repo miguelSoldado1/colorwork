@@ -1,13 +1,19 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { initializeAnalytics } from "@/analytics/posthog";
+import { Toaster } from "@/components/ui/toaster";
 
 function RootRoute() {
   useEffect(() => {
     initializeAnalytics();
   }, []);
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <Toaster />
+    </>
+  );
 }
 
 export const Route = createRootRoute({
