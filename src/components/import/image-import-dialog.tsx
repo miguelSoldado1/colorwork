@@ -2,17 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import Check from "@/assets/icons/check.svg?react";
 import Close from "@/assets/icons/close.svg?react";
 import Link from "@/assets/icons/link.svg?react";
+import Target from "@/assets/icons/target.svg?react";
 import Unlink from "@/assets/icons/unlink.svg?react";
 import { downloadPuzzleModule } from "@/coloring/export-puzzle";
+import { constrainImageCrop, DEFAULT_IMAGE_CROP, type ImageCrop } from "@/coloring/image-crop";
 import {
+  createImageImportPreview,
   createImportedPuzzleId,
-  createPuzzleFromImage,
+  getCropGridSize,
   getImportName,
   getMaximumImportGridSide,
   getRecommendedGridSize,
   type ImageImportSource,
   MAX_IMPORT_GRID_SIDE,
 } from "@/coloring/import-image";
+import { IMPORT_STAGE_CLASS, IMPORT_STAGE_FOOTER_CLASS, ImageCropEditor } from "@/components/import/image-crop-editor";
 import { Button } from "@/components/ui/button";
 import { isDebugMode } from "@/debug/debug-mode";
 import { constrainArtworkName, MAX_ARTWORK_NAME_LENGTH } from "@/levels/artwork-name";
@@ -32,18 +36,23 @@ interface ImageImportDialogProps {
 }
 
 export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: ImageImportDialogProps) {
+  const cropTriggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previewRef = useRef<HTMLCanvasElement>(null);
   const recommendedSize = getRecommendedGridSize(source.width, source.height);
-  const paletteMaximum = Math.min(MAX_PALETTE_SIZE, Math.max(MIN_PALETTE_SIZE, source.detectedColorCount));
   const initialName = getImportName(source.fileName);
   const [name, setName] = useState(initialName);
   const [width, setWidth] = useState(recommendedSize.width);
   const [height, setHeight] = useState(recommendedSize.height);
-  const [paletteSize, setPaletteSize] = useState(Math.min(paletteMaximum, DEFAULT_PALETTE_SIZE));
-  const [dimensionsLinked, setDimensionsLinked] = useState(true);
+  const [detectedColorCount, setDetectedColorCount] = useState(source.detectedColorCount);
+  const [requestedPaletteSize, setRequestedPaletteSize] = useState(DEFAULT_PALETTE_SIZE);
+  const [crop, setCrop] = useState<ImageCrop>();
+  const [editingCrop, setEditingCrop] = useState(false);
+  const draftCropRef = useRef<ImageCrop>(DEFAULT_IMAGE_CROP);
   const [puzzle, setPuzzle] = useState<PuzzleDefinition | null>(null);
   const [processingError, setProcessingError] = useState("");
+  const paletteMaximum = Math.min(MAX_PALETTE_SIZE, Math.max(MIN_PALETTE_SIZE, detectedColorCount));
+  const paletteSize = Math.min(requestedPaletteSize, paletteMaximum);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -68,7 +77,15 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
 
     const timeout = window.setTimeout(() => {
       try {
-        setPuzzle(createPuzzleFromImage(source, { height, name: initialName, paletteSize, width }));
+        const preview = createImageImportPreview(source, {
+          crop,
+          height,
+          name: initialName,
+          paletteSize: requestedPaletteSize,
+          width,
+        });
+        setDetectedColorCount(preview.detectedColorCount);
+        setPuzzle(preview.puzzle);
       } catch (error) {
         return setProcessingError(error instanceof Error ? error.message : "The image could not be processed.");
       }
@@ -77,9 +94,13 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [height, initialName, paletteSize, source, width]);
+  }, [crop, height, initialName, requestedPaletteSize, source, width]);
 
   useEffect(() => {
+    if (editingCrop) {
+      return;
+    }
+
     const canvas = previewRef.current;
     if (!(canvas && puzzle)) {
       return;
@@ -102,39 +123,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
       image.data[dataIndex + 3] = 255;
     }
     context.putImageData(image, 0, 0);
-  }, [puzzle]);
-
-  function updateWidth(nextWidth: number) {
-    const safeWidth = clampGridSize(nextWidth);
-    if (dimensionsLinked) {
-      const linkedSize = getRecommendedGridSize(
-        safeWidth,
-        Math.max(MIN_GRID_SIZE, Math.round((safeWidth / source.width) * source.height))
-      );
-      setWidth(linkedSize.width);
-      setHeight(linkedSize.height);
-      return;
-    }
-
-    setWidth(safeWidth);
-    setHeight(Math.min(height, getMaximumImportGridSide(safeWidth)));
-  }
-
-  function updateHeight(nextHeight: number) {
-    const safeHeight = clampGridSize(nextHeight);
-    if (dimensionsLinked) {
-      const linkedSize = getRecommendedGridSize(
-        Math.max(MIN_GRID_SIZE, Math.round((safeHeight / source.height) * source.width)),
-        safeHeight
-      );
-      setWidth(linkedSize.width);
-      setHeight(linkedSize.height);
-      return;
-    }
-
-    setWidth(Math.min(width, getMaximumImportGridSide(safeHeight)));
-    setHeight(safeHeight);
-  }
+  }, [editingCrop, puzzle]);
 
   function confirmPuzzle() {
     if (puzzle) {
@@ -145,6 +134,29 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
         name: finalName,
       });
     }
+  }
+
+  function closeCropEditor() {
+    setEditingCrop(false);
+    window.requestAnimationFrame(() => cropTriggerRef.current?.focus());
+  }
+
+  function openCropEditor() {
+    draftCropRef.current = constrainImageCrop(crop ?? DEFAULT_IMAGE_CROP, source, { height, width });
+    setEditingCrop(true);
+  }
+
+  function applyCrop() {
+    const nextCrop = draftCropRef.current;
+    const previousZoom = crop?.zoom ?? DEFAULT_IMAGE_CROP.zoom;
+    const nextSize = getCropGridSize({ height, width }, previousZoom, nextCrop.zoom);
+
+    setPuzzle(null);
+    setProcessingError("");
+    setWidth(nextSize.width);
+    setHeight(nextSize.height);
+    setCrop(nextCrop);
+    closeCropEditor();
   }
 
   function downloadCurrentPuzzle() {
@@ -160,11 +172,18 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
     <dialog
       aria-describedby="import-description"
       aria-labelledby="import-title"
-      className="dialog-surface m-auto max-h-[calc(100svh-2rem)] w-[min(46rem,calc(100%-2rem))] overflow-y-auto rounded-xl border border-border bg-card p-0 text-card-foreground shadow-[0_32px_90px_-24px_rgba(0,0,0,0.85)] backdrop:bg-background/75 backdrop:backdrop-blur-sm"
-      onCancel={onCancel}
+      className="dialog-surface m-auto flex h-[min(44rem,calc(100svh-2rem))] w-[min(56rem,calc(100%-2rem))] flex-col rounded-xl border border-border bg-card p-0 text-card-foreground shadow-[0_32px_90px_-24px_rgba(0,0,0,0.85)] backdrop:bg-background/75 backdrop:backdrop-blur-sm"
+      onCancel={(event) => {
+        if (editingCrop) {
+          event.preventDefault();
+          closeCropEditor();
+          return;
+        }
+        onCancel();
+      }}
       ref={dialogRef}
     >
-      <div className="border-border border-b px-5 py-4 sm:px-6">
+      <div className="shrink-0 border-border border-b px-5 py-4 sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">New puzzle</p>
@@ -182,127 +201,214 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
         </div>
       </div>
 
-      <div className="grid gap-6 p-5 sm:grid-cols-[minmax(0,1fr)_17rem] sm:p-6">
-        <div className="flex min-h-56 items-center justify-center overflow-hidden rounded-lg border border-border bg-[linear-gradient(45deg,rgba(255,255,255,.025)_25%,transparent_25%),linear-gradient(-45deg,rgba(255,255,255,.025)_25%,transparent_25%),linear-gradient(45deg,transparent_75%,rgba(255,255,255,.025)_75%),linear-gradient(-45deg,transparent_75%,rgba(255,255,255,.025)_75%)] bg-canvas bg-position-[0_0,0_8px,8px_-8px,-8px_0] bg-size-[16px_16px] p-4">
-          {puzzle ? (
-            <canvas
-              aria-label="Processed pixel art preview"
-              className="h-auto max-h-[50svh] w-full bg-canvas [image-rendering:pixelated]"
-              ref={previewRef}
-              role="img"
+      <div className="min-h-0 flex-1 overflow-y-auto sm:overflow-hidden">
+        <div className={`grid gap-6 p-5 sm:h-full sm:p-6 ${editingCrop ? "" : "sm:grid-cols-[minmax(0,1fr)_17rem]"}`}>
+          {editingCrop ? (
+            <ImageCropEditor
+              initialCrop={crop ?? DEFAULT_IMAGE_CROP}
+              onDraftChange={(nextCrop) => {
+                draftCropRef.current = nextCrop;
+              }}
+              output={{ height, width }}
+              source={source}
             />
           ) : (
-            <p className="text-muted-foreground text-sm">{processingError || "Building preview…"}</p>
+            <>
+              <div className="flex min-w-0 flex-col gap-3">
+                <div className={`${IMPORT_STAGE_CLASS} flex items-center justify-center bg-canvas p-4`}>
+                  {puzzle ? (
+                    <canvas
+                      aria-label="Processed pixel art preview"
+                      className="size-full object-contain [image-rendering:pixelated]"
+                      ref={previewRef}
+                      role="img"
+                    />
+                  ) : (
+                    <p className="text-muted-foreground text-sm">{processingError || "Building preview…"}</p>
+                  )}
+                </div>
+                <div className={`${IMPORT_STAGE_FOOTER_CLASS} -ml-3 flex items-center`}>
+                  <Button onClick={openCropEditor} ref={cropTriggerRef} size="compact" variant="ghost">
+                    <Target className="block shrink-0" height={17} width={17} />
+                    {crop ? "Edit crop" : "Adjust crop"}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-5 sm:min-h-0 sm:overflow-y-auto">
+                <label className="grid gap-2 text-sm">
+                  <span className="text-muted-foreground">Puzzle name</span>
+                  <input
+                    className="h-11 rounded-md border border-input bg-background px-3 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
+                    maxLength={MAX_ARTWORK_NAME_LENGTH}
+                    onChange={(event) => setName(event.target.value)}
+                    value={name}
+                  />
+                </label>
+
+                <GridSizeField
+                  onChange={(size) => {
+                    setWidth(size.width);
+                    setHeight(size.height);
+                  }}
+                  source={source}
+                  value={{ height, width }}
+                />
+
+                <label className="grid gap-2 text-sm">
+                  <span className="flex items-center justify-between gap-3 text-muted-foreground">
+                    <span>Palette colors</span>
+                    <strong className="text-foreground">{paletteSize}</strong>
+                  </span>
+                  <input
+                    aria-label="Palette colors"
+                    className="h-6 w-full accent-primary"
+                    disabled={paletteMaximum === MIN_PALETTE_SIZE}
+                    max={paletteMaximum}
+                    min={MIN_PALETTE_SIZE}
+                    onChange={(event) => setRequestedPaletteSize(event.target.valueAsNumber)}
+                    type="range"
+                    value={paletteSize}
+                  />
+                  <span className="text-muted-foreground text-xs">
+                    Detected {detectedColorCount.toLocaleString()} {detectedColorCount === 1 ? "color" : "colors"} in
+                    the current preview.
+                  </span>
+                </label>
+
+                <div>
+                  <p className="mb-2 text-muted-foreground text-sm">
+                    Generated palette {puzzle ? `(${puzzle.palette.length})` : ""}
+                  </p>
+                  <div className="flex min-h-8 flex-wrap gap-1.5">
+                    {puzzle?.palette.map((color) => (
+                      <span
+                        className="size-7 rounded-sm border border-foreground/15 shadow-inner"
+                        key={color}
+                        style={{ backgroundColor: color }}
+                        title={color}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <p className="mt-auto text-muted-foreground text-xs">
+                  {(width * height).toLocaleString()} cells · {source.fileName}
+                </p>
+              </div>
+            </>
           )}
         </div>
-
-        <div className="flex flex-col gap-5">
-          <label className="grid gap-2 text-sm">
-            <span className="text-muted-foreground">Puzzle name</span>
-            <input
-              className="h-11 rounded-md border border-input bg-background px-3 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/25"
-              maxLength={MAX_ARTWORK_NAME_LENGTH}
-              onChange={(event) => setName(event.target.value)}
-              value={name}
-            />
-          </label>
-
-          <fieldset>
-            <legend className="mb-2 text-muted-foreground text-sm">Grid size</legend>
-            <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
-              <NumberField
-                label="Width"
-                max={MAX_IMPORT_GRID_SIDE}
-                min={MIN_GRID_SIZE}
-                onChange={updateWidth}
-                value={width}
-              />
-              <Button
-                aria-label={dimensionsLinked ? "Unlock aspect ratio" : "Lock aspect ratio"}
-                aria-pressed={dimensionsLinked}
-                className="mb-0.5"
-                onClick={() => setDimensionsLinked((linked) => !linked)}
-                size="icon"
-                variant="ghost"
-              >
-                {dimensionsLinked ? <Link height={19} width={19} /> : <Unlink height={19} width={19} />}
-              </Button>
-              <NumberField
-                label="Height"
-                max={MAX_IMPORT_GRID_SIDE}
-                min={MIN_GRID_SIZE}
-                onChange={updateHeight}
-                value={height}
-              />
-            </div>
-            <p className="mt-2 text-muted-foreground text-xs">
-              Source: {source.width} × {source.height}px
-            </p>
-          </fieldset>
-
-          <label className="grid gap-2 text-sm">
-            <span className="flex items-center justify-between gap-3 text-muted-foreground">
-              <span>Palette colors</span>
-              <strong className="text-foreground">{paletteSize}</strong>
-            </span>
-            <input
-              aria-label="Palette colors"
-              className="h-6 w-full accent-primary"
-              disabled={paletteMaximum === MIN_PALETTE_SIZE}
-              max={paletteMaximum}
-              min={MIN_PALETTE_SIZE}
-              onChange={(event) => setPaletteSize(event.target.valueAsNumber)}
-              type="range"
-              value={paletteSize}
-            />
-            <span className="text-muted-foreground text-xs">
-              Detected {source.detectedColorCount.toLocaleString()}{" "}
-              {source.detectedColorCount === 1 ? "color" : "colors"} at the initial grid size.
-            </span>
-          </label>
-
-          <div>
-            <p className="mb-2 text-muted-foreground text-sm">
-              Generated palette {puzzle ? `(${puzzle.palette.length})` : ""}
-            </p>
-            <div className="flex min-h-8 flex-wrap gap-1.5">
-              {puzzle?.palette.map((color) => (
-                <span
-                  className="size-7 rounded-sm border border-foreground/15 shadow-inner"
-                  key={color}
-                  style={{ backgroundColor: color }}
-                  title={color}
-                />
-              ))}
-            </div>
-          </div>
-
-          <p className="mt-auto text-muted-foreground text-xs">
-            {(width * height).toLocaleString()} cells · {source.fileName}
-          </p>
-        </div>
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-border border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
-        {saveError ? (
-          <p className="self-center text-destructive text-xs sm:mr-auto" role="alert">
-            {saveError}
-          </p>
-        ) : null}
-        {isDebugMode ? (
-          <Button className="sm:mr-auto" disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
-            Download .ts module
-          </Button>
-        ) : null}
-        <Button onClick={onCancel} variant="ghost">
-          Cancel
-        </Button>
-        <Button disabled={!puzzle} onClick={confirmPuzzle} variant="primary">
-          <Check className="block shrink-0" height={19} width={19} />
-          Import this puzzle
-        </Button>
+      <div className="flex shrink-0 flex-col-reverse gap-3 border-border border-t px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+        {editingCrop ? (
+          <>
+            <Button onClick={closeCropEditor} variant="ghost">
+              Cancel
+            </Button>
+            <Button onClick={applyCrop} variant="primary">
+              <Check className="block shrink-0" height={19} width={19} />
+              Apply crop
+            </Button>
+          </>
+        ) : (
+          <>
+            {saveError ? (
+              <p className="self-center text-destructive text-xs sm:mr-auto" role="alert">
+                {saveError}
+              </p>
+            ) : null}
+            {isDebugMode ? (
+              <Button className="sm:mr-auto" disabled={!puzzle} onClick={downloadCurrentPuzzle} variant="outline">
+                Download .ts module
+              </Button>
+            ) : null}
+            <Button onClick={onCancel} variant="ghost">
+              Cancel
+            </Button>
+            <Button disabled={!puzzle} onClick={confirmPuzzle} variant="primary">
+              <Check className="block shrink-0" height={19} width={19} />
+              Import this puzzle
+            </Button>
+          </>
+        )}
       </div>
     </dialog>
+  );
+}
+
+interface GridSizeFieldProps {
+  onChange: (size: { height: number; width: number }) => void;
+  source: ImageImportSource;
+  value: { height: number; width: number };
+}
+
+/** Grid size with an optional ratio lock, so the linked and free cases stay in one place. */
+function GridSizeField({ onChange, source, value }: GridSizeFieldProps) {
+  const [dimensionsLinked, setDimensionsLinked] = useState(true);
+
+  function updateWidth(nextWidth: number) {
+    const safeWidth = clampGridSize(nextWidth);
+    if (dimensionsLinked) {
+      return onChange(
+        getRecommendedGridSize(
+          safeWidth,
+          Math.max(MIN_GRID_SIZE, Math.round((safeWidth / source.width) * source.height))
+        )
+      );
+    }
+
+    onChange({ height: Math.min(value.height, getMaximumImportGridSide(safeWidth)), width: safeWidth });
+  }
+
+  function updateHeight(nextHeight: number) {
+    const safeHeight = clampGridSize(nextHeight);
+    if (dimensionsLinked) {
+      return onChange(
+        getRecommendedGridSize(
+          Math.max(MIN_GRID_SIZE, Math.round((safeHeight / source.height) * source.width)),
+          safeHeight
+        )
+      );
+    }
+
+    onChange({ height: safeHeight, width: Math.min(value.width, getMaximumImportGridSide(safeHeight)) });
+  }
+
+  return (
+    <fieldset>
+      <legend className="mb-2 text-muted-foreground text-sm">Grid size</legend>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+        <NumberField
+          label="Width"
+          max={MAX_IMPORT_GRID_SIDE}
+          min={MIN_GRID_SIZE}
+          onChange={updateWidth}
+          value={value.width}
+        />
+        <Button
+          aria-label={dimensionsLinked ? "Unlock aspect ratio" : "Lock aspect ratio"}
+          aria-pressed={dimensionsLinked}
+          className="mb-0.5"
+          onClick={() => setDimensionsLinked((linked) => !linked)}
+          size="icon"
+          variant="ghost"
+        >
+          {dimensionsLinked ? <Link height={19} width={19} /> : <Unlink height={19} width={19} />}
+        </Button>
+        <NumberField
+          label="Height"
+          max={MAX_IMPORT_GRID_SIDE}
+          min={MIN_GRID_SIZE}
+          onChange={updateHeight}
+          value={value.height}
+        />
+      </div>
+      <p className="mt-2 text-muted-foreground text-xs">
+        Source: {source.width} × {source.height}px
+      </p>
+    </fieldset>
   );
 }
 

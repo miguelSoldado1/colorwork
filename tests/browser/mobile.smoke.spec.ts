@@ -112,18 +112,74 @@ test.describe("mobile Safari smoke", () => {
     await expect(page.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
     await dispatchTouchPointer(canvas, "pointerup", adjacentCells.end, boardBox);
   });
+
+  test("adjusts an image crop with touch input", async ({ page }) => {
+    const dialog = await openImportDialog(page);
+    await dialog.getByRole("button", { name: "Adjust crop" }).tap();
+
+    const canvas = dialog.getByLabel("Image crop area");
+    const cropZoom = dialog.getByRole("slider", { name: "Crop zoom" });
+    await cropZoom.fill("2");
+    await expect(cropZoom).toHaveAttribute("aria-valuetext", "200% zoom, 2 by 2 cells");
+    await expect(dialog.getByText("2 × 2 cells")).toBeVisible();
+    await expect.poll(() => dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    const beforeMove = await canvas.screenshot();
+    const box = await canvas.boundingBox();
+    if (!box) {
+      throw new Error("The crop Canvas did not receive a layout box.");
+    }
+
+    const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await dispatchTouchAtPosition(canvas, "pointerdown", center);
+    await dispatchTouchAtPosition(canvas, "pointermove", { x: center.x - 60, y: center.y });
+    await dispatchTouchAtPosition(canvas, "pointerup", { x: center.x - 60, y: center.y });
+    await expect.poll(async () => Buffer.compare(beforeMove, await canvas.screenshot())).not.toBe(0);
+
+    await dialog.getByRole("button", { name: "Apply crop" }).tap();
+    await expect(dialog.getByRole("button", { name: "Edit crop" })).toBeVisible();
+    await expect(dialog.getByLabel("Processed pixel art preview")).toBeVisible();
+  });
+
+  test("drags an extreme crop ratio from anywhere in the stage", async ({ page }) => {
+    const dialog = await openImportDialog(page);
+    await dialog.getByRole("button", { name: "Unlock aspect ratio" }).tap();
+    await dialog.getByLabel("Width").fill("512");
+    await dialog.getByLabel("Height").fill("1");
+    await dialog.getByRole("button", { name: "Adjust crop" }).tap();
+
+    const canvas = dialog.getByLabel("Image crop area");
+    await dialog.getByRole("slider", { name: "Crop zoom" }).fill("2");
+    const beforeMove = await canvas.screenshot();
+    const box = await canvas.boundingBox();
+    if (!box) {
+      throw new Error("The extreme crop Canvas did not receive a layout box.");
+    }
+
+    const start = { x: box.x + box.width / 2, y: box.y + 40 };
+    const end = { x: start.x + 60, y: start.y };
+    await dispatchTouchAtPosition(canvas, "pointerdown", start);
+    await dispatchTouchAtPosition(canvas, "pointermove", end);
+    await dispatchTouchAtPosition(canvas, "pointerup", end);
+
+    await expect.poll(async () => Buffer.compare(beforeMove, await canvas.screenshot())).not.toBe(0);
+  });
 });
 
 async function openImportedPuzzle(page: Page) {
+  const dialog = await openImportDialog(page);
+  await dialog.getByRole("button", { name: "Import this puzzle" }).click();
+  await expect(page).toHaveURL(IMPORTED_URL);
+  await expect(page.getByRole("heading", { name: "Two Color Mobile" })).toBeVisible();
+}
+
+async function openImportDialog(page: Page) {
   await page.goto("/");
   await page.locator('input[type="file"]').setInputFiles(FIXTURE);
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Import this puzzle" })).toBeEnabled();
-  await dialog.getByRole("button", { name: "Import this puzzle" }).click();
-  await expect(page).toHaveURL(IMPORTED_URL);
-  await expect(page.getByRole("heading", { name: "Two Color Mobile" })).toBeVisible();
+  return dialog;
 }
 
 function findAdjacentCells(page: Page, artworkId: string) {
@@ -196,6 +252,14 @@ async function dispatchTouchPointer(
     y: box.y + ((cell.y + 0.5) / GRID_SIDE) * box.height,
   };
 
+  await dispatchTouchAtPosition(canvas, type, position);
+}
+
+async function dispatchTouchAtPosition(
+  canvas: Locator,
+  type: "pointerdown" | "pointermove" | "pointerup",
+  position: { x: number; y: number }
+) {
   await canvas.evaluate(
     (element, pointer) => {
       const board = element as HTMLCanvasElement;
