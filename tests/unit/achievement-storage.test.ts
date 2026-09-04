@@ -100,7 +100,7 @@ describe("achievement processing", () => {
 
     const unlocked = await recordPuzzleCompletion({ artworkId: "gobbo", source: "catalog" });
 
-    expect(unlocked.map(({ id }) => id)).toEqual(["first-finish", "catalog-debut"]);
+    expect(unlocked.map(({ id }) => id)).toEqual(["first-finish"]);
     expect(repository.completedPuzzles.get("gobbo")).toEqual({
       artworkId: "gobbo",
       source: "catalog",
@@ -127,6 +127,41 @@ describe("achievement processing", () => {
       "completed-puzzles": 1,
     });
     expect(repository.unlockedAchievements.keys()).toContain("custom-finish");
+  });
+
+  it("unlocks catalog milestones after three and six distinct completions", async () => {
+    const repository = new MemoryAchievementRepository();
+    useRepository(repository);
+
+    await recordPuzzleCompletion({ artworkId: "catalog-1", source: "catalog" });
+    await recordPuzzleCompletion({ artworkId: "catalog-2", source: "catalog" });
+    const thirdUnlocks = await recordPuzzleCompletion({ artworkId: "catalog-3", source: "catalog" });
+    await recordPuzzleCompletion({ artworkId: "catalog-4", source: "catalog" });
+    await recordPuzzleCompletion({ artworkId: "catalog-5", source: "catalog" });
+    const sixthUnlocks = await recordPuzzleCompletion({ artworkId: "catalog-6", source: "catalog" });
+
+    expect(thirdUnlocks.map(({ id }) => id)).toEqual(["catalog-hat-trick"]);
+    expect(sixthUnlocks.map(({ id }) => id)).toEqual(["catalog-regular"]);
+  });
+
+  it("unlocks overall and imported milestones across distinct completions", async () => {
+    const repository = new MemoryAchievementRepository();
+    useRepository(repository);
+
+    await recordPuzzleCompletion({ artworkId: "custom-1", source: "imported" });
+    await recordPuzzleCompletion({ artworkId: "catalog-1", source: "catalog" });
+    await recordPuzzleCompletion({ artworkId: "custom-2", source: "imported" });
+    await recordPuzzleCompletion({ artworkId: "catalog-2", source: "catalog" });
+    const fifthUnlocks = await recordPuzzleCompletion({ artworkId: "custom-3", source: "imported" });
+
+    await Promise.all(
+      Array.from({ length: 5 }, (_, index) =>
+        recordPuzzleCompletion({ artworkId: `catalog-${index + 3}`, source: "catalog" })
+      )
+    );
+
+    expect(fifthUnlocks.map(({ id }) => id).sort()).toEqual(["custom-trio", "five-finishes"]);
+    expect(repository.unlockedAchievements.keys()).toContain("double-digits");
   });
 
   it("does not count or unlock the same completion twice", async () => {
@@ -177,10 +212,8 @@ describe("achievement processing", () => {
     ]);
 
     expect(repository.completedPuzzles).toHaveLength(2);
-    expect(unlocked.map(({ id }) => id)).toEqual(["first-finish", "catalog-debut", "custom-finish"]);
-    expect(new Set(repository.unlockedAchievements.keys())).toEqual(
-      new Set(["first-finish", "catalog-debut", "custom-finish"])
-    );
+    expect(unlocked.map(({ id }) => id)).toEqual(["first-finish", "custom-finish"]);
+    expect(new Set(repository.unlockedAchievements.keys())).toEqual(new Set(["first-finish", "custom-finish"]));
 
     await expect(
       reconcileAchievements([
