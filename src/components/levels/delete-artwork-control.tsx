@@ -1,4 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { evaluateImportedPuzzleAchievements } from "@/achievements/process-achievements";
+import { checkAndShowAchievementUnlocks } from "@/achievements/show-achievement-toast";
 import Trash from "@/assets/icons/trash.svg?react";
 import { clearPuzzleProgress } from "@/coloring/progress-storage";
 import { Button } from "@/components/ui/button";
@@ -21,6 +23,7 @@ export function DeleteArtworkControl({ level, onDeleted }: DeleteArtworkControlP
       // The artwork goes first so a failed progress delete leaves an unreachable record, not a reset board.
       onConfirm: async () => {
         await deleteImportedPuzzle(level.puzzle.id);
+        checkAndShowAchievementUnlocks(evaluateImportedPuzzleAchievements);
         await clearPuzzleProgress(level.puzzle);
       },
       onDone: async () => {

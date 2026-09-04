@@ -1,6 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import { evaluateImportedPuzzleAchievements } from "@/achievements/process-achievements";
+import { checkAndShowAchievementUnlocks } from "@/achievements/show-achievement-toast";
 import { trackCustomArtworkImported } from "@/analytics/posthog";
 import Image2Plus from "@/assets/icons/image-plus.svg?react";
 import {
@@ -87,6 +89,7 @@ export function ImportArtworkRow() {
       return setError("Your artwork could not be saved. Check browser storage and try again.");
     }
 
+    checkAndShowAchievementUnlocks(evaluateImportedPuzzleAchievements);
     trackCustomArtworkImported(puzzle, importSource.width, importSource.height);
 
     const filters = { queryKey: artworkQueryKeys.descriptions, refetchType: "none" as const };

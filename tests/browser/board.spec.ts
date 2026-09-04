@@ -58,6 +58,8 @@ test.describe("coloring board", () => {
     await expect(
       page.locator('[role="status"]').filter({ hasText: "Puzzle complete. Every pixel is painted." })
     ).toBeAttached();
+    await expect(page.getByText("First finish", { exact: true })).toBeVisible();
+    await expect(page.getByText("Custom finish", { exact: true })).toBeVisible();
 
     const downloadButton = page.getByRole("button", { name: "Download artwork" });
     await expect(downloadButton).toBeVisible();

@@ -2,7 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import ArrowRight from "@/assets/icons/arrow-right.svg?react";
 import Sparkle from "@/assets/icons/sparkle.svg?react";
+import { tryCatch } from "@/try-catch";
+import { runAchievementCheck } from "./run-achievement-check";
 import type { CSSProperties, MouseEvent } from "react";
+import type { AchievementCheck } from "./run-achievement-check";
 
 export interface AchievementToastDetails {
   description: string;
@@ -14,6 +17,22 @@ const DURATION = 6000;
 
 // Roughly a thumb's wobble: below this a press is a tap, above it the player meant to swipe.
 const TAP_SLOP = 8;
+
+export function checkAndShowAchievementUnlocks(check: AchievementCheck) {
+  tryCatch(showAchievementUnlocks(check)).then((result) => {
+    if (result.error) {
+      console.error("[achievements] Achievement toasts could not be shown.", result.error);
+    }
+  });
+}
+
+async function showAchievementUnlocks(check: AchievementCheck) {
+  const achievements = await runAchievementCheck(check);
+
+  for (const achievement of achievements) {
+    showAchievementToast(achievement);
+  }
+}
 
 export function showAchievementToast({ description, name }: AchievementToastDetails) {
   let pressOrigin: { x: number; y: number } | null = null;
