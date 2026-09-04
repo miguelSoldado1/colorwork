@@ -85,13 +85,15 @@ The particle geometry lives in the `CONFETTI` constant, while CSS consumes its `
 
 ## Achievements
 
-An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it.
+An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it. The whole card is a link to the achievements page. That was meant as a shortcut, but nothing else points at that page yet, so the toast is currently the only route to a page it should only be shortening. That should not outlive the placeholder.
 
-The card reads in one direction: a framed mark, the label, the achievement's name, then its description. The mark is the only badge-like surface in the interface. That is what separates an award from the ordinary confirmations that will share the same card.
+The card reads in one direction: a framed mark, the label, the achievement's name, its description, then an arrow at the right edge for the destination. The mark is the only badge-like surface in the interface. That is what separates an award from the ordinary confirmations that will share the same card. The arrow is drawn at 12px, an exact halving of the icon set's 24px grid. A pixel glyph on a fractional scale goes soft, and at 13px this one did.
 
-Toasts sit top right at every viewport. Bottom placement covers the palette on phones, and the palette is a control the player has a hand on. The header it covers instead is text, and that text returns when the toast leaves. At desktop sizes the card stays inside the header band and never reaches the canvas, so a finished artwork is not covered by the message celebrating it.
+Toasts sit top right at every viewport. Bottom placement covers the palette on phones, and the palette is a control the player has a hand on. The header it covers instead is text, and that text returns when the toast leaves. One card stays inside the header band and never reaches the canvas, so a finished artwork is not covered by the message celebrating it. The stack stays expanded. A collapsed one fans out under the pointer and moves the layout while it is being read, which is worse than the space it saves. The cost is that two cards at once do reach the canvas.
 
-The toast keeps one gesture. A sage hairline along the bottom edge runs out with the toast's own six seconds, so the card shows how long it will stay without carrying a close control. It pauses where Sonner pauses, when the pointer enters the stack, and holds still under reduced motion, where it reads as a plain accent rule. A drag dismisses it early. The duration is declared once in `showAchievementToast` and reaches CSS as `--achievement-toast-duration`, so the hairline and the timer cannot disagree.
+The toast keeps one gesture. A sage hairline along the bottom edge runs out with the toast's own six seconds, so the card shows how long it will stay without carrying a close control. It pauses where Sonner pauses, when the pointer enters the stack, and holds still under reduced motion, where it reads as a plain accent rule. A drag dismisses it early. A swipe ends in a click, so any press that travels more than eight pixels cancels the navigation. The duration is declared once in `showAchievementToast` and reaches CSS as `--achievement-toast-duration`, so the hairline and the timer cannot disagree.
+
+The hairline is a real element rather than `::after`, and the hover and focus rules sit outside Tailwind's layers. Both are Sonner's doing. It claims `::after` on expanded toasts, and its stylesheet is unlayered, so it outranks anything in a layer whatever the specificity. The focus ring has to sit out there too, because Sonner sets `outline: 0` on every toast.
 
 ## Responsive layout and accessibility
 

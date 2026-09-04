@@ -3,6 +3,8 @@ import { Toaster as SonnerToaster } from "sonner";
 export function Toaster() {
   return (
     <SonnerToaster
+      // Collapsed stacks fan out under the pointer; staying expanded keeps the layout still.
+      expand
       mobileOffset={{ left: 12, right: 12, top: 12 }}
       offset={{ right: 20, top: 20 }}
       position="top-right"

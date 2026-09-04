@@ -1,0 +1,13 @@
+<svg
+  aria-hidden="true"
+  fill="currentColor"
+  height="24"
+  shape-rendering="crispEdges"
+  viewBox="0 0 24 24"
+  width="24"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path d="M2 12h20v2H2z" />
+  <path d="M14 6h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2z" />
+  <path d="M18 14h2v2h-2zm-2 2h2v2h-2zm-2 2h2v2h-2z" />
+</svg>

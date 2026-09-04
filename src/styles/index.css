@@ -267,26 +267,34 @@
   }
 }
 
-@utility achievement-toast {
-  &::after {
-    position: absolute;
-    inset: auto 0 0 0;
-    height: 1px;
-    content: "";
-    background: var(--color-primary);
-    opacity: 0.5;
-    transform-origin: left;
-    animation: achievement-toast-timer var(--achievement-toast-duration, 6s)
-      linear both;
+/*
+ * Not a @utility: Sonner injects its own unlayered stylesheet, and unlayered rules outrank anything
+ * in Tailwind's layers at any specificity. The focus ring has to sit out here to survive its outline: 0.
+ */
+.achievement-toast {
+  &:has(a:hover) {
+    border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
   }
 
-  [data-sonner-toaster]:hover &::after {
-    animation-play-state: paused;
+  &:focus-visible,
+  &:has(a:focus-visible) {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
   }
+}
 
-  @media (prefers-reduced-motion: reduce) {
-    &::after {
-      animation: none;
-    }
+/* A real element, not ::after: Sonner claims that pseudo-element on expanded toasts. */
+.achievement-toast-timer {
+  animation: achievement-toast-timer var(--achievement-toast-duration, 6s)
+    linear both;
+}
+
+[data-sonner-toaster]:hover .achievement-toast-timer {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast-timer {
+    animation: none;
   }
 }
