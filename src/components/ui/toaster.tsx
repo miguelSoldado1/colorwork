@@ -15,7 +15,7 @@ export function Toaster() {
           description: "mt-1 text-muted-foreground text-xs leading-snug",
           icon: "shrink-0",
           toast:
-            "relative flex w-full items-start gap-3 overflow-hidden rounded-lg border border-border bg-card p-3.5 text-card-foreground shadow-[0_16px_32px_-24px_rgba(0,0,0,0.9)] focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2",
+            "relative flex w-full items-start gap-3 overflow-hidden rounded-lg border border-border bg-card p-3.5 text-card-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2",
         },
         unstyled: true,
       }}
