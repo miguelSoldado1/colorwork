@@ -3,6 +3,7 @@ import { ACHIEVEMENTS } from "./achievement-catalog";
 import { indexedDbAchievementRepository } from "./achievement-storage";
 import { findNewlyUnlockedAchievements } from "./evaluate-achievements";
 import type { LevelSource } from "@/levels/describe-level";
+import type { StoredAchievementUnlockV1 } from "@/storage/colorwork-database";
 import type { AchievementDefinition, AchievementMetric } from "./achievement-catalog";
 import type { AchievementTransaction } from "./achievement-storage";
 import type { AchievementMetricValues } from "./evaluate-achievements";
@@ -18,6 +19,11 @@ const ALL_ACHIEVEMENT_METRICS = new Set(ACHIEVEMENTS.map(({ criteria }) => crite
 export interface PuzzleCompletionFact {
   artworkId: string;
   source: LevelSource;
+}
+
+export interface AchievementState {
+  metricValues: AchievementMetricValues;
+  unlockedAchievements: ReadonlyMap<string, StoredAchievementUnlockV1>;
 }
 
 export function recordPuzzleCompletion(completion: PuzzleCompletionFact) {
@@ -47,6 +53,23 @@ export function reconcileAchievements(completions: readonly PuzzleCompletionFact
     }
 
     return unlockMatchingAchievements(transaction, ALL_ACHIEVEMENT_METRICS, now);
+  });
+}
+
+export function reconcileAchievementState(completions: readonly PuzzleCompletionFact[]) {
+  const now = Date.now();
+
+  return indexedDbAchievementRepository.update((transaction) => {
+    for (const completion of completions) {
+      transaction.recordCompletion({ ...completion, version: 1 });
+    }
+
+    unlockMatchingAchievements(transaction, ALL_ACHIEVEMENT_METRICS, now);
+
+    return {
+      metricValues: getAchievementMetricValues(transaction),
+      unlockedAchievements: new Map(transaction.unlockedAchievements),
+    } satisfies AchievementState;
   });
 }
 

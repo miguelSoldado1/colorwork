@@ -3,6 +3,7 @@ import { indexedDbAchievementRepository } from "@/achievements/achievement-stora
 import {
   evaluateImportedPuzzleAchievements,
   getAchievementMetricValues,
+  reconcileAchievementState,
   reconcileAchievements,
   recordPuzzleCompletion,
 } from "@/achievements/process-achievements";
@@ -188,6 +189,24 @@ describe("achievement processing", () => {
       ])
     ).resolves.toEqual([]);
     expect(repository.completedPuzzles).toHaveLength(2);
+  });
+
+  it("returns the reconciled state used by the achievements page", async () => {
+    const repository = new MemoryAchievementRepository();
+    useRepository(repository);
+    vi.spyOn(Date, "now").mockReturnValue(9876);
+
+    const state = await reconcileAchievementState([
+      { artworkId: "gobbo", source: "catalog" },
+      { artworkId: "custom-1", source: "imported" },
+    ]);
+
+    expect(state.metricValues).toMatchObject({
+      "completed-catalog-puzzles": 1,
+      "completed-imported-puzzles": 1,
+      "completed-puzzles": 2,
+    });
+    expect(state.unlockedAchievements.get("first-finish")?.unlockedAt).toBe(9876);
   });
 });
 

@@ -193,7 +193,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
     if (nextComplete !== completedRef.current) {
       completedRef.current = nextComplete;
       setCelebrateCompletion(nextComplete);
-      
+
       if (nextComplete) {
         trackPuzzleCompleted(puzzle, artworkSource);
         checkAndShowAchievementUnlocks(() =>

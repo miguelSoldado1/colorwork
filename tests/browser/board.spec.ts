@@ -86,6 +86,11 @@ test.describe("coloring board", () => {
     await expect(preview.getByRole("button", { name: "Download artwork" })).toBeVisible();
     await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
     await expect(preview.getByRole("button", { name: "Download artwork" })).toHaveCount(0);
+
+    await page.getByRole("link", { exact: true, name: "Achievements" }).click();
+    await expect(page.getByRole("heading", { name: "2 of 4 unlocked" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "First finish" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Custom finish" })).toBeVisible();
   });
 
   test("toggles board display preferences and tool pressed states", async ({ page }) => {
