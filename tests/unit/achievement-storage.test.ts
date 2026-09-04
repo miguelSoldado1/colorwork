@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clearAchievementHistory, indexedDbAchievementRepository } from "@/achievements/achievement-storage";
+import {
+  clearAchievementHistory,
+  indexedDbAchievementRepository,
+  subscribeToStoredAchievements,
+} from "@/achievements/achievement-storage";
 import {
   evaluateImportedPuzzleAchievements,
   getAchievementMetricValues,
@@ -251,6 +255,7 @@ describe("achievement storage", () => {
       achievementUnlocks: [
         { achievementId: "first-finish", unlockedAt: 1234, version: 1 },
         { achievementId: "missing-date", version: 1 },
+        { achievementId: "invalid-date", unlockedAt: Number.MAX_VALUE, version: 1 },
       ],
       puzzleCompletions: [
         { artworkId: "gobbo", source: "catalog", version: 1 },
@@ -272,21 +277,37 @@ describe("achievement storage", () => {
   it("notifies other tabs when achievement data changes", async () => {
     useStoredRecords();
 
+    let channel: TestBroadcastChannel | undefined;
+    const onChange = vi.fn();
     const postMessage = vi.fn();
     const windowTarget = new EventTarget();
 
     class TestBroadcastChannel extends EventTarget {
+      constructor() {
+        super();
+        channel = this;
+      }
+
       postMessage = postMessage;
     }
 
     vi.stubGlobal("window", windowTarget);
     vi.stubGlobal("BroadcastChannel", TestBroadcastChannel);
+    const unsubscribe = subscribeToStoredAchievements(onChange);
 
     await indexedDbAchievementRepository.update((transaction) => {
       transaction.markChanged();
     });
 
     expect(postMessage).toHaveBeenCalledWith("changed");
+    expect(onChange).not.toHaveBeenCalled();
+
+    channel?.dispatchEvent(new Event("message"));
+    expect(onChange).toHaveBeenCalledOnce();
+
+    unsubscribe();
+    channel?.dispatchEvent(new Event("message"));
+    expect(onChange).toHaveBeenCalledOnce();
   });
 
   it("clears completion and unlock history without clearing artwork", async () => {

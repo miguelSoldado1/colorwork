@@ -139,9 +139,12 @@ function isStoredAchievementUnlock(value: unknown): value is StoredAchievementUn
     record.version === 1 &&
     typeof record.achievementId === "string" &&
     Boolean(record.achievementId) &&
-    typeof record.unlockedAt === "number" &&
-    Number.isFinite(record.unlockedAt)
+    isValidDateTimestamp(record.unlockedAt)
   );
+}
+
+function isValidDateTimestamp(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && !Number.isNaN(new Date(value).getTime());
 }
 
 function isStoredPuzzleCompletion(value: unknown): value is StoredPuzzleCompletionV1 {

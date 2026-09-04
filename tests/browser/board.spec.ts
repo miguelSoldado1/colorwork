@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { expect, type Page, test } from "@playwright/test";
 
 const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
+const IS_PRODUCTION_PREVIEW = process.env.PLAYWRIGHT_USE_PREVIEW === "1";
 const EVENING_TILES_BUTTON = /^Evening Tiles/;
 const IMPORTED_URL = /\/play\/two-color-fixture-/;
 const MAX_LENGTH_NAME = "Sunset Over The Harbour With Boats And A Tall Lighthouse Abc";
@@ -92,9 +93,14 @@ test.describe("coloring board", () => {
     await expect(page.getByRole("heading", { name: "First finish" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Custom finish" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Clear history" }).click();
-    await expect(page).toHaveURL("/");
-    await expect.poll(() => getAchievementHistoryCounts(page)).toEqual({ completions: 0, unlocks: 0 });
+    const clearHistory = page.getByRole("button", { name: "Clear history" });
+    if (IS_PRODUCTION_PREVIEW) {
+      await expect(clearHistory).toHaveCount(0);
+    } else {
+      await clearHistory.click();
+      await expect(page).toHaveURL("/");
+      await expect.poll(() => getAchievementHistoryCounts(page)).toEqual({ completions: 0, unlocks: 0 });
+    }
   });
 
   test("toggles board display preferences and tool pressed states", async ({ page }) => {
