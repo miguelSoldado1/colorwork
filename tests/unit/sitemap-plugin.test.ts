@@ -30,6 +30,7 @@ describe("renderSitemapXml", () => {
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
     expect(xml).toContain("<loc>https://example.com/</loc>");
+    expect(xml).toContain("<loc>https://example.com/achievements</loc>");
     expect(xml).toContain("<loc>https://example.com/privacy</loc>");
     expect(xml).toContain("<loc>https://example.com/play/test</loc>");
     expect(xml).not.toContain("<style");

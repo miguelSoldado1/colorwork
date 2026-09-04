@@ -85,7 +85,9 @@ The particle geometry lives in the `CONFETTI` constant, while CSS consumes its `
 
 ## Achievements
 
-An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it. The whole card is a link to the achievements page. That was meant as a shortcut, but nothing else points at that page yet, so the toast is currently the only route to a page it should only be shortening. That should not outlive the placeholder.
+An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it. The whole card is a link to the achievements page. The artwork menu links to that page from its footer, next to Privacy, which leaves the toast shortening a trip the player could already make.
+
+The menu header was the obvious home and it did not work. Four placements were built and looked at. Each one put a second thing in a header whose only job is to name the collection, and the link kept reading as a notice competing with the artwork table below it. The footer costs real discoverability, since it sits under that whole table. That is the trade, and it is what makes the toast worth having. Both footer links get a 44-pixel target from a negative margin, so gaining one did not change the footer's height.
 
 The card reads in one direction: a framed mark, the label, the achievement's name, its description, then an arrow at the right edge for the destination. The mark is the only badge-like surface in the interface. That is what separates an award from the ordinary confirmations that will share the same card. The arrow is drawn at 12px, an exact halving of the icon set's 24px grid. A pixel glyph on a fractional scale goes soft, and at 13px this one did.
 
@@ -94,6 +96,22 @@ Toasts sit top right at every viewport. Bottom placement covers the palette on p
 The toast keeps one gesture. A sage hairline along the bottom edge runs out with the toast's own six seconds, so the card shows how long it will stay without carrying a close control. It pauses where Sonner pauses, when the pointer enters the stack, and holds still under reduced motion, where it reads as a plain accent rule. A drag dismisses it early. A swipe ends in a click, so any press that travels more than eight pixels cancels the navigation. The duration is declared once in `showAchievementToast` and reaches CSS as `--achievement-toast-duration`, so the hairline and the timer cannot disagree.
 
 The hairline is a real element rather than `::after`, and the hover and focus rules sit outside Tailwind's layers. Both are Sonner's doing. It claims `::after` on expanded toasts, and its stylesheet is unlayered, so it outranks anything in a layer whatever the specificity. The focus ring has to sit out there too, because Sonner sets `outline: 0` on every toast.
+
+### The achievements page
+
+One card per achievement. A card is the shape an award already arrives in, since the toast is a card and the page is that card standing still. Cards run one to a row at every width, and the page never reads as a grid of tiles. A card that wide has to spend its width. From `sm` upward the unlock date moves to the far edge, leaving the name at one end and the date at the other with the description beneath. A phone has no room for that, and the date sits under the name.
+
+Catalog order holds. Grouping earned and unearned was built first and dropped. It moves a card the moment the card is won, and a toast has just told the player where that card is. A card should stay where it was last seen and get painted.
+
+Each card carries the toast's framed mark, filled with sage once the award is real and hollow until then. The mark belongs to the achievement; the toast borrows it. Locked cards sit a tone lower and mute their name. That, the hollow mark, and the missing date are the whole difference. Nothing is added on top of it: no badge, no ribbon, no lock glyph.
+
+The unlock date takes the place of the toast's "Achievement unlocked" label, in the same sage micro-caps, and an earned card reads the way its announcement did. A locked card has nothing to put there and prints nothing, which leaves the dates as the only thing running down the right edge.
+
+Every card gets a meter. Dropping it from the single-step ones was tried and reverted. A finished achievement reading as a full sage bar is the point, and a bar-less card looks like an oversight instead of a card with nothing to measure. The count beside the bar stays muted at every value. An earned card already spends the accent on its mark, its date, and its full bar, and sage is the interface's only accent.
+
+The header is type and nothing else. The cards below carry the marks, and a fifth framed mark above them would only dilute them. A strip of cells restating the count went the same way, since the meters already draw that count four times over.
+
+The summary holds its place through loading and failure, and the page never rebuilds itself under the reader. While the stored history is being read, the heading is a skeleton and the grid is the cards it will hold, at the size it will hold them. A failed read has no honest count to print. The heading falls back to the page's own name, the sage eyebrow above it goes with the count it labelled, and the error says what could not be opened and that artwork and progress are untouched.
 
 ## Responsive layout and accessibility
 
