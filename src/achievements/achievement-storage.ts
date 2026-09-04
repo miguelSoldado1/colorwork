@@ -1,7 +1,6 @@
 import { getColorworkDatabase } from "@/storage/colorwork-database";
 import type { StoredAchievementUnlockV1, StoredPuzzleCompletionV1 } from "@/storage/colorwork-database";
 
-const STORAGE_EVENT = "colorwork:achievements-changed";
 const STORAGE_CHANNEL = "colorwork:achievements";
 
 let achievementChannel: BroadcastChannel | null | undefined;
@@ -93,23 +92,41 @@ export const indexedDbAchievementRepository: AchievementRepository = {
   },
 };
 
+export async function clearAchievementHistory() {
+  const database = await getColorworkDatabase();
+  const transaction = database.transaction(["achievementUnlocks", "puzzleCompletions"], "readwrite");
+  const clears = [
+    transaction.objectStore("achievementUnlocks").clear(),
+    transaction.objectStore("puzzleCompletions").clear(),
+  ];
+
+  try {
+    await Promise.all([...clears, transaction.done]);
+    notifyAchievementsChanged();
+  } catch (error) {
+    try {
+      transaction.abort();
+    } catch {
+      // The transaction may have already failed or completed.
+    }
+
+    await Promise.allSettled([...clears, transaction.done]);
+    throw error;
+  }
+}
+
 export function subscribeToStoredAchievements(onChange: () => void) {
   if (typeof window === "undefined") {
     return () => undefined;
   }
 
-  window.addEventListener(STORAGE_EVENT, onChange);
-
   const channel = getAchievementChannel();
   if (channel) {
     channel.addEventListener("message", onChange);
-    return () => {
-      window.removeEventListener(STORAGE_EVENT, onChange);
-      channel.removeEventListener("message", onChange);
-    };
+    return () => channel.removeEventListener("message", onChange);
   }
 
-  return () => window.removeEventListener(STORAGE_EVENT, onChange);
+  return () => undefined;
 }
 
 function isStoredAchievementUnlock(value: unknown): value is StoredAchievementUnlockV1 {
@@ -145,8 +162,6 @@ function notifyAchievementsChanged() {
   if (typeof window === "undefined") {
     return;
   }
-
-  window.dispatchEvent(new Event(STORAGE_EVENT));
 
   const channel = getAchievementChannel();
   if (channel) {

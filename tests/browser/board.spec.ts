@@ -91,6 +91,10 @@ test.describe("coloring board", () => {
     await expect(page.getByRole("heading", { name: "2 of 8 unlocked" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "First finish" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Custom finish" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Clear history" }).click();
+    await expect(page).toHaveURL("/");
+    await expect.poll(() => getAchievementHistoryCounts(page)).toEqual({ completions: 0, unlocks: 0 });
   });
 
   test("toggles board display preferences and tool pressed states", async ({ page }) => {
@@ -560,6 +564,31 @@ function hasStoredProgress(page: Page, artworkId: string) {
       database.close();
     }
   }, artworkId);
+}
+
+function getAchievementHistoryCounts(page: Page) {
+  return page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("colorwork");
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+
+    try {
+      const transaction = database.transaction(["achievementUnlocks", "puzzleCompletions"]);
+      const count = (storeName: "achievementUnlocks" | "puzzleCompletions") =>
+        new Promise<number>((resolve, reject) => {
+          const request = transaction.objectStore(storeName).count();
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(request.result);
+        });
+      const [unlocks, completions] = await Promise.all([count("achievementUnlocks"), count("puzzleCompletions")]);
+
+      return { completions, unlocks };
+    } finally {
+      database.close();
+    }
+  });
 }
 
 function getStoredPaintedCount(page: Page, artworkId: string) {

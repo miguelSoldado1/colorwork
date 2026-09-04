@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { indexedDbAchievementRepository } from "@/achievements/achievement-storage";
+import { clearAchievementHistory, indexedDbAchievementRepository } from "@/achievements/achievement-storage";
 import {
   evaluateImportedPuzzleAchievements,
   getAchievementMetricValues,
@@ -58,6 +58,7 @@ interface StoredRecords {
 function useStoredRecords({ achievementUnlocks = [], artworkIds = [], puzzleCompletions = [] }: StoredRecords = {}) {
   const stores = {
     achievementUnlocks: {
+      clear: vi.fn().mockResolvedValue(undefined),
       getAll: vi.fn().mockResolvedValue(achievementUnlocks),
       put: vi.fn().mockResolvedValue(undefined),
     },
@@ -65,6 +66,7 @@ function useStoredRecords({ achievementUnlocks = [], artworkIds = [], puzzleComp
       getAllKeys: vi.fn().mockResolvedValue(artworkIds),
     },
     puzzleCompletions: {
+      clear: vi.fn().mockResolvedValue(undefined),
       getAll: vi.fn().mockResolvedValue(puzzleCompletions),
       put: vi.fn().mockResolvedValue(undefined),
     },
@@ -267,10 +269,9 @@ describe("achievement storage", () => {
     });
   });
 
-  it("notifies the current tab and other tabs when achievement data changes", async () => {
+  it("notifies other tabs when achievement data changes", async () => {
     useStoredRecords();
 
-    const localNotification = vi.fn();
     const postMessage = vi.fn();
     const windowTarget = new EventTarget();
 
@@ -278,7 +279,6 @@ describe("achievement storage", () => {
       postMessage = postMessage;
     }
 
-    windowTarget.addEventListener("colorwork:achievements-changed", localNotification);
     vi.stubGlobal("window", windowTarget);
     vi.stubGlobal("BroadcastChannel", TestBroadcastChannel);
 
@@ -286,8 +286,17 @@ describe("achievement storage", () => {
       transaction.markChanged();
     });
 
-    expect(localNotification).toHaveBeenCalledOnce();
     expect(postMessage).toHaveBeenCalledWith("changed");
+  });
+
+  it("clears completion and unlock history without clearing artwork", async () => {
+    const { stores } = useStoredRecords();
+
+    await clearAchievementHistory();
+
+    expect(stores.achievementUnlocks.clear).toHaveBeenCalledOnce();
+    expect(stores.puzzleCompletions.clear).toHaveBeenCalledOnce();
+    expect(stores.artworks).not.toHaveProperty("clear");
   });
 
   it("settles queued writes when an achievement operation fails", async () => {

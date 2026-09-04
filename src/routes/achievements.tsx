@@ -6,7 +6,9 @@ import { subscribeToStoredAchievements } from "@/achievements/achievement-storag
 import { AchievementIndex, AchievementIndexSkeleton } from "@/components/achievements/achievement-index";
 import { AchievementSummary } from "@/components/achievements/achievement-summary";
 import { AchievementsFrame } from "@/components/achievements/achievements-frame";
+import { ClearAchievementHistoryControl } from "@/components/debug/clear-achievement-history-control";
 import { Button } from "@/components/ui/button";
+import { isDebugMode } from "@/debug/debug-mode";
 import { achievementQueryKeys, achievementStateQueryOptions } from "@/query/achievement-queries";
 import { usePageMetadata } from "@/seo/use-page-metadata";
 
@@ -37,6 +39,7 @@ function AchievementsRoute() {
       {/* Held through every state. The page never rebuilds itself under the reader. */}
       <AchievementSummary
         achievements={ACHIEVEMENTS}
+        action={isDebugMode ? <ClearAchievementHistoryControl /> : undefined}
         failed={!state && achievementsQuery.isError}
         unlockedIds={state ? new Set(state.unlockedAchievements.keys()) : undefined}
       />
