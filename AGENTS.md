@@ -26,6 +26,7 @@ Read [docs/design-notes.md](docs/design-notes.md) before changing product behavi
 - Do not use Tailwind's generic color palette for interface chrome without first adding an intentional semantic token. Ink computed against arbitrary puzzle swatches is the exception.
 - Prefer hairline borders and tone steps over heavy shadows. The board Canvas is the only lifted surface.
 - Preserve accessible labels, pressed states, focus states, and touch-friendly control sizes.
+- Keep button labels unchanged while an action is pending. Use a separate indicator when the loading state needs to be visible.
 - Keep the tool rail horizontally scrollable above the board on phones and vertical beside it from `sm` upward.
 - Give overflowing grid and flex children `min-w-0` so they scroll instead of clipping at their min-content width.
 

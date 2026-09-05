@@ -40,7 +40,7 @@ export function artworkProgressQueryOptions(puzzle: PuzzleDefinition) {
   });
 }
 
-async function loadArtworkDescriptions() {
+export async function loadArtworkDescriptions() {
   const imports = (await loadImportedPuzzles()).filter(
     (puzzle) => !LEVELS.some((catalogPuzzle) => catalogPuzzle.id === puzzle.id)
   );

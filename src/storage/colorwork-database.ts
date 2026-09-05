@@ -2,7 +2,13 @@ import { openDB } from "idb";
 import type { DBSchema } from "idb";
 
 const DATABASE_NAME = "colorwork";
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
+
+export interface StoredAchievementUnlockV1 {
+  achievementId: string;
+  unlockedAt: number;
+  version: 1;
+}
 
 export interface StoredArtworkV1 {
   createdAt: number;
@@ -24,7 +30,17 @@ export interface StoredProgressV1 {
   version: 1;
 }
 
+export interface StoredPuzzleCompletionV1 {
+  artworkId: string;
+  source: "catalog" | "imported";
+  version: 1;
+}
+
 interface ColorworkDatabase extends DBSchema {
+  achievementUnlocks: {
+    key: string;
+    value: StoredAchievementUnlockV1;
+  };
   artworks: {
     key: string;
     value: StoredArtworkV1;
@@ -32,6 +48,10 @@ interface ColorworkDatabase extends DBSchema {
   progress: {
     key: string;
     value: StoredProgressV1;
+  };
+  puzzleCompletions: {
+    key: string;
+    value: StoredPuzzleCompletionV1;
   };
 }
 
@@ -55,11 +75,17 @@ export function getColorworkDatabase() {
         resetDatabasePromise(pendingDatabase);
       },
       upgrade(database) {
+        if (!database.objectStoreNames.contains("achievementUnlocks")) {
+          database.createObjectStore("achievementUnlocks", { keyPath: "achievementId" });
+        }
         if (!database.objectStoreNames.contains("artworks")) {
           database.createObjectStore("artworks", { keyPath: "id" });
         }
         if (!database.objectStoreNames.contains("progress")) {
           database.createObjectStore("progress", { keyPath: "artworkId" });
+        }
+        if (!database.objectStoreNames.contains("puzzleCompletions")) {
+          database.createObjectStore("puzzleCompletions", { keyPath: "artworkId" });
         }
       },
     });

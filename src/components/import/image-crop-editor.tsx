@@ -70,6 +70,8 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
   const cropZoom = constrainedCrop.zoom;
   const cropZoomPercent = Math.round(cropZoom * 100);
   const resultSize = getCropGridSize(output, initialZoomRef.current, cropZoom);
+  const resultHeight = resultSize.height;
+  const resultWidth = resultSize.width;
   const frameHeight = frame.height;
   const frameWidth = frame.width;
   const outputHeight = output.height;
@@ -109,9 +111,21 @@ export function ImageCropEditor({ initialCrop, onDraftChange, output, source }: 
       source,
       { height: outputHeight, width: outputWidth },
       { centerX: cropCenterX, centerY: cropCenterY, zoom: cropZoom },
-      { height: frameHeight, width: frameWidth }
+      { height: frameHeight, width: frameWidth },
+      { height: resultHeight, width: resultWidth }
     );
-  }, [cropCenterX, cropCenterY, cropZoom, frameHeight, frameWidth, outputHeight, outputWidth, source]);
+  }, [
+    cropCenterX,
+    cropCenterY,
+    cropZoom,
+    frameHeight,
+    frameWidth,
+    outputHeight,
+    outputWidth,
+    resultHeight,
+    resultWidth,
+    source,
+  ]);
 
   useEffect(() => {
     wheelRef.current = zoomWithWheel;
@@ -328,7 +342,8 @@ function renderCropPreview(
   source: ImageImportSource,
   output: CropSize,
   crop: ImageCrop,
-  frame: CropSize
+  frame: CropSize,
+  result: CropSize
 ) {
   const dpr = window.devicePixelRatio || 1;
   const pixelWidth = Math.round(frame.width * dpr);
@@ -360,7 +375,7 @@ function renderCropPreview(
   );
 
   drawCropMask(context, frame, cropFrame, canvasColor);
-  drawCellLattice(context, cropFrame, output, readThemeColor(canvas, "--color-foreground"));
+  drawCellLattice(context, cropFrame, result, readThemeColor(canvas, "--color-foreground"));
   drawCropFrame(
     context,
     cropFrame,

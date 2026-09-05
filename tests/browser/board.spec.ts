@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { expect, type Page, test } from "@playwright/test";
 
 const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
+const IS_PRODUCTION_PREVIEW = process.env.PLAYWRIGHT_USE_PREVIEW === "1";
 const EVENING_TILES_BUTTON = /^Evening Tiles/;
 const IMPORTED_URL = /\/play\/two-color-fixture-/;
 const MAX_LENGTH_NAME = "Sunset Over The Harbour With Boats And A Tall Lighthouse Abc";
@@ -58,6 +59,8 @@ test.describe("coloring board", () => {
     await expect(
       page.locator('[role="status"]').filter({ hasText: "Puzzle complete. Every pixel is painted." })
     ).toBeAttached();
+    await expect(page.getByText("First finish", { exact: true })).toBeVisible();
+    await expect(page.getByText("Custom finish", { exact: true })).toBeVisible();
 
     const downloadButton = page.getByRole("button", { name: "Download artwork" });
     await expect(downloadButton).toBeVisible();
@@ -84,6 +87,63 @@ test.describe("coloring board", () => {
     await expect(preview.getByRole("button", { name: "Download artwork" })).toBeVisible();
     await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
     await expect(preview.getByRole("button", { name: "Download artwork" })).toHaveCount(0);
+
+    await page.getByRole("link", { exact: true, name: "Achievements" }).click();
+    await expect(page.getByRole("heading", { name: "3 of 9 unlocked" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "First finish" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Custom finish" })).toBeVisible();
+
+    const clearHistory = page.getByRole("button", { name: "Clear history" });
+    if (IS_PRODUCTION_PREVIEW) {
+      await expect(clearHistory).toHaveCount(0);
+    } else {
+      await clearHistory.click();
+      await expect(page).toHaveURL("/");
+      await expect.poll(() => getAchievementHistoryCounts(page)).toEqual({ completions: 0, unlocks: 0 });
+    }
+  });
+
+  test("celebrates the first import before any painting", async ({ page }) => {
+    await openImportedPuzzle(page, true);
+    const toast = page.getByRole("link").filter({ hasText: "First import" });
+    await expect(toast).toBeVisible();
+    await toast.click();
+    await expect(page).toHaveURL("/achievements#achievement-first-import");
+    await expect(page.getByRole("heading", { name: "1 of 9 unlocked" })).toBeVisible();
+    await expect(page.locator("#achievement-first-import").getByRole("link")).toHaveCount(0);
+  });
+
+  test("allows keyboard navigation after an achievement toast drag is canceled", async ({ page }) => {
+    await openImportedPuzzle(page);
+    await page.getByRole("button", { name: "Bucket fill tool" }).click();
+    await paintCell(page, 0, 0);
+    await page.getByRole("button", { name: "Color 2: 0 of 8 cells painted" }).click();
+    await paintCell(page, 3, 0);
+    const link = page.getByRole("link").filter({ hasText: "Custom finish" });
+    await expect(link).toBeVisible();
+    await link.hover();
+    await expect(page.locator("[data-sonner-toast]").filter({ has: link })).toHaveAttribute("data-mounted", "true");
+    // Wait for entry motion before measuring the pointer gesture.
+    await page.waitForTimeout(400);
+    const bounds = await link.boundingBox();
+    if (!bounds) {
+      throw new Error("The achievement toast has no bounds.");
+    }
+    await page.mouse.move(bounds.x + 20, bounds.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(bounds.x + 32, bounds.y + 20, { steps: 4 });
+    // Keep velocity below Sonner's swipe-to-dismiss threshold.
+    await page.waitForTimeout(250);
+    await page.mouse.up();
+    await expect(page).toHaveURL(IMPORTED_URL);
+    await expect(link).toBeVisible();
+    await link.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL("/achievements#achievement-custom-finish");
+    const destination = page.locator("#achievement-custom-finish");
+    await expect(destination).toBeFocused();
+    await expect(destination).toBeInViewport();
+    await expect(destination).toHaveAttribute("data-arrival", "true");
   });
 
   test("toggles board display preferences and tool pressed states", async ({ page }) => {
@@ -474,7 +534,7 @@ test.describe("coloring board", () => {
   });
 });
 
-async function openImportedPuzzle(page: Page) {
+async function openImportedPuzzle(page: Page, keepImportToast = false) {
   await page.goto("/");
   await page.locator('input[type="file"]').setInputFiles(FIXTURE);
 
@@ -487,6 +547,13 @@ async function openImportedPuzzle(page: Page) {
   await expect(page.getByRole("heading", { name: "Two Color Fixture" })).toBeVisible();
   await expect(page.getByRole("img", { name: BOARD_LABEL })).toBeVisible();
   await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeVisible();
+  if (!keepImportToast) {
+    // Header tests start after the announcement clears; hovering it would pause its timer.
+    const importToast = page.getByRole("link").filter({ hasText: "First import" });
+    await expect(importToast).toBeVisible();
+    await page.mouse.move(0, 0);
+    await expect(importToast).toHaveCount(0, { timeout: 10_000 });
+  }
 }
 
 async function paintCell(page: Page, x: number, y: number) {
@@ -553,6 +620,31 @@ function hasStoredProgress(page: Page, artworkId: string) {
       database.close();
     }
   }, artworkId);
+}
+
+function getAchievementHistoryCounts(page: Page) {
+  return page.evaluate(async () => {
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("colorwork");
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+
+    try {
+      const transaction = database.transaction(["achievementUnlocks", "puzzleCompletions"]);
+      const count = (storeName: "achievementUnlocks" | "puzzleCompletions") =>
+        new Promise<number>((resolve, reject) => {
+          const request = transaction.objectStore(storeName).count();
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(request.result);
+        });
+      const [unlocks, completions] = await Promise.all([count("achievementUnlocks"), count("puzzleCompletions")]);
+
+      return { completions, unlocks };
+    } finally {
+      database.close();
+    }
+  });
 }
 
 function getStoredPaintedCount(page: Page, artworkId: string) {

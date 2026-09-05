@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { reconcileAchievements } from "@/achievements/process-achievements";
+import { checkAndShowAchievementUnlocks } from "@/achievements/show-achievement-toast";
 import { trackArtworkOpened, trackPuzzleCompleted, trackPuzzleReset, trackPuzzleStarted } from "@/analytics/posthog";
 import ArrowLeft from "@/assets/icons/arrow-left.svg?react";
 import { clonePuzzleProgress, createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
@@ -33,6 +35,8 @@ import {
 } from "@/query/artwork-queries";
 import { usePageMetadata } from "@/seo/use-page-metadata";
 import { loadUserPreferences, saveUserPreferences } from "@/user-preferences";
+import type { QueryClient } from "@tanstack/react-query";
+import type { PuzzleCompletionFact } from "@/achievements/process-achievements";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 export const Route = createFileRoute("/play/$levelId")({ component: PlayRoute });
@@ -189,8 +193,12 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
     if (nextComplete !== completedRef.current) {
       completedRef.current = nextComplete;
       setCelebrateCompletion(nextComplete);
+
       if (nextComplete) {
         trackPuzzleCompleted(puzzle, artworkSource);
+        checkAndShowAchievementUnlocks(() =>
+          reconcilePuzzleCompletionAchievements(queryClient, { artworkId: puzzle.id, source: artworkSource })
+        );
       }
     }
 
@@ -358,4 +366,16 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
 
 function isPuzzleComplete(summary: ProgressSummary) {
   return summary.totalPixels > 0 && summary.paintedCount >= summary.totalPixels;
+}
+
+async function reconcilePuzzleCompletionAchievements(queryClient: QueryClient, completion: PuzzleCompletionFact) {
+  const levels = await queryClient.fetchQuery({
+    ...artworkDescriptionsQueryOptions(),
+    staleTime: 0,
+  });
+  const completedPuzzles = levels
+    .filter((level) => level.finished)
+    .map((level) => ({ artworkId: level.puzzle.id, source: level.source }));
+
+  return reconcileAchievements([...completedPuzzles, completion]);
 }

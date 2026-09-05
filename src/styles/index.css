@@ -251,3 +251,71 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * An unlock gets one gesture: a sage hairline along the toast's bottom edge that runs out with the
+ * toast's own timer, so the card says how long it will stay without adding a control. It pauses
+ * where Sonner pauses, when the pointer enters the stack.
+ */
+@keyframes achievement-toast-timer {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/*
+ * Not a @utility: Sonner injects its own unlayered stylesheet, and unlayered rules outrank anything
+ * in Tailwind's layers at any specificity. The focus ring has to sit out here to survive its outline: 0.
+ */
+.achievement-toast {
+  &:has(a:hover) {
+    border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  }
+
+  &:focus-visible,
+  &:has(a:focus-visible) {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* A real element, not ::after: Sonner claims that pseudo-element on expanded toasts. */
+.achievement-toast-timer {
+  animation: achievement-toast-timer var(--achievement-toast-duration, 6s)
+    linear both;
+}
+
+[data-sonner-toaster]:hover .achievement-toast-timer {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast-timer {
+    animation: none;
+  }
+}
+
+/* A toast's destination gets one brief sage border pulse without moving the card. */
+@keyframes achievement-arrival {
+  0%,
+  65% {
+    border-color: var(--color-primary);
+  }
+  100% {
+    border-color: var(--color-border);
+  }
+}
+
+[data-arrival="true"] {
+  animation: achievement-arrival 2400ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-arrival="true"] {
+    animation-timing-function: steps(1, end);
+  }
+}
