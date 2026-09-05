@@ -12,9 +12,12 @@ export function LevelsMenuFrame({ children, summary }: LevelsMenuFrameProps) {
       <div className="mx-auto flex min-w-0 max-w-384 flex-col gap-6 sm:gap-8">
         <header className="min-w-0 border-border border-b pb-4 sm:pb-6">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Colorwork</p>
-          <h1 className="mt-1 font-semibold text-xl leading-none sm:text-2xl">Artworks</h1>
+          <h1 className="mt-1 font-semibold text-xl leading-none sm:text-2xl">Color pixel art by number</h1>
           <p className="mt-2 max-w-xl text-muted-foreground text-sm">
-            Images and progress stay in this browser. No account or cloud sync.
+            Pick an artwork and fill in the numbered cells, or import your own image.
+          </p>
+          <p className="mt-2 text-muted-foreground text-xs">
+            Free, no account. Images and progress stay in this browser.
           </p>
           <p className="mt-1 text-muted-foreground text-xs">{summary}</p>
         </header>

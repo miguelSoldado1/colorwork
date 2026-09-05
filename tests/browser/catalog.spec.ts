@@ -13,7 +13,7 @@ test.describe("artwork catalog", () => {
   test("shows a default preview and keeps selection client-side", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByRole("heading", { name: "Artworks" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Color pixel art by number" })).toBeVisible();
     const preview = page.getByRole("complementary", { name: "Artwork preview" });
     await expect(preview).toBeVisible();
     await expect(preview.getByRole("heading", { name: "Gobbo" })).toBeVisible();
@@ -479,7 +479,7 @@ test.describe("artwork catalog", () => {
     await page.goto("/play/not-a-real-artwork");
 
     await expect(page).toHaveURL(ROOT_URL);
-    await expect(page.getByRole("heading", { name: "Artworks" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Color pixel art by number" })).toBeVisible();
   });
 });
 
