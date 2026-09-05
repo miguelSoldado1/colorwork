@@ -4,12 +4,11 @@ import { usePageMetadata } from "@/seo/use-page-metadata";
 
 export const Route = createFileRoute("/privacy")({ component: PrivacyRoute });
 
-const VERCEL_PRIVACY_URL = "https://vercel.com/docs/analytics/privacy-policy";
 const POSTHOG_PRIVACY_URL = "https://posthog.com/privacy";
 
 function PrivacyRoute() {
   usePageMetadata({
-    description: "How Colorwork stores data on your device and what it sends to its analytics providers.",
+    description: "How Colorwork stores data on your device and what it sends for product analytics.",
     path: "/privacy",
     title: "Privacy - Colorwork",
   });
@@ -32,23 +31,18 @@ function PrivacyRoute() {
           <p className="mt-5 max-w-2xl text-muted-foreground text-sm leading-6 sm:text-base">
             Colorwork has no user accounts. Your imported artwork and puzzle progress stay on your device.
           </p>
-          <p className="mt-3 text-muted-foreground text-xs">Last updated: August 19, 2026</p>
+          <p className="mt-3 text-muted-foreground text-xs">Last updated: September 5, 2026</p>
         </header>
 
         <section aria-labelledby="data-boundary-heading" className="py-7 sm:py-10">
           <h2 className="sr-only" id="data-boundary-heading">
             Where your data goes
           </h2>
-          <div className="grid overflow-hidden rounded-xl border border-border sm:grid-cols-3">
+          <div className="grid overflow-hidden rounded-xl border border-border sm:grid-cols-2">
             <DataBoundary
               detail="Artwork data, puzzle progress, and board settings"
               label="Stays on this device"
               marker="Local"
-            />
-            <DataBoundary
-              detail="Anonymous page-view data for site analytics"
-              label="Sent to Vercel"
-              marker="Network"
             />
             <DataBoundary
               detail="Explicit, cookieless product events for artwork and board usage"
@@ -78,29 +72,6 @@ function PrivacyRoute() {
             <p>Use "Start over" to delete the saved progress for one artwork.</p>
             <p>To remove an imported artwork from this device, delete it from the artwork menu.</p>
             <p>To remove all artwork, progress, and settings, clear the Colorwork site data in your browser.</p>
-          </div>
-        </div>
-
-        <div className="grid gap-8 border-border border-t py-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-12 sm:py-10">
-          <h2 className="font-semibold text-lg">Page-view analytics</h2>
-          <div className="space-y-5 text-muted-foreground text-sm leading-6">
-            <p>
-              Colorwork uses Vercel Web Analytics. Vercel can receive the page path, referring site, approximate
-              location, browser, operating system, and device type.
-            </p>
-            <p>
-              Vercel Web Analytics does not use cookies. It makes a new identifier from the web request each day and
-              uses it for aggregate statistics. Vercel does not use this identifier to follow you across websites.
-            </p>
-            <p>Colorwork does not send imported artwork or puzzle progress to Vercel Web Analytics.</p>
-            <a
-              className="inline-flex min-h-11 items-center text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
-              href={VERCEL_PRIVACY_URL}
-              rel="noreferrer"
-              target="_blank"
-            >
-              Read the Vercel privacy information
-            </a>
           </div>
         </div>
 
