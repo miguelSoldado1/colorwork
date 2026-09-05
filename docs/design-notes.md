@@ -85,6 +85,8 @@ The particle geometry lives in the `CONFETTI` constant, while CSS consumes its `
 
 ## Achievements
 
+"First import" is earned when the first imported picture is saved. Existing collections receive it when achievements are reconciled. Like the other awards, it stays earned after an artwork is deleted.
+
 An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it. The whole card links to its achievement on the achievements page. Once the history loads, that card scrolls into view and receives focus, with a brief sage border highlight marking the destination. Reduced motion keeps the highlight steady before it clears. The artwork menu links to that page from its footer, next to Privacy, which leaves the toast shortening a trip the player could already make.
 
 The menu header was the obvious home and it did not work. Four placements were built and looked at. Each one put a second thing in a header whose only job is to name the collection, and the link kept reading as a notice competing with the artwork table below it. The footer costs real discoverability, since it sits under that whole table. That is the trade, and it is what makes the toast worth having. Both footer links get a 44-pixel target from a negative margin, so gaining one did not change the footer's height.
@@ -97,6 +99,8 @@ The toast keeps one gesture. A sage hairline along the bottom edge runs out with
 
 The hairline is a real element rather than `::after`, and the hover and focus rules sit outside Tailwind's layers. Both are Sonner's doing. It claims `::after` on expanded toasts, and its stylesheet is unlayered, so it outranks anything in a layer whatever the specificity. The focus ring has to sit out there too, because Sonner sets `outline: 0` on every toast.
 
+Achievement analytics record newly persisted unlocks using authored award IDs. These events use the existing production-only analytics setup and include no imported artwork names or IDs.
+
 ### The achievements page
 
 One card per achievement. A card is the shape an award already arrives in, since the toast is a card and the page is that card standing still. Cards run one to a row at every width, and the page never reads as a grid of tiles. A card that wide has to spend its width. From `sm` upward the unlock date moves to the far edge, leaving the name at one end and the date at the other with the description beneath. A phone has no room for that, and the date sits under the name.
@@ -107,7 +111,7 @@ Each card carries the toast's framed mark, filled with sage once the award is re
 
 The unlock date takes the place of the toast's "Achievement unlocked" label, in the same sage micro-caps, and an earned card reads the way its announcement did. A locked card has nothing to put there and prints nothing, which leaves the dates as the only thing running down the right edge. On phones its title block reserves the same date space as an earned card, keeping card positions stable while history loads or an achievement unlocks.
 
-Every card gets a meter. Dropping it from the single-step ones was tried and reverted. A finished achievement reading as a full sage bar is the point, and a bar-less card looks like an oversight instead of a card with nothing to measure. The label beside the bar stays muted at every value. Locked achievements describe the remaining work as “2 more artworks” or “7 more imports”; earned achievements keep their completed count. An earned card keeps its full meter even if the collection later shrinks. An earned card already spends the accent on its mark, its date, and its full bar, and sage is the interface's only accent.
+Every card gets a meter. Dropping it from the single-step ones was tried and reverted. A finished achievement reading as a full sage bar is the point, and a bar-less card looks like an oversight instead of a card with nothing to measure. The label beside the bar stays muted at every value. Locked achievements describe the remaining work as "2 more artworks" or "7 more imports"; earned achievements keep their completed count. An earned card keeps its full meter even if the collection later shrinks. An earned card already spends the accent on its mark, its date, and its full bar, and sage is the interface's only accent.
 
 The header is type and nothing else. The cards below carry the marks, and a fifth framed mark above them would only dilute them. A strip of cells restating the count went the same way, since the meters already draw that count four times over.
 

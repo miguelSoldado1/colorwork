@@ -23,7 +23,7 @@ export const ACHIEVEMENTS = [
   },
   {
     criteria: { metric: "completed-puzzles", threshold: 5 },
-    description: "Finish 5 distinct artworks. That's a proper streak.",
+    description: "Finish 5 distinct artworks. Five finished, plenty more to paint.",
     id: "five-finishes",
     name: "Five finishes",
   },
@@ -44,6 +44,12 @@ export const ACHIEVEMENTS = [
     description: "Finish 6 catalog artworks. You know your way around a palette by now.",
     id: "catalog-regular",
     name: "Colorwork regular",
+  },
+  {
+    criteria: { metric: "stored-imported-puzzles", threshold: 1 },
+    description: "Import your first picture to color.",
+    id: "first-import",
+    name: "First import",
   },
   {
     criteria: { metric: "completed-imported-puzzles", threshold: 1 },

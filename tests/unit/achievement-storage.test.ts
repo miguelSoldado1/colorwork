@@ -11,6 +11,7 @@ import {
   reconcileAchievements,
   recordPuzzleCompletion,
 } from "@/achievements/process-achievements";
+import { trackAchievementUnlocked } from "@/analytics/posthog";
 import type { AchievementRepository, AchievementTransaction } from "@/achievements/achievement-storage";
 import type { StoredAchievementUnlockV1, StoredPuzzleCompletionV1 } from "@/storage/colorwork-database";
 
@@ -19,6 +20,7 @@ const databaseMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/storage/colorwork-database", () => databaseMocks);
+vi.mock("@/analytics/posthog", () => ({ trackAchievementUnlocked: vi.fn() }));
 
 class MemoryAchievementRepository implements AchievementRepository {
   readonly completedPuzzles = new Map<string, StoredPuzzleCompletionV1>();
@@ -94,11 +96,47 @@ function useRepository(repository: MemoryAchievementRepository) {
 
 afterEach(() => {
   databaseMocks.getColorworkDatabase.mockReset();
+  vi.mocked(trackAchievementUnlocked).mockClear();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
 describe("achievement processing", () => {
+  it("awards the first import once and keeps it after deletion", async () => {
+    const repository = new MemoryAchievementRepository();
+    useRepository(repository);
+    await expect(evaluateImportedPuzzleAchievements()).resolves.toEqual([]);
+    repository.importedPuzzleIds.add("private-picture");
+    await expect(evaluateImportedPuzzleAchievements()).resolves.toEqual([
+      expect.objectContaining({ id: "first-import" }),
+    ]);
+    repository.importedPuzzleIds.clear();
+    await expect(evaluateImportedPuzzleAchievements()).resolves.toEqual([]);
+    repository.importedPuzzleIds.add("another-private-picture");
+    await expect(evaluateImportedPuzzleAchievements()).resolves.toEqual([]);
+    expect(trackAchievementUnlocked).toHaveBeenCalledExactlyOnceWith("first-import");
+  });
+
+  it("tracks reconciled unlocks once after persistence succeeds", async () => {
+    const repository = new MemoryAchievementRepository();
+    repository.importedPuzzleIds.add("existing-import");
+    useRepository(repository);
+    await reconcileAchievementState([]);
+    await reconcileAchievementState([]);
+    expect(trackAchievementUnlocked).toHaveBeenCalledExactlyOnceWith("first-import");
+  });
+
+  it("does not track an unlock from an aborted transaction", async () => {
+    const repository = new MemoryAchievementRepository();
+    repository.importedPuzzleIds.add("private-picture");
+    vi.spyOn(indexedDbAchievementRepository, "update").mockImplementation(async (operation) => {
+      await repository.update(operation);
+      throw new Error("Transaction aborted");
+    });
+    await expect(evaluateImportedPuzzleAchievements()).rejects.toThrow("Transaction aborted");
+    expect(trackAchievementUnlocked).not.toHaveBeenCalled();
+  });
+
   it("records a distinct catalog completion and unlocks matching achievements", async () => {
     const repository = new MemoryAchievementRepository();
     useRepository(repository);
@@ -189,7 +227,9 @@ describe("achievement processing", () => {
       repository.importedPuzzleIds.add(`custom-${index}`);
     }
 
-    await expect(evaluateImportedPuzzleAchievements()).resolves.toEqual([]);
+    await expect(evaluateImportedPuzzleAchievements()).resolves.toEqual([
+      expect.objectContaining({ id: "first-import" }),
+    ]);
     repository.importedPuzzleIds.add("custom-19");
     vi.spyOn(Date, "now").mockReturnValue(4321);
     const unlocked = await evaluateImportedPuzzleAchievements();

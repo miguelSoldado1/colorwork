@@ -109,7 +109,7 @@ function PrivacyRoute() {
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
             <p>
               Colorwork sends these product events to PostHog: artwork opens, puzzle starts and completions, custom
-              artwork imports, and progress resets.
+              artwork imports, progress resets, and achievement unlocks. Achievement events include the award ID.
             </p>
             <p>
               PostHog runs in cookieless server-hash mode. It combines the request IP address, browser details,

@@ -37,7 +37,7 @@ for (const width of [390, 1280]) {
         cards.map((card) => ({ height: card.getBoundingClientRect().height, y: card.getBoundingClientRect().y }))
       );
     await blocker.close();
-    await expect(page.getByRole("heading", { name: "1 of 8 unlocked" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "1 of 9 unlocked" })).toBeVisible();
     const after = await page
       .getByRole("list")
       .getByRole("listitem")
@@ -48,6 +48,7 @@ for (const width of [390, 1280]) {
     await expect(page.getByText("1 more artwork", { exact: true })).toHaveCount(2);
     await expect(page.getByText("5 more artworks", { exact: true })).toBeVisible();
     await expect(page.getByText("20 / 20", { exact: true })).toBeVisible();
+    await expect(page.locator("#achievement-personal-collection").getByRole("link")).toHaveCount(0);
     // An earned collection award stays full even when its original imports no longer exist.
     await expect(page.getByRole("progressbar", { name: "Personal collection progress" })).toHaveAttribute(
       "aria-valuenow",
@@ -69,4 +70,10 @@ test("opens a linked achievement and respects reduced motion", async ({ page }) 
   await expect(card).toBeInViewport();
   await expect(card).toHaveCSS("animation-timing-function", "steps(1)");
   await expect(card.getByText("20 more imports", { exact: true })).toBeVisible();
+});
+
+test("opens achievements from the footer", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("link", { exact: true, name: "Achievements" }).click();
+  await expect(page.getByRole("heading", { name: "0 of 9 unlocked" })).toBeVisible();
 });

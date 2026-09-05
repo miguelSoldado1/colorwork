@@ -1,3 +1,4 @@
+import { trackAchievementUnlocked } from "@/analytics/posthog";
 import { findLevel } from "@/levels/level-catalog";
 import { ACHIEVEMENTS } from "./achievement-catalog";
 import { indexedDbAchievementRepository } from "./achievement-storage";
@@ -29,48 +30,66 @@ export interface AchievementState {
 export function recordPuzzleCompletion(completion: PuzzleCompletionFact) {
   const now = Date.now();
 
-  return indexedDbAchievementRepository.update((transaction) => {
-    transaction.recordCompletion({ ...completion, version: 1 });
-    return unlockMatchingAchievements(transaction, COMPLETION_METRICS[completion.source], now);
-  });
+  return indexedDbAchievementRepository
+    .update((transaction) => {
+      transaction.recordCompletion({ ...completion, version: 1 });
+      return unlockMatchingAchievements(transaction, COMPLETION_METRICS[completion.source], now);
+    })
+    .then(trackUnlocks);
 }
 
 export function evaluateImportedPuzzleAchievements() {
   const now = Date.now();
 
-  return indexedDbAchievementRepository.update((transaction) => {
-    transaction.markChanged();
-    return unlockMatchingAchievements(transaction, IMPORT_METRICS, now);
-  });
+  return indexedDbAchievementRepository
+    .update((transaction) => {
+      transaction.markChanged();
+      return unlockMatchingAchievements(transaction, IMPORT_METRICS, now);
+    })
+    .then(trackUnlocks);
 }
 
 export function reconcileAchievements(completions: readonly PuzzleCompletionFact[]) {
   const now = Date.now();
 
-  return indexedDbAchievementRepository.update((transaction) => {
-    for (const completion of completions) {
-      transaction.recordCompletion({ ...completion, version: 1 });
-    }
+  return indexedDbAchievementRepository
+    .update((transaction) => {
+      for (const completion of completions) {
+        transaction.recordCompletion({ ...completion, version: 1 });
+      }
 
-    return unlockMatchingAchievements(transaction, ALL_ACHIEVEMENT_METRICS, now);
-  });
+      return unlockMatchingAchievements(transaction, ALL_ACHIEVEMENT_METRICS, now);
+    })
+    .then(trackUnlocks);
 }
 
-export function reconcileAchievementState(completions: readonly PuzzleCompletionFact[]) {
+export async function reconcileAchievementState(completions: readonly PuzzleCompletionFact[]) {
   const now = Date.now();
 
-  return indexedDbAchievementRepository.update((transaction) => {
+  const result = await indexedDbAchievementRepository.update((transaction) => {
     for (const completion of completions) {
       transaction.recordCompletion({ ...completion, version: 1 });
     }
 
-    unlockMatchingAchievements(transaction, ALL_ACHIEVEMENT_METRICS, now);
+    const newlyUnlocked = unlockMatchingAchievements(transaction, ALL_ACHIEVEMENT_METRICS, now);
 
     return {
-      metricValues: getAchievementMetricValues(transaction),
-      unlockedAchievements: new Map(transaction.unlockedAchievements),
-    } satisfies AchievementState;
+      newlyUnlocked,
+      state: {
+        metricValues: getAchievementMetricValues(transaction),
+        unlockedAchievements: new Map(transaction.unlockedAchievements),
+      } satisfies AchievementState,
+    };
   });
+  trackUnlocks(result.newlyUnlocked);
+  return result.state;
+}
+
+function trackUnlocks(achievements: AchievementDefinition[]) {
+  for (const achievement of achievements) {
+    trackAchievementUnlocked(achievement.id);
+  }
+  return achievements;
 }
 
 function unlockMatchingAchievements(

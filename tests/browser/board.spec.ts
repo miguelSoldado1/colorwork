@@ -89,7 +89,7 @@ test.describe("coloring board", () => {
     await expect(preview.getByRole("button", { name: "Download artwork" })).toHaveCount(0);
 
     await page.getByRole("link", { exact: true, name: "Achievements" }).click();
-    await expect(page.getByRole("heading", { name: "2 of 8 unlocked" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "3 of 9 unlocked" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "First finish" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Custom finish" })).toBeVisible();
 
@@ -101,6 +101,16 @@ test.describe("coloring board", () => {
       await expect(page).toHaveURL("/");
       await expect.poll(() => getAchievementHistoryCounts(page)).toEqual({ completions: 0, unlocks: 0 });
     }
+  });
+
+  test("celebrates the first import before any painting", async ({ page }) => {
+    await openImportedPuzzle(page, true);
+    const toast = page.getByRole("link").filter({ hasText: "First import" });
+    await expect(toast).toBeVisible();
+    await toast.click();
+    await expect(page).toHaveURL("/achievements#achievement-first-import");
+    await expect(page.getByRole("heading", { name: "1 of 9 unlocked" })).toBeVisible();
+    await expect(page.locator("#achievement-first-import").getByRole("link")).toHaveCount(0);
   });
 
   test("allows keyboard navigation after an achievement toast drag is canceled", async ({ page }) => {
@@ -524,7 +534,7 @@ test.describe("coloring board", () => {
   });
 });
 
-async function openImportedPuzzle(page: Page) {
+async function openImportedPuzzle(page: Page, keepImportToast = false) {
   await page.goto("/");
   await page.locator('input[type="file"]').setInputFiles(FIXTURE);
 
@@ -537,6 +547,13 @@ async function openImportedPuzzle(page: Page) {
   await expect(page.getByRole("heading", { name: "Two Color Fixture" })).toBeVisible();
   await expect(page.getByRole("img", { name: BOARD_LABEL })).toBeVisible();
   await expect(page.getByRole("group", { name: "0 of 16 pixels painted" })).toBeVisible();
+  if (!keepImportToast) {
+    // Header tests start after the announcement clears; hovering it would pause its timer.
+    const importToast = page.getByRole("link").filter({ hasText: "First import" });
+    await expect(importToast).toBeVisible();
+    await page.mouse.move(0, 0);
+    await expect(importToast).toHaveCount(0, { timeout: 10_000 });
+  }
 }
 
 async function paintCell(page: Page, x: number, y: number) {

@@ -3,6 +3,7 @@ import type { PuzzleDefinition } from "@/coloring/types";
 import type { LevelSource } from "@/levels/describe-level";
 
 type AnalyticsEvent =
+  | "achievement_unlocked"
   | "artwork_opened"
   | "custom_artwork_imported"
   | "puzzle_completed"
@@ -128,6 +129,10 @@ export function trackPuzzleReset(
     painted_cells_before_reset: paintedCells,
     reset_surface: surface,
   });
+}
+
+export function trackAchievementUnlocked(achievementId: string) {
+  capture("achievement_unlocked", { achievement_id: achievementId });
 }
 
 function capture(event: AnalyticsEvent, properties: EventProperties) {
