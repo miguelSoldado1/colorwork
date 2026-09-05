@@ -85,7 +85,7 @@ The particle geometry lives in the `CONFETTI` constant, while CSS consumes its `
 
 ## Achievements
 
-An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it. The whole card is a link to the achievements page. The artwork menu links to that page from its footer, next to Privacy, which leaves the toast shortening a trip the player could already make.
+An unlocked achievement arrives as a toast. It reports something that already happened and never needs an answer, so a dialog would be the wrong shape for it. The whole card links to its achievement on the achievements page. Once the history loads, that card scrolls into view and receives focus, with a brief sage border highlight marking the destination. Reduced motion keeps the highlight steady before it clears. The artwork menu links to that page from its footer, next to Privacy, which leaves the toast shortening a trip the player could already make.
 
 The menu header was the obvious home and it did not work. Four placements were built and looked at. Each one put a second thing in a header whose only job is to name the collection, and the link kept reading as a notice competing with the artwork table below it. The footer costs real discoverability, since it sits under that whole table. That is the trade, and it is what makes the toast worth having. Both footer links get a 44-pixel target from a negative margin, so gaining one did not change the footer's height.
 
@@ -105,13 +105,13 @@ Catalog order holds. Grouping earned and unearned was built first and dropped. I
 
 Each card carries the toast's framed mark, filled with sage once the award is real and hollow until then. The mark belongs to the achievement; the toast borrows it. Locked cards sit a tone lower and mute their name. That, the hollow mark, and the missing date are the whole difference. Nothing is added on top of it: no badge, no ribbon, no lock glyph.
 
-The unlock date takes the place of the toast's "Achievement unlocked" label, in the same sage micro-caps, and an earned card reads the way its announcement did. A locked card has nothing to put there and prints nothing, which leaves the dates as the only thing running down the right edge.
+The unlock date takes the place of the toast's "Achievement unlocked" label, in the same sage micro-caps, and an earned card reads the way its announcement did. A locked card has nothing to put there and prints nothing, which leaves the dates as the only thing running down the right edge. On phones its title block reserves the same date space as an earned card, keeping card positions stable while history loads or an achievement unlocks.
 
-Every card gets a meter. Dropping it from the single-step ones was tried and reverted. A finished achievement reading as a full sage bar is the point, and a bar-less card looks like an oversight instead of a card with nothing to measure. The count beside the bar stays muted at every value. An earned card already spends the accent on its mark, its date, and its full bar, and sage is the interface's only accent.
+Every card gets a meter. Dropping it from the single-step ones was tried and reverted. A finished achievement reading as a full sage bar is the point, and a bar-less card looks like an oversight instead of a card with nothing to measure. The label beside the bar stays muted at every value. Locked achievements describe the remaining work as “2 more artworks” or “7 more imports”; earned achievements keep their completed count. An earned card keeps its full meter even if the collection later shrinks. An earned card already spends the accent on its mark, its date, and its full bar, and sage is the interface's only accent.
 
 The header is type and nothing else. The cards below carry the marks, and a fifth framed mark above them would only dilute them. A strip of cells restating the count went the same way, since the meters already draw that count four times over.
 
-The summary holds its place through loading and failure, and the page never rebuilds itself under the reader. While the stored history is being read, the heading is a skeleton and the grid is the cards it will hold, at the size it will hold them. A failed read has no honest count to print. The heading falls back to the page's own name, the sage eyebrow above it goes with the count it labelled, and the error says what could not be opened and that artwork and progress are untouched.
+The summary holds its place through loading and failure, and the page never rebuilds itself under the reader. While the stored history is being read, achievement names and descriptions appear immediately. Only the summary count and progress details use placeholders, and the cards reserve the size they will hold when history arrives. A failed read has no honest count to print. The heading falls back to the page's own name, the sage eyebrow above it goes with the count it labelled, and the error says what could not be opened and that artwork and progress are untouched.
 
 ## Responsive layout and accessibility
 

@@ -36,17 +36,21 @@ export function AchievementSummary({ action, achievements, failed, unlockedIds }
     if (failed) {
       return <h1 className="font-semibold text-3xl leading-none sm:text-5xl">Achievements</h1>;
     }
-    if (unlockedCount === undefined) {
-      return (
-        <div
-          aria-hidden
-          className="mt-1.5 h-7 w-48 animate-pulse rounded-sm bg-foreground/8 motion-reduce:animate-none sm:h-11 sm:w-80"
-        />
-      );
-    }
     return (
-      <h1 className="mt-1 font-semibold text-3xl leading-none sm:text-5xl">
-        {unlockedCount} of {achievements.length} unlocked
+      <h1
+        aria-label={unlockedCount === undefined ? "Achievements" : undefined}
+        className="mt-1 font-semibold text-3xl leading-none sm:text-5xl"
+      >
+        <span
+          aria-hidden={unlockedCount === undefined ? true : undefined}
+          className={
+            unlockedCount === undefined
+              ? "animate-pulse rounded-sm bg-foreground/8 text-transparent motion-reduce:animate-none"
+              : undefined
+          }
+        >
+          {unlockedCount ?? 0} of {achievements.length} unlocked
+        </span>
       </h1>
     );
   }

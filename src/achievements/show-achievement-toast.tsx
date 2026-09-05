@@ -9,6 +9,7 @@ import type { AchievementCheck } from "./run-achievement-check";
 
 export interface AchievementToastDetails {
   description: string;
+  id: string;
   name: string;
 }
 
@@ -34,12 +35,16 @@ async function showAchievementUnlocks(check: AchievementCheck) {
   }
 }
 
-export function showAchievementToast({ description, name }: AchievementToastDetails) {
+export function showAchievementToast({ description, id: achievementId, name }: AchievementToastDetails) {
   let pressOrigin: { x: number; y: number } | null = null;
 
   function followLink(event: MouseEvent<HTMLAnchorElement>) {
     const dragged =
-      pressOrigin !== null && Math.hypot(event.clientX - pressOrigin.x, event.clientY - pressOrigin.y) > TAP_SLOP;
+      event.detail !== 0 &&
+      pressOrigin !== null &&
+      Math.hypot(event.clientX - pressOrigin.x, event.clientY - pressOrigin.y) > TAP_SLOP;
+
+    pressOrigin = null;
 
     // A swipe ends in a click too, and a dismissed toast should not also navigate.
     if (dragged) {
@@ -55,6 +60,8 @@ export function showAchievementToast({ description, name }: AchievementToastDeta
       className="group flex min-w-0 select-none items-start gap-3 after:absolute after:inset-0 focus-visible:outline-none"
       // A native link drag would preempt Sonner's swipe, so the card stays draggable only by Sonner.
       draggable={false}
+      hash={`achievement-${achievementId}`}
+      hashScrollIntoView={false}
       onClick={followLink}
       onPointerDown={(event) => {
         pressOrigin = { x: event.clientX, y: event.clientY };
@@ -75,7 +82,7 @@ export function showAchievementToast({ description, name }: AchievementToastDeta
         height={12}
         width={12}
       />
-      <span className="sr-only">See all achievements</span>
+      <span className="sr-only">View this achievement</span>
       <span
         aria-hidden
         className="achievement-toast-timer absolute inset-x-0 bottom-0 h-px origin-left bg-primary/50"

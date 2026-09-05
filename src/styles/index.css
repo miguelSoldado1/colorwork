@@ -298,3 +298,24 @@
     animation: none;
   }
 }
+
+/* A toast's destination gets one brief sage border pulse without moving the card. */
+@keyframes achievement-arrival {
+  0%,
+  65% {
+    border-color: var(--color-primary);
+  }
+  100% {
+    border-color: var(--color-border);
+  }
+}
+
+[data-arrival="true"] {
+  animation: achievement-arrival 2400ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-arrival="true"] {
+    animation-timing-function: steps(1, end);
+  }
+}

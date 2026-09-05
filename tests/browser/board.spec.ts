@@ -103,6 +103,39 @@ test.describe("coloring board", () => {
     }
   });
 
+  test("allows keyboard navigation after an achievement toast drag is canceled", async ({ page }) => {
+    await openImportedPuzzle(page);
+    await page.getByRole("button", { name: "Bucket fill tool" }).click();
+    await paintCell(page, 0, 0);
+    await page.getByRole("button", { name: "Color 2: 0 of 8 cells painted" }).click();
+    await paintCell(page, 3, 0);
+    const link = page.getByRole("link").filter({ hasText: "Custom finish" });
+    await expect(link).toBeVisible();
+    await link.hover();
+    await expect(page.locator("[data-sonner-toast]").filter({ has: link })).toHaveAttribute("data-mounted", "true");
+    // Wait for entry motion before measuring the pointer gesture.
+    await page.waitForTimeout(400);
+    const bounds = await link.boundingBox();
+    if (!bounds) {
+      throw new Error("The achievement toast has no bounds.");
+    }
+    await page.mouse.move(bounds.x + 20, bounds.y + 20);
+    await page.mouse.down();
+    await page.mouse.move(bounds.x + 32, bounds.y + 20, { steps: 4 });
+    // Keep velocity below Sonner's swipe-to-dismiss threshold.
+    await page.waitForTimeout(250);
+    await page.mouse.up();
+    await expect(page).toHaveURL(IMPORTED_URL);
+    await expect(link).toBeVisible();
+    await link.focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL("/achievements#achievement-custom-finish");
+    const destination = page.locator("#achievement-custom-finish");
+    await expect(destination).toBeFocused();
+    await expect(destination).toBeInViewport();
+    await expect(destination).toHaveAttribute("data-arrival", "true");
+  });
+
   test("toggles board display preferences and tool pressed states", async ({ page }) => {
     await openImportedPuzzle(page);
 

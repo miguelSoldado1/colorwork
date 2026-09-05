@@ -55,8 +55,10 @@ function AchievementsRoute() {
       return <AchievementLoadError onRetry={retry} />;
     }
     return (
-      <div role="status">
-        <span className="sr-only">Loading achievements</span>
+      <div>
+        <span className="sr-only" role="status">
+          Loading achievement progress
+        </span>
         <AchievementIndexSkeleton achievements={ACHIEVEMENTS} />
       </div>
     );
