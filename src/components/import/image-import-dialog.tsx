@@ -47,6 +47,7 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
   const [detectedColorCount, setDetectedColorCount] = useState(source.detectedColorCount);
   const [requestedPaletteSize, setRequestedPaletteSize] = useState(DEFAULT_PALETTE_SIZE);
   const [crop, setCrop] = useState<ImageCrop>();
+  const [dimensionsLinked, setDimensionsLinked] = useState(true);
   const [editingCrop, setEditingCrop] = useState(false);
   const draftCropRef = useRef<ImageCrop>(DEFAULT_IMAGE_CROP);
   const [puzzle, setPuzzle] = useState<PuzzleDefinition | null>(null);
@@ -247,10 +248,12 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
                 </label>
 
                 <GridSizeField
+                  dimensionsLinked={dimensionsLinked}
                   onChange={(size) => {
                     setWidth(size.width);
                     setHeight(size.height);
                   }}
+                  onToggleLink={() => setDimensionsLinked((linked) => !linked)}
                   source={source}
                   value={{ height, width }}
                 />
@@ -339,15 +342,15 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
 }
 
 interface GridSizeFieldProps {
+  dimensionsLinked: boolean;
   onChange: (size: { height: number; width: number }) => void;
+  onToggleLink: () => void;
   source: ImageImportSource;
   value: { height: number; width: number };
 }
 
 /** Grid size with an optional ratio lock, so the linked and free cases stay in one place. */
-function GridSizeField({ onChange, source, value }: GridSizeFieldProps) {
-  const [dimensionsLinked, setDimensionsLinked] = useState(true);
-
+function GridSizeField({ dimensionsLinked, onChange, onToggleLink, source, value }: GridSizeFieldProps) {
   function updateWidth(nextWidth: number) {
     const safeWidth = clampGridSize(nextWidth);
     if (dimensionsLinked) {
@@ -391,7 +394,7 @@ function GridSizeField({ onChange, source, value }: GridSizeFieldProps) {
           aria-label={dimensionsLinked ? "Unlock aspect ratio" : "Lock aspect ratio"}
           aria-pressed={dimensionsLinked}
           className="mb-0.5"
-          onClick={() => setDimensionsLinked((linked) => !linked)}
+          onClick={onToggleLink}
           size="icon"
           variant="ghost"
         >

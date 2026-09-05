@@ -185,8 +185,19 @@ test.describe("artwork catalog", () => {
     await expect.poll(async () => (await readPreviewEdgeColors(preview)).left[3]).toBe(255);
     const beforeCrop = await readPreviewEdgeColors(preview);
 
+    await dialog.getByRole("button", { name: "Unlock aspect ratio" }).click();
     await dialog.getByRole("button", { name: "Adjust crop" }).click();
     await dialog.getByRole("button", { exact: true, name: "Cancel" }).click();
+    await expect(dialog.getByRole("button", { exact: true, name: "Lock aspect ratio" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+    await expect(dialog.getByRole("button", { exact: true, name: "Lock aspect ratio" })).toHaveAttribute(
+      "aria-pressed",
+      "false"
+    );
 
     await expect(preview).toBeVisible();
     await expect.poll(() => readPreviewEdgeColors(preview)).toEqual(beforeCrop);
@@ -205,6 +216,41 @@ test.describe("artwork catalog", () => {
         cropCanvas.evaluate((element) => (element as HTMLCanvasElement).getContext("2d")?.imageSmoothingEnabled)
       )
       .toBe(false);
+  });
+
+  test("draws the crop lattice at the resulting grid resolution", async ({ page }) => {
+    await page.goto("/");
+    await uploadGeneratedImage(page, 16, 16);
+    await page.evaluate(() => {
+      const paths = new WeakMap<CanvasRenderingContext2D, number>();
+      const { prototype } = CanvasRenderingContext2D;
+      const { beginPath, moveTo, stroke } = prototype;
+      prototype.beginPath = function () {
+        paths.set(this, 0);
+        beginPath.call(this);
+      };
+      prototype.moveTo = function (x, y) {
+        paths.set(this, (paths.get(this) ?? 0) + 1);
+        moveTo.call(this, x, y);
+      };
+      prototype.stroke = function () {
+        if (this.canvas.getAttribute("aria-label") === "Image crop area" && this.globalAlpha < 0.2) {
+          this.canvas.dataset.latticeLines = String(paths.get(this));
+        }
+        Reflect.apply(stroke, this, []);
+      };
+    });
+    const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Adjust crop" }).click();
+    const canvas = dialog.getByLabel("Image crop area");
+    await expect(canvas).toHaveAttribute("data-lattice-lines", "30");
+    await dialog.getByRole("slider", { name: "Crop zoom" }).fill("2");
+    await expect(dialog.getByText("8 × 8 cells")).toBeVisible();
+    // Eight rows and columns have seven internal lines in each direction.
+    await expect(canvas).toHaveAttribute("data-lattice-lines", "14");
+    await dialog.getByRole("button", { name: "Apply crop" }).click();
+    await expect(dialog.getByLabel("Width", { exact: true })).toHaveValue("8");
+    await expect(dialog.getByLabel("Height", { exact: true })).toHaveValue("8");
   });
 
   test("scales the grid with the applied crop zoom without compounding", async ({ page }) => {
@@ -298,6 +344,9 @@ test.describe("artwork catalog", () => {
     await dialog.getByRole("slider", { name: "Crop zoom" }).fill("4");
     await dialog.getByRole("button", { name: "Apply crop" }).click();
 
+    // Zoom preserves cell density: the 64-cell crop still samples every fourth source pixel.
+    await expect(paletteSize).toHaveAttribute("max", "1");
+    await dialog.getByLabel("Width", { exact: true }).fill("256");
     await expect(paletteSize).toHaveAttribute("max", "4");
     await expect(paletteSize).toHaveValue("4");
     await expect(paletteSize).toBeEnabled();
