@@ -41,6 +41,7 @@ describe("level catalog", () => {
   it("presents the built-in artwork from easiest to hardest", () => {
     expect(LEVELS.map((puzzle) => puzzle.name)).toEqual([
       "Gobbo",
+      "Vending Machine",
       "Ribbit",
       "Warehouse",
       "Mech",
