@@ -42,6 +42,7 @@ describe("level catalog", () => {
     expect(LEVELS.map((puzzle) => puzzle.name)).toEqual([
       "Gobbo",
       "Ribbit",
+      "Warehouse",
       "Mech",
       "Deep Sea",
       "Sky Farm",
