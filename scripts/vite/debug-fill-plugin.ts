@@ -10,7 +10,7 @@ export function transformDebugFill(source: string, enabled: boolean) {
   const occurrenceCount = source.split("DebugFillControl").length - 1;
   if (occurrenceCount !== 2) {
     throw new Error(
-      `[debug-fill] Expected one import and one JSX element in the play route, found ${occurrenceCount} references.`,
+      `[debug-fill] Expected one import and one JSX element in the play route, found ${occurrenceCount} references.`
     );
   }
 

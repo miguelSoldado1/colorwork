@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { transformDebugFill } from "../../build/debug-fill-plugin";
+import { transformDebugFill } from "../../scripts/vite/debug-fill-plugin";
 
 const playRouteSource = readFileSync(new URL("../../src/routes/play.$levelId.tsx", import.meta.url), "utf8");
 const INTEGRATION_ERROR_PATTERN = /Expected one import and one JSX element/;
