@@ -502,7 +502,9 @@ test.describe("coloring board", () => {
     await restoredPreview.getByRole("button", { name: "Start over" }).click();
     await restoredPreview.getByRole("button", { name: "Yes, clear it" }).click();
     await expect(restoredPreview.getByRole("button", { name: "Start over" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: RIBBIT_BUTTON })).toContainText("0 | 12,544");
+    // The counts are the row's own last column, beside the select button rather than inside it.
+    const ribbitRow = page.getByRole("listitem").filter({ has: page.getByRole("button", { name: RIBBIT_BUTTON }) });
+    await expect(ribbitRow).toContainText("0 | 12,544");
   });
 
   test("refreshes menu progress when another tab saves", async ({ page }) => {

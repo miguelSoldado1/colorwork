@@ -14,6 +14,10 @@ The menu pairs a dense artwork table with `ArtworkPreviewPanel`. The table commu
 
 Selection is client-side and never changes the URL. The first catalog entry is selected initially, so the preview column is never an empty hole and needs neither a no-selection state nor a close button.
 
+Each row carries its own `Play →` link, in a column between the artwork and its pixel count. It is there because the menu is also the site's index: nine rows of `Play` alone would give search engines and screen readers nine identical links, so each carries its artwork's name in visually hidden text and is named "Play Gobbo". Selecting and playing are separate jobs, so they are separate controls, siblings in the `li` rather than nested. The link is plain text with no background or border, since the preview panel already owns the primary painting action.
+
+Putting the counts last takes them out of the button, so the button reaches the rest of the row through a stretched overlay and the link sits above it. Pressing the counts still selects the artwork. Hovering the button tints the row edge to edge and hovering the link does not, which is what marks the boundary between the two targets. Both right-hand tracks are floored rather than content-sized: each row is its own grid, so sized to their contents they drift a few pixels per row and the links stop sharing an edge with each other and with their caption.
+
 The preview panel keeps its primary painting action at every viewport size. On phones, the fixed action is an additional shortcut while the player browses the artwork lists.
 
 When text describes completion, it uses painted and total cell counts rather than a rounded percentage. A meter can use a percentage because it is only a proportional visual; text such as `100%` can be false while cells remain unfinished on a large board.

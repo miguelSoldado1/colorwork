@@ -3,6 +3,7 @@ import { expect, type Page, test } from "@playwright/test";
 const PLAY_URL = /\/play\/[^/]+$/;
 const RENAMED_IMPORT_URL = /\/play\/joao-s-cafe-da-manha-[a-z0-9]+$/;
 const ROOT_URL = /\/$/;
+const RIBBIT_URL = /\/play\/ribbit$/;
 const RIBBIT_BUTTON = /^Ribbit/;
 const GOBBO_BUTTON = /^Gobbo/;
 const WIDE_FIXTURE_BUTTON = /^Wide Fixture/;
@@ -33,6 +34,35 @@ test.describe("artwork catalog", () => {
     await expect(page).toHaveURL(ROOT_URL);
     await expect(preview.getByRole("heading", { name: "Gobbo" })).toBeVisible();
     await expect(preview.getByRole("button", { name: "See full artwork" })).toBeVisible();
+  });
+
+  test("plays an artwork from its row without selecting it first", async ({ page }) => {
+    await page.goto("/");
+
+    const rows = page.getByRole("list", { name: "Built-in artwork" }).getByRole("listitem");
+    const playLinks = rows.getByRole("link");
+    await expect(playLinks).toHaveCount(await rows.count());
+
+    // Each link names its own artwork, so the row reads as more than a wall of "Play".
+    const ribbitRow = rows.filter({ has: page.getByRole("button", { name: RIBBIT_BUTTON }) });
+    const ribbitPlay = ribbitRow.getByRole("link", { name: "Play Ribbit" });
+    await expect(ribbitPlay).toHaveAttribute("href", "/play/ribbit");
+
+    // Gobbo still holds the preview: playing a row must not depend on selecting it.
+    await expect(page.getByRole("button", { name: GOBBO_BUTTON })).toHaveAttribute("aria-pressed", "true");
+
+    // The counts sit outside the button, so the overlay has to keep them selecting the row.
+    // A real mouse press is the point: Playwright's own click refuses to land on a covered element.
+    const countBox = await ribbitRow.getByText("12,544").boundingBox();
+    if (!countBox) {
+      throw new Error("The Ribbit row did not render its pixel counts.");
+    }
+    await page.mouse.click(countBox.x + countBox.width / 2, countBox.y + countBox.height / 2);
+    await expect(page).toHaveURL(ROOT_URL);
+    await expect(page.getByRole("button", { name: RIBBIT_BUTTON })).toHaveAttribute("aria-pressed", "true");
+
+    await ribbitPlay.click();
+    await expect(page).toHaveURL(RIBBIT_URL);
   });
 
   test("keeps the selected artwork action visible while browsing on phones", async ({ page }) => {
