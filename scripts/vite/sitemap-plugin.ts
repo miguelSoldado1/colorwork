@@ -16,7 +16,10 @@ const LOCAL_SITE_URL = "http://localhost:4173";
 const sitemapBaselineDate = "2026-09-06";
 
 // Dates use YYYY-MM-DD, for example: "/play/new-puzzle": "2026-09-10".
-const sitemapDates: Readonly<Record<string, string>> = {};
+const sitemapDates: Readonly<Record<string, string>> = {
+  "/": "2026-10-11",
+  "/play/tidepool": "2026-10-11",
+};
 
 export interface SitemapPuzzle {
   catalogOrder: number;

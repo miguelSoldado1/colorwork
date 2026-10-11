@@ -12,6 +12,7 @@ describe("readSitemapPuzzles", () => {
       { id: "gobbo", name: "Gobbo" },
       { id: "vending-machine", name: "Vending Machine" },
       { id: "ribbit", name: "Ribbit" },
+      { id: "tidepool", name: "Tidepool" },
       { id: "warehouse", name: "Warehouse" },
       { id: "mech", name: "Mech" },
       { id: "deep-sea", name: "Deep Sea" },
