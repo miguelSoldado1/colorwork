@@ -44,6 +44,7 @@ describe("level catalog", () => {
       "Vending Machine",
       "Ribbit",
       "Tidepool",
+      "Barn",
       "Warehouse",
       "Mech",
       "Deep Sea",
