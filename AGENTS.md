@@ -8,6 +8,7 @@ Read [docs/design-notes.md](docs/design-notes.md) before changing product behavi
 - `createColoringBoard` owns pixel rendering, camera state, pointer input, painting, progress mutation, and render scheduling.
 - Do not add one DOM element, React component, or React state value per pixel.
 - Keep puzzle definitions immutable and player progress mutable.
+- Order puzzle palettes by descending target-pixel count, most-used color first. Remap `targetPixels` indices when reordering so the artwork stays unchanged.
 - Store pixel data in flat typed arrays using row-major indexing: `y * width + x`.
 - Keep Canvas-to-React communication to small callbacks carrying summarized state or a selected palette index.
 - Stored progress reaches the menu through `describeLevel`. Components should not read the progress store or raw pixel arrays directly.
