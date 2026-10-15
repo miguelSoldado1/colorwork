@@ -93,7 +93,8 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const persistedArtworkNameRef = useRef(puzzle.name);
   const [artworkName, setArtworkName] = useState(puzzle.name);
   const [renaming, setRenaming] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(0);
+  // A repeated selection must still reach the board to cancel pending color advancement.
+  const [colorSelection, setColorSelection] = useState({ colorIndex: 0 });
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [preferences, setPreferences] = useState(loadUserPreferences);
   const [highlightMissing, setHighlightMissing] = useState(false);
@@ -142,6 +143,11 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   useEffect(() => {
     saveUserPreferences(preferences);
   }, [preferences]);
+
+  const selectedColor = colorSelection.colorIndex;
+  function setSelectedColor(colorIndex: number) {
+    setColorSelection({ colorIndex });
+  }
 
   useKeyboardShortcuts([
     ...puzzle.palette.slice(0, 9).map((_color, colorIndex) => ({
@@ -323,13 +329,13 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
           <section className="min-h-0 min-w-0 flex-1 overflow-visible">
             <ColoringBoard
               celebrateCompletion={celebrateCompletion}
+              colorSelection={colorSelection}
               highlightMissing={highlightMissing}
               onProgress={updateBoardProgress}
               onSelectColor={setSelectedColor}
               overviewCanvasRef={overviewCanvasRef}
               progress={progress}
               puzzle={puzzle}
-              selectedColor={selectedColor}
               showGrid={preferences.showGrid}
               showNumbers={preferences.showNumbers}
               tool={selectedTool}

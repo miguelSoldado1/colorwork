@@ -38,6 +38,7 @@ interface PendingTouch {
   start: PointerPosition;
 }
 
+const COLOR_ADVANCE_DELAY = 250;
 const MAX_ZOOM = 32;
 const MIN_ZOOM = 1;
 const TOUCH_PAINT_THRESHOLD = 6;
@@ -138,6 +139,7 @@ export function createColoringBoard({
   let cameraIsSettled = true;
   let frameId: number | undefined;
   let progressFrameId: number | undefined;
+  let colorAdvanceTimer: ReturnType<typeof setTimeout> | undefined;
   let activePointerId: number | undefined;
   let activeOverviewPointerId: number | undefined;
   const activeTouchPointers = new Map<number, PointerPosition>();
@@ -563,6 +565,34 @@ export function createColoringBoard({
   }
 
   // Grid conversion and painting operations.
+  function cancelColorAdvance() {
+    clearTimeout(colorAdvanceTimer);
+    colorAdvanceTimer = undefined;
+  }
+
+  function selectNextUnfinishedColor() {
+    if (
+      progress.paintedByColor[selectedColor] !== totalByColor[selectedColor] ||
+      progress.paintedCount === puzzle.targetPixels.length
+    ) {
+      return;
+    }
+
+    for (let offset = 1; offset < puzzle.palette.length; offset += 1) {
+      const colorIndex = (selectedColor + offset) % puzzle.palette.length;
+      if (progress.paintedByColor[colorIndex] < totalByColor[colorIndex]) {
+        colorAdvanceTimer = setTimeout(() => {
+          colorAdvanceTimer = undefined;
+          selectedColor = colorIndex;
+          rebuildSelectionLayer();
+          scheduleRender();
+          onSelectColor(colorIndex);
+        }, COLOR_ADVANCE_DELAY);
+        return;
+      }
+    }
+  }
+
   function eventToCell(event: PointerEvent) {
     const bounds = canvas.getBoundingClientRect();
     const canvasX = event.clientX - bounds.left;
@@ -604,6 +634,7 @@ export function createColoringBoard({
     paintedContext.putImageData(paintedImage, 0, 0, cell.x, cell.y, 1, 1);
     selectionContext.putImageData(selectionImage, 0, 0, cell.x, cell.y, 1, 1);
     missingContext.putImageData(missingImage, 0, 0, cell.x, cell.y, 1, 1);
+    selectNextUnfinishedColor();
     scheduleRender();
     scheduleProgress();
   }
@@ -663,6 +694,7 @@ export function createColoringBoard({
     paintedContext.putImageData(paintedImage, 0, 0);
     selectionContext.putImageData(selectionImage, 0, 0);
     missingContext.putImageData(missingImage, 0, 0);
+    selectNextUnfinishedColor();
     scheduleRender();
     scheduleProgress();
   }
@@ -701,10 +733,12 @@ export function createColoringBoard({
       return;
     }
     event.preventDefault();
+    cancelColorAdvance();
     onSelectColor(puzzle.targetPixels[cell.y * puzzle.width + cell.x]);
   }
 
   function selectCellColorAt(cell: Cell) {
+    cancelColorAdvance();
     onSelectColor(puzzle.targetPixels[cell.y * puzzle.width + cell.x]);
   }
 
@@ -1199,6 +1233,7 @@ export function createColoringBoard({
   return {
     destroy() {
       destroyed = true;
+      cancelColorAdvance();
       resizeObserver.disconnect();
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
@@ -1224,6 +1259,7 @@ export function createColoringBoard({
       scheduleRender();
     },
     setSelectedColor(colorIndex: number) {
+      cancelColorAdvance();
       selectedColor = colorIndex;
       rebuildSelectionLayer();
       scheduleRender();

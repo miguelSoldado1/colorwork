@@ -6,13 +6,13 @@ import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } 
 
 interface ColoringBoardProps {
   celebrateCompletion: boolean;
+  colorSelection: { colorIndex: number };
   highlightMissing: boolean;
   onProgress: (summary: ProgressSummary) => void;
   onSelectColor: (colorIndex: number) => void;
   overviewCanvasRef: RefObject<HTMLCanvasElement | null>;
   progress: PuzzleProgress;
   puzzle: PuzzleDefinition;
-  selectedColor: number;
   showGrid: boolean;
   showNumbers: boolean;
   tool: ColoringTool;
@@ -20,13 +20,13 @@ interface ColoringBoardProps {
 
 export function ColoringBoard({
   celebrateCompletion,
+  colorSelection,
   highlightMissing,
   onProgress,
   onSelectColor,
   overviewCanvasRef,
   progress,
   puzzle,
-  selectedColor,
   showGrid,
   showNumbers,
   tool,
@@ -39,7 +39,7 @@ export function ColoringBoard({
     gridVisible: showGrid,
     highlightMissing,
     numbersVisible: showNumbers,
-    selectedColor,
+    selectedColor: colorSelection.colorIndex,
     tool,
   }));
 
@@ -73,8 +73,8 @@ export function ColoringBoard({
   }, [overviewCanvasRef, progress, puzzle]);
 
   useEffect(() => {
-    controllerRef.current?.setSelectedColor(selectedColor);
-  }, [selectedColor]);
+    controllerRef.current?.setSelectedColor(colorSelection.colorIndex);
+  }, [colorSelection]);
 
   useEffect(() => {
     controllerRef.current?.setShowGrid(showGrid);
