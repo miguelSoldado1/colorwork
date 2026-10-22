@@ -26,6 +26,7 @@ import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
 import { renameImportedPuzzle } from "@/levels/imported-levels";
+import { saveLastPaintedArtworkId } from "@/levels/last-painted-artwork";
 import { findLevel } from "@/levels/level-catalog";
 import {
   artworkDefinitionQueryOptions,
@@ -108,6 +109,8 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const resettingRef = useRef(false);
   const completedRef = useRef(isPuzzleComplete(summary));
   const startedRef = useRef(initialProgress.paintedCount > 0);
+  // Painting, not opening, is what the menu resumes.
+  const rememberedRef = useRef(false);
 
   usePageMetadata({
     description: `Color ${artworkName}, a ${puzzle.width} by ${puzzle.height} pixel art color-by-number puzzle, in your browser.`,
@@ -184,6 +187,10 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
       return;
     }
 
+    if (!rememberedRef.current) {
+      rememberedRef.current = true;
+      saveLastPaintedArtworkId(puzzle.id);
+    }
     updateProgressSummary(nextSummary);
     progressSaver.schedule(progress, isPuzzleComplete(nextSummary));
   }

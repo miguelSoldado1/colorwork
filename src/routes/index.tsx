@@ -6,7 +6,7 @@ import { CatalogMenu } from "@/components/levels/catalog-menu";
 import { ImportedMenu } from "@/components/levels/imported-menu";
 import { LevelsMenuFrame, LevelsMenuLoadError, LevelsMenuLoading } from "@/components/levels/levels-menu-frame";
 import { MobileArtworkAction } from "@/components/levels/mobile-artwork-action";
-import { LEVELS } from "@/levels/level-catalog";
+import { loadLastPaintedArtworkId } from "@/levels/last-painted-artwork";
 import { artworkDescriptionsQueryOptions } from "@/query/artwork-queries";
 import { usePageMetadata } from "@/seo/use-page-metadata";
 import type { LevelDescription } from "@/levels/describe-level";
@@ -15,7 +15,8 @@ export const Route = createFileRoute("/")({ component: IndexRoute });
 
 function IndexRoute() {
   const levelsQuery = useQuery(artworkDescriptionsQueryOptions());
-  const [previewId, setPreviewId] = useState(() => LEVELS[0]?.id);
+  const [previewId, setPreviewId] = useState<string>();
+  const [lastPaintedId] = useState(loadLastPaintedArtworkId);
   usePageMetadata({
     description:
       "Play a free pixel art color-by-number game in your browser. Choose an artwork or turn your own image into a numbered coloring board.",
@@ -30,7 +31,10 @@ function IndexRoute() {
     return <LevelsMenuLoadError onRetry={retry} />;
   }
 
-  const preview = levelsQuery.data.find((level) => level.puzzle.id === previewId) ?? levelsQuery.data[0];
+  const preview =
+    levelsQuery.data.find((level) => level.puzzle.id === previewId) ??
+    levelsQuery.data.find((level) => level.puzzle.id === lastPaintedId && !level.finished) ??
+    levelsQuery.data[0];
   const catalog = levelsQuery.data.filter((level) => level.source === "catalog");
   const imported = levelsQuery.data.filter((level) => level.source === "imported");
 

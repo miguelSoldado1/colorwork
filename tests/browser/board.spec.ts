@@ -25,6 +25,38 @@ const FIXTURE = {
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("coloring board", () => {
+  test("resumes the last painted unfinished artwork on the menu until it is finished", async ({ page }) => {
+    await openImportedPuzzle(page);
+    const artworkId = new URL(page.url()).pathname.split("/").pop();
+    if (!artworkId) {
+      throw new Error("The imported artwork URL did not include an id.");
+    }
+
+    await paintCell(page, 0, 0);
+    await expect.poll(() => getStoredPaintedCount(page, artworkId)).toBe(1);
+
+    await page.goto("/");
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+    await expect(preview.getByRole("heading", { name: "Two Color Fixture" })).toBeVisible();
+    await expect(page.getByRole("button", { name: TWO_COLOR_FIXTURE_BUTTON })).toHaveAttribute("aria-pressed", "true");
+
+    await page.getByRole("button", { name: RIBBIT_BUTTON }).click();
+    await expect(preview.getByRole("heading", { name: "Ribbit" })).toBeVisible();
+
+    await page.reload();
+    await expect(preview.getByRole("heading", { name: "Two Color Fixture" })).toBeVisible();
+
+    await preview.getByRole("link", { name: "Keep painting" }).click();
+    await page.getByRole("button", { name: "Bucket fill tool" }).click();
+    await paintCell(page, 0, 1);
+    await page.getByRole("button", { name: "Color 2: 0 of 8 cells painted" }).click();
+    await paintCell(page, 3, 0);
+    await expect.poll(() => getStoredPaintedCount(page, artworkId)).toBe(16);
+
+    await page.goto("/");
+    await expect(preview.getByRole("heading", { name: "Gobbo" })).toBeVisible();
+  });
+
   test("imports a tiny puzzle and completes it with pencil, picker, and bucket tools", async ({ page }) => {
     await openImportedPuzzle(page);
     const artworkId = new URL(page.url()).pathname.split("/").pop();

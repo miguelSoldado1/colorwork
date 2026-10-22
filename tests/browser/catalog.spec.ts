@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+const BOARD_LABEL = "Color-by-number puzzle. Choose a tool and interact with cells on the board.";
+const PAINTED_ANY = /[1-9][0-9,]* of [0-9,]+ pixels painted/;
 const PLAY_URL = /\/play\/[^/]+$/;
 const RENAMED_IMPORT_URL = /\/play\/joao-s-cafe-da-manha-[a-z0-9]+$/;
 const ROOT_URL = /\/$/;
@@ -57,6 +59,35 @@ test.describe("artwork catalog", () => {
     await expect(page).toHaveURL(ROOT_URL);
     await expect(preview.getByRole("heading", { name: "Gobbo" })).toBeVisible();
     await expect(preview.getByRole("button", { name: "See full artwork" })).toBeVisible();
+  });
+
+  test("selects the last painted unfinished artwork on the next visit", async ({ page }) => {
+    await page.goto("/play/ribbit");
+    const canvas = page.getByRole("img", { name: BOARD_LABEL });
+    await expect(canvas).toBeVisible();
+    const box = await canvas.boundingBox();
+    if (!box) {
+      throw new Error("The board canvas did not receive a layout box.");
+    }
+    const position = { x: box.width / 2, y: box.height / 2 };
+    await canvas.click({ button: "middle", position });
+    await canvas.click({ position });
+    await expect(page.getByRole("group", { name: PAINTED_ANY })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
+
+    // Opening another board without painting must not displace the artwork in progress.
+    await page.goto("/play/tidepool");
+    await expect(page.getByRole("heading", { name: "Tidepool" })).toBeVisible();
+
+    await page.goto("/");
+    const preview = page.getByRole("complementary", { name: "Artwork preview" });
+    await expect(preview.getByRole("heading", { name: "Ribbit" })).toBeVisible();
+    await expect(preview.getByRole("link", { name: "Keep painting" })).toBeVisible();
+    await expect(page.getByRole("button", { name: RIBBIT_BUTTON })).toHaveAttribute("aria-pressed", "true");
+
+    await page.evaluate(() => localStorage.setItem("color-byte:last-painted-artwork:v1", "not-a-real-artwork"));
+    await page.reload();
+    await expect(preview.getByRole("heading", { name: "Gobbo" })).toBeVisible();
   });
 
   test("plays an artwork from its row without selecting it first", async ({ page }) => {
