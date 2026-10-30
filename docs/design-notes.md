@@ -59,7 +59,7 @@ A strip near the bottom of the menu asks pixel artists to email us their work. I
 
 The strip is built as one more row of the artwork list: as wide as the list, inset like its rows and about as tall as one. A dashed tile with the pencil sits where thumbnails sit, borrowed from "Import your own", and the sentence starts where artwork names start. So it reads as an empty slot in the collection rather than a notice. Two earlier versions didn't work. A corner card sat on top of the table and sliced through thumbnails and names, and a strip as wide as the page looked like a cookie banner.
 
-It's sticky, not fixed, so at the end of the page it settles under the footer instead of covering it. On phones it sits above the artwork action bar, keeps the tile, and drops the email link and close button onto their own line.
+It's sticky, not fixed, so at the end of the page it settles under the footer instead of covering it. On phones it sits above the artwork action bar, drops the tile so the sentence gets the width, and puts the email link and close button on their own line.
 
 The close button keeps a 44-pixel target, but only a 28-pixel square around the glyph reacts to hover, press and focus. A tint filling the whole target looked oversized in a strip this slim.
 

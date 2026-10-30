@@ -37,7 +37,7 @@ export function ArtistCallout() {
       aria-label="Invitation for pixel artists"
       className="artist-callout sticky bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-30 flex min-w-0 items-start gap-4 rounded-lg border border-border bg-card/95 py-3.5 pr-4 pl-4 text-card-foreground backdrop-blur-sm sm:items-center sm:gap-6 sm:pr-12 sm:pl-6 lg:bottom-6 lg:w-[calc(100%-23rem)]"
     >
-      <span className="grid size-12 shrink-0 place-items-center rounded-[3px] border border-border border-dashed text-muted-foreground">
+      <span className="hidden size-12 shrink-0 place-items-center rounded-[3px] border border-border border-dashed text-muted-foreground sm:grid">
         <Pencil aria-hidden height={22} width={22} />
       </span>
       {/* Phones stack the link under the sentence; wider screens lay both out as row cells. */}
