@@ -1,4 +1,5 @@
 import { SiteFooter } from "@/components/app/site-footer";
+import { ArtistCallout } from "@/components/levels/artist-callout";
 import type { ReactNode } from "react";
 
 interface LevelsMenuFrameProps {
@@ -23,6 +24,7 @@ export function LevelsMenuFrame({ children, summary }: LevelsMenuFrameProps) {
         </header>
         {children}
         <SiteFooter />
+        <ArtistCallout />
       </div>
     </main>
   );

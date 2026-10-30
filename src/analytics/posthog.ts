@@ -4,6 +4,8 @@ import type { LevelSource } from "@/levels/describe-level";
 
 type AnalyticsEvent =
   | "achievement_unlocked"
+  | "artist_invitation_dismissed"
+  | "artist_invitation_email_clicked"
   | "artwork_opened"
   | "custom_artwork_imported"
   | "puzzle_completed"
@@ -92,6 +94,10 @@ export function trackArtworkOpened(
     progress_state: getProgressState(paintedCells, totalCells),
     total_cells: totalCells,
   });
+}
+
+export function trackArtistInvitation(action: "dismissed" | "email_clicked") {
+  capture(`artist_invitation_${action}`, {});
 }
 
 export function trackCustomArtworkImported(puzzle: PuzzleDefinition, sourceWidth: number, sourceHeight: number) {

@@ -53,6 +53,20 @@ The title line reserves only the 24 pixels the name itself needs, at every viewp
 
 Clearing progress is also the only way to repaint a finished artwork. Opening a finished piece restores its completed board, which is why its primary action says "Open the finished board."
 
+### Artist invitation
+
+A strip near the bottom of the menu asks pixel artists to email us their work. It floats over the list, so it gets a close button. Closing it isn't remembered. It comes back the next time the menu opens.
+
+The strip is built as one more row of the artwork list: as wide as the list, inset like its rows and about as tall as one. A dashed tile with the pencil sits where thumbnails sit, borrowed from "Import your own", and the sentence starts where artwork names start. So it reads as an empty slot in the collection rather than a notice. Two earlier versions didn't work. A corner card sat on top of the table and sliced through thumbnails and names, and a strip as wide as the page looked like a cookie banner.
+
+It's sticky, not fixed, so at the end of the page it settles under the footer instead of covering it. On phones it sits above the artwork action bar, keeps the tile, and drops the email link and close button onto their own line.
+
+The close button keeps a 44-pixel target, but only a 28-pixel square around the glyph reacts to hover, press and focus. A tint filling the whole target looked oversized in a strip this slim.
+
+The copy is one sentence that opens with a bold "Pixel artist?". A separate title made the phone version wordy. The strip promises credit and a link back and nothing else. Payment and permission belong in the email, where saying "this is unpaid" is part of an agreement instead of a disclaimer on the menu. The email link opens a draft that asks for the name and link to credit, then lists what the artist confirms by sending. They keep ownership. Colorwork gets non-exclusive use, may adapt the piece into a puzzle, and may show it in posts about the game. The contribution is unpaid, and the artist can ask for removal at any time.
+
+Clicking the email link and closing the strip each send a product event with no properties. The strip arrives a moment after the menu with one short rise, uses the toast's card surface, and has no accent.
+
 ### Data and imports
 
 `describeLevel` combines a puzzle definition and its saved progress into the shape consumed by menu components. This keeps storage and raw pixel arrays out of the presentation layer.

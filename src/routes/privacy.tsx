@@ -31,7 +31,7 @@ function PrivacyRoute() {
           <p className="mt-5 max-w-2xl text-muted-foreground text-sm leading-6 sm:text-base">
             Colorwork has no user accounts. Your imported artwork and puzzle progress stay on your device.
           </p>
-          <p className="mt-3 text-muted-foreground text-xs">Last updated: September 5, 2026</p>
+          <p className="mt-3 text-muted-foreground text-xs">Last updated: October 30, 2026</p>
         </header>
 
         <section aria-labelledby="data-boundary-heading" className="py-7 sm:py-10">
@@ -80,7 +80,8 @@ function PrivacyRoute() {
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
             <p>
               Colorwork sends these product events to PostHog: artwork opens, puzzle starts and completions, custom
-              artwork imports, progress resets, and achievement unlocks. Achievement events include the award ID.
+              artwork imports, progress resets, achievement unlocks, and clicks on the artist invitation's email link or
+              close button. Achievement events include the award ID.
             </p>
             <p>
               PostHog runs in cookieless server-hash mode. It combines the request IP address, browser details,
