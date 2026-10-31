@@ -55,7 +55,7 @@ Clearing progress is also the only way to repaint a finished artwork. Opening a 
 
 ### Artist invitation
 
-A strip near the bottom of the menu asks pixel artists to email us their work. It floats over the list, so it gets a close button. Closing it isn't remembered. It comes back the next time the menu opens.
+A strip near the bottom of the menu asks pixel artists to email us their work. It floats over the list, so it gets a close button. Closing it lasts until the page reloads, so it stays closed after a board but nothing is saved to storage.
 
 The strip is built as one more row of the artwork list: as wide as the list, inset like its rows and about as tall as one. A dashed tile with the pencil sits where thumbnails sit, borrowed from "Import your own", and the sentence starts where artwork names start. So it reads as an empty slot in the collection rather than a notice. Two earlier versions didn't work. A corner card sat on top of the table and sliced through thumbnails and names, and a strip as wide as the page looked like a cookie banner.
 

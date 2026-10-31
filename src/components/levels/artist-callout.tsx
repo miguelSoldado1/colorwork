@@ -6,7 +6,7 @@ import Pencil from "@/assets/icons/pencil.svg?react";
 const ARTIST_CONTACT_EMAIL = "art@playcolorwork.com";
 
 // Plain-language permission the artist confirms by sending. Not a contract.
-const SUBMISSION_BODY = `Hi Colorwork,
+const SUBMISSION_BODY = `Hey Colorwork,
 
 Name to credit:
 Link for the credit (portfolio, itch.io, socials):
@@ -24,9 +24,18 @@ By sending this, I confirm that:
 
 const SUBMISSION_HREF = `mailto:${ARTIST_CONTACT_EMAIL}?subject=${encodeURIComponent("Artwork for Colorwork")}&body=${encodeURIComponent(SUBMISSION_BODY)}`;
 
+// Survives returning from a board, resets on reload.
+let dismissedThisPageLoad = false;
+
 // Sticky rather than fixed, so it settles below the footer at the end of the page instead of covering it.
 export function ArtistCallout() {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(dismissedThisPageLoad);
+
+  function dismiss() {
+    trackArtistInvitation("dismissed");
+    dismissedThisPageLoad = true;
+    setDismissed(true);
+  }
 
   if (dismissed) {
     return null;
@@ -40,7 +49,6 @@ export function ArtistCallout() {
       <span className="hidden size-12 shrink-0 place-items-center rounded-[3px] border border-border border-dashed text-muted-foreground sm:grid">
         <Pencil aria-hidden height={22} width={22} />
       </span>
-      {/* Phones stack the link under the sentence; wider screens lay both out as row cells. */}
       <div className="flex min-w-0 flex-1 flex-col sm:contents">
         <p className="min-w-0 flex-1 text-pretty text-muted-foreground text-sm leading-snug">
           <span className="font-medium text-foreground">Pixel artist?</span> Your work could be in Colorwork, credited
@@ -60,16 +68,10 @@ export function ArtistCallout() {
         onClick={dismiss}
         type="button"
       >
-        {/* The button keeps a 44px target. Only this smaller square reacts. */}
         <span className="grid size-7 place-items-center rounded-md transition-[background-color,color,transform] duration-150 ease-out group-hover:bg-foreground/6 group-hover:text-foreground group-focus-visible:outline-2 group-focus-visible:outline-ring group-focus-visible:outline-offset-2 group-active:scale-[0.97]">
           <Close aria-hidden height={16} width={16} />
         </span>
       </button>
     </aside>
   );
-
-  function dismiss() {
-    trackArtistInvitation("dismissed");
-    setDismissed(true);
-  }
 }
