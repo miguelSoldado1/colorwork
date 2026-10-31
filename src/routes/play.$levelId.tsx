@@ -94,8 +94,6 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const persistedArtworkNameRef = useRef(puzzle.name);
   const [artworkName, setArtworkName] = useState(puzzle.name);
   const [renaming, setRenaming] = useState(false);
-  // A repeated selection must still reach the board to cancel pending color advancement.
-  const [colorSelection, setColorSelection] = useState({ colorIndex: 0 });
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
   const [preferences, setPreferences] = useState(loadUserPreferences);
   const [highlightMissing, setHighlightMissing] = useState(false);
@@ -111,6 +109,13 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const startedRef = useRef(initialProgress.paintedCount > 0);
   // Painting, not opening, is what the menu resumes.
   const rememberedRef = useRef(false);
+  // A repeated selection must still reach the board to cancel pending color advancement.
+  const [colorSelection, setColorSelection] = useState(() => ({
+    colorIndex: Math.max(
+      0,
+      summary.paintedByColor.findIndex((painted, colorIndex) => painted < summary.totalByColor[colorIndex])
+    ),
+  }));
 
   usePageMetadata({
     description: `Color ${artworkName}, a ${puzzle.width} by ${puzzle.height} pixel art color-by-number puzzle, in your browser.`,

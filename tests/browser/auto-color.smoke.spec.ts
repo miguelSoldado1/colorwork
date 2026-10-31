@@ -67,12 +67,10 @@ for (const input of ["mouse", "touch"] as const) {
       await expect(color(2)).toHaveAttribute("aria-pressed", "true");
       await expect(color(1)).toHaveAccessibleName("Color 1: 4 of 4 cells painted");
 
-      // Restoring an exhausted initial selection must not advance it, even on an ignored paint.
+      // Restored progress opens on the first unfinished color.
       await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
       await page.reload();
-      await expect(color(1)).toHaveAttribute("aria-pressed", "true");
-      await paint(0, 0);
-      await expect(color(1)).toHaveAttribute("aria-pressed", "true");
+      await expect(color(2)).toHaveAttribute("aria-pressed", "true");
 
       // Manual selection remains available. Finish color 3 ahead of color 2.
       await color(3).click();

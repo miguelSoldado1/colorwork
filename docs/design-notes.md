@@ -95,7 +95,7 @@ Pencil strokes stop at the Canvas edge and do not bridge gaps while the pointer 
 
 ## Palette and completion
 
-Painting the last missing cell of the selected color advances selection after a 250 ms pause to the next unfinished color in palette order, wrapping as needed. This uses the existing selection indicator without moving the camera or reordering swatches. Manual selection cancels the pending advance, including selecting the same swatch again. Loading saved progress does not advance selection, and finishing the artwork keeps the final color selected and celebrates immediately.
+Painting the last missing cell of the selected color advances selection after a 250 ms pause to the next unfinished color in palette order, wrapping as needed. This uses the existing selection indicator without moving the camera or reordering swatches. Manual selection cancels the pending advance, including selecting the same swatch again. Opening saved progress selects the first unfinished color without a pause, and finishing the artwork keeps the final color selected and celebrates immediately.
 
 An exhausted board-palette swatch dims to help the player find remaining colors. When every color is exhausted, none of the swatches dim; graying the whole palette would make the completed artwork feel drained without pointing to a useful next action.
 
