@@ -98,7 +98,6 @@ function PrivacyRoute() {
               Colorwork does not send imported image data, filenames, imported artwork names, pixel data, or color
               values to PostHog.
             </p>
-            <p>PostHog is disabled in development and when the production configuration is missing.</p>
             <a
               className="inline-flex min-h-11 items-center text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
               href={POSTHOG_PRIVACY_URL}
