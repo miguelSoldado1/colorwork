@@ -40,12 +40,12 @@ function PrivacyRoute() {
           </h2>
           <div className="grid overflow-hidden rounded-xl border border-border sm:grid-cols-2">
             <DataBoundary
-              detail="Artwork data, puzzle progress, and board settings"
+              detail="Artwork, progress, achievements, and board settings"
               label="Stays on this device"
               marker="Local"
             />
             <DataBoundary
-              detail="Explicit, cookieless product events for artwork and board usage"
+              detail="Cookieless events about how you use Colorwork"
               label="Sent to PostHog"
               marker="Network"
             />
@@ -56,13 +56,11 @@ function PrivacyRoute() {
           <h2 className="font-semibold text-lg">Data on your device</h2>
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
             <p>
-              Colorwork saves your puzzle progress and imported artwork in IndexedDB. For each saved artwork, this can
-              include the name, size, palette, and converted pixel data. Colorwork does not upload the original image.
+              Your puzzle progress, imported artwork, completed puzzles, and achievements live in your browser's
+              IndexedDB. An imported artwork is saved as its name, size, palette, and converted pixels. The original
+              image is never uploaded.
             </p>
-            <p>
-              Colorwork uses local storage to remember whether the grid and cell numbers are on. These settings stay on
-              your device.
-            </p>
+            <p>Local storage remembers whether the grid and cell numbers are on, and which artwork you painted last.</p>
           </div>
         </div>
 
@@ -71,7 +69,9 @@ function PrivacyRoute() {
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
             <p>Use "Start over" to delete the saved progress for one artwork.</p>
             <p>To remove an imported artwork from this device, delete it from the artwork menu.</p>
-            <p>To remove all artwork, progress, and settings, clear the Colorwork site data in your browser.</p>
+            <p>
+              To remove everything, including achievements and settings, clear Colorwork's site data in your browser.
+            </p>
           </div>
         </div>
 
@@ -79,24 +79,23 @@ function PrivacyRoute() {
           <h2 className="font-semibold text-lg">Product analytics</h2>
           <div className="space-y-5 text-muted-foreground text-sm leading-6">
             <p>
-              Colorwork sends these product events to PostHog: artwork opens, puzzle starts and completions, each
-              quarter of puzzle progress, custom artwork imports, progress resets, achievement unlocks, and clicks on
-              the artist invitation's email link or close button. Achievement events include the award ID.
+              Colorwork sends PostHog events about puzzle play, artwork imports, achievements, and the artist
+              invitation. Puzzle and import events can include the grid size, palette size, and how many cells you've
+              painted. Built-in artwork adds its catalog ID, imports add the source image's dimensions, and achievements
+              add the award ID.
             </p>
             <p>
-              PostHog runs in cookieless server-hash mode. It combines the request IP address, browser details,
-              hostname, and a salt to make a daily identifier. The salt changes each day. PostHog does not store the
-              identifier in cookies or browser storage.
+              PostHog runs in cookieless mode. To count visitors, it hashes your IP address, browser details, and the
+              hostname with a salt that changes every day. The result works as an ID for one day and is never stored in
+              cookies or browser storage.
             </p>
             <p>
-              For page views and page leaves, PostHog can receive the page URL and path, referring site, campaign
-              parameters, browser, operating system, and device details. Colorwork has turned off person profiles,
-              interaction autocapture, dead clicks, heatmaps, performance capture, session recording, surveys, and
-              feature flags.
+              PostHog also records page views and page leaves. Those can include the page URL, the site that sent you,
+              campaign parameters, and your browser, operating system, and device. Person profiles, autocapture, dead
+              clicks, heatmaps, performance capture, session recording, surveys, and feature flags are all off.
             </p>
             <p>
-              Colorwork does not send imported image data, filenames, imported artwork names, pixel data, or color
-              values to PostHog.
+              Your imports stay out of it. PostHog never gets their image data, filenames, names, pixels, or colors.
             </p>
             <a
               className="inline-flex min-h-11 items-center text-foreground underline decoration-border underline-offset-4 transition-colors hover:text-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
@@ -104,7 +103,7 @@ function PrivacyRoute() {
               rel="noreferrer"
               target="_blank"
             >
-              Read the PostHog privacy information
+              PostHog's privacy policy
             </a>
           </div>
         </div>
@@ -112,7 +111,7 @@ function PrivacyRoute() {
         <div className="grid gap-8 border-border border-y py-8 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-12 sm:py-10">
           <h2 className="font-semibold text-lg">Changes</h2>
           <p className="text-muted-foreground text-sm leading-6">
-            If Colorwork changes how it stores or collects data, this page and the date above will also change.
+            If Colorwork changes what it stores or sends, this page and its date will change too.
           </p>
         </div>
       </article>
