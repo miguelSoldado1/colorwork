@@ -67,3 +67,28 @@ describe("achievement events", () => {
     expect(posthogMocks.capture).not.toHaveBeenCalled();
   });
 });
+
+describe("progress milestone events", () => {
+  it("captures each quarter milestone once as painting crosses it", async () => {
+    vi.stubEnv("PROD", true);
+    vi.stubEnv("VITE_POSTHOG_PROJECT_TOKEN", "test-token");
+    vi.stubEnv("VITE_POSTHOG_HOST", "https://analytics.example.test");
+    vi.resetModules();
+    const analytics = await import("../../src/analytics/posthog");
+    const milestoneUpdate = { puzzle, source: "imported", totalCells: 16 } as const;
+
+    analytics.trackProgressMilestones({ ...milestoneUpdate, paintedCells: 3, previousPaintedCells: 0 });
+    analytics.trackProgressMilestones({ ...milestoneUpdate, paintedCells: 4, previousPaintedCells: 3 });
+    analytics.trackProgressMilestones({ ...milestoneUpdate, paintedCells: 5, previousPaintedCells: 4 });
+    analytics.trackProgressMilestones({ ...milestoneUpdate, paintedCells: 16, previousPaintedCells: 5 });
+    await vi.waitFor(() => expect(posthogMocks.capture).toHaveBeenCalledTimes(3));
+
+    const { calls } = posthogMocks.capture.mock;
+    expect(calls.map(([event, properties]) => [event, properties.milestone_percent])).toEqual([
+      ["puzzle_milestone_reached", 25],
+      ["puzzle_milestone_reached", 50],
+      ["puzzle_milestone_reached", 75],
+    ]);
+    expect(JSON.stringify(calls)).not.toContain("custom-secret");
+  });
+});

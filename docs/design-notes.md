@@ -121,6 +121,8 @@ The hairline is a real element rather than `::after`, and the hover and focus ru
 
 Achievement analytics record newly persisted unlocks using authored award IDs. These events use the existing production-only analytics setup and include no imported artwork names or IDs.
 
+Puzzle analytics send one event as painting crosses 25, 50, and 75 percent, between the start and completion events. Counting crossings shows where players stop without watching the page lifecycle, and each event goes out while the player is still painting. A reset lets the milestones fire again.
+
 ### The achievements page
 
 One card per achievement. A card is the shape an award already arrives in, since the toast is a card and the page is that card standing still. Cards run one to a row at every width, and the page never reads as a grid of tiles. A card that wide has to spend its width. From `sm` upward the unlock date moves to the far edge, leaving the name at one end and the date at the other with the description beneath. A phone has no room for that, and the date sits under the name.

@@ -9,10 +9,13 @@ type AnalyticsEvent =
   | "artwork_opened"
   | "custom_artwork_imported"
   | "puzzle_completed"
+  | "puzzle_milestone_reached"
   | "puzzle_reset"
   | "puzzle_started";
 
 export type ResetSurface = "board" | "menu";
+
+const PROGRESS_MILESTONES = [25, 50, 75];
 
 type EventProperties = Record<string, boolean | number | string>;
 
@@ -116,6 +119,27 @@ export function trackPuzzleStarted(puzzle: PuzzleDefinition, source: LevelSource
     ...getArtworkAnalyticsProperties(puzzle, source),
     painted_cells: paintedCells,
   });
+}
+
+interface ProgressMilestoneUpdate {
+  paintedCells: number;
+  previousPaintedCells: number;
+  puzzle: PuzzleDefinition;
+  source: LevelSource;
+  totalCells: number;
+}
+
+export function trackProgressMilestones(props: ProgressMilestoneUpdate) {
+  for (const milestone of PROGRESS_MILESTONES) {
+    const milestoneCells = props.totalCells * milestone;
+
+    if (props.previousPaintedCells * 100 < milestoneCells && props.paintedCells * 100 >= milestoneCells) {
+      capture("puzzle_milestone_reached", {
+        ...getArtworkAnalyticsProperties(props.puzzle, props.source),
+        milestone_percent: milestone,
+      });
+    }
+  }
 }
 
 export function trackPuzzleCompleted(puzzle: PuzzleDefinition, source: LevelSource) {

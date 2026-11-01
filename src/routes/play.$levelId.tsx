@@ -3,7 +3,13 @@ import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { reconcileAchievements } from "@/achievements/process-achievements";
 import { checkAndShowAchievementUnlocks } from "@/achievements/show-achievement-toast";
-import { trackArtworkOpened, trackPuzzleCompleted, trackPuzzleReset, trackPuzzleStarted } from "@/analytics/posthog";
+import {
+  trackArtworkOpened,
+  trackProgressMilestones,
+  trackPuzzleCompleted,
+  trackPuzzleReset,
+  trackPuzzleStarted,
+} from "@/analytics/posthog";
 import ArrowLeft from "@/assets/icons/arrow-left.svg?react";
 import { clonePuzzleProgress, createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import {
@@ -106,7 +112,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const [resetVersion, setResetVersion] = useState(0);
   const resettingRef = useRef(false);
   const completedRef = useRef(isPuzzleComplete(summary));
-  const startedRef = useRef(initialProgress.paintedCount > 0);
+  const paintedCellsRef = useRef(initialProgress.paintedCount);
   // Painting, not opening, is what the menu resumes.
   const rememberedRef = useRef(false);
   // A repeated selection must still reach the board to cancel pending color advancement.
@@ -203,10 +209,19 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   function updateProgressSummary(nextSummary: ProgressSummary) {
     const nextComplete = isPuzzleComplete(nextSummary);
 
-    if (!startedRef.current && nextSummary.paintedCount > 0) {
-      startedRef.current = true;
+    const previousPaintedCells = paintedCellsRef.current;
+    paintedCellsRef.current = nextSummary.paintedCount;
+
+    if (previousPaintedCells === 0 && nextSummary.paintedCount > 0) {
       trackPuzzleStarted(puzzle, artworkSource, nextSummary.paintedCount);
     }
+    trackProgressMilestones({
+      paintedCells: nextSummary.paintedCount,
+      previousPaintedCells,
+      puzzle,
+      source: artworkSource,
+      totalCells,
+    });
 
     if (nextComplete !== completedRef.current) {
       completedRef.current = nextComplete;
@@ -253,7 +268,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
 
       const emptyProgress = createPuzzleProgress(puzzle);
       trackPuzzleReset(puzzle, artworkSource, paintedCellsBeforeReset, "board");
-      startedRef.current = false;
+      paintedCellsRef.current = 0;
       completedRef.current = false;
       setCelebrateCompletion(false);
       setProgress(emptyProgress);
