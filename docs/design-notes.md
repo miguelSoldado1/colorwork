@@ -44,7 +44,7 @@ The close button keeps a 44-pixel target, but only a 28-pixel square around the 
 
 The copy is one sentence that opens with a bold "Pixel artist?". A separate title made the phone version wordy. The strip promises credit and a link back and nothing else. Payment and permission belong in the email, where "this is unpaid" is part of an agreement instead of a disclaimer on the menu. The email link opens a draft that asks for the name and link to credit, then lists what the artist confirms by sending. They keep ownership. Colorwork gets non-exclusive use, may adapt the piece into a puzzle, and may show it in posts about the game. The contribution is unpaid, and the artist can ask for removal at any time.
 
-Clicking the email link and closing the strip each send a product event with no properties. The strip arrives a moment after the menu with one short rise, uses the toast's card surface, and has no accent.
+Clicking the email link and closing the strip each send a product event with no properties. The strip arrives a moment after the menu with one short rise, uses the toast's card surface, and has no accent. Closing fades it and then collapses its space and the gap above it, so a page scrolled to the end eases down instead of jumping. Reduced motion removes it at once.
 
 ## Importing artwork
 
