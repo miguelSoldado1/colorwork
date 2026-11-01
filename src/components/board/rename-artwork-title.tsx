@@ -128,6 +128,7 @@ export function RenameArtworkTitle({ editing, name, onEditingChange, onRename }:
       <div className="flex h-6 min-w-0 items-center">
         <h1 className={`${TITLE_TYPE} min-w-0`}>
           {/* The pseudo-element carries the touch target, so the truncation has to clip below it. */}
+          {/* Hairline is a box-shadow so neither title state adds layout height. */}
           <button
             aria-describedby={hintId}
             className={`${TITLE_TYPE} relative block max-w-full cursor-pointer rounded-xs text-left text-foreground shadow-[0_2px_0_0_var(--color-border)] transition-shadow duration-200 ease-out before:absolute before:inset-x-0 before:-inset-y-3.5 before:content-[''] hover:shadow-[0_2px_0_0_var(--color-input)] focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4 sm:before:-inset-y-2`}
