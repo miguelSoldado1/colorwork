@@ -15,7 +15,12 @@ export function StartOverControl({ level }: StartOverControlProps) {
     useConfirmAction({
       onConfirm: async () => {
         await clearPuzzleProgress(level.puzzle);
-        trackPuzzleReset(level.puzzle, level.source, level.paintedCount, "menu");
+        trackPuzzleReset({
+          paintedCellsBeforeReset: level.paintedCount,
+          puzzle: level.puzzle,
+          source: level.source,
+          surface: "menu",
+        });
       },
     });
 

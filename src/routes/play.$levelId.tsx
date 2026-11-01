@@ -133,7 +133,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const totalCells = puzzle.width * puzzle.height;
 
   useEffect(() => {
-    trackArtworkOpened(puzzle, artworkSource, initialProgress.paintedCount, totalCells);
+    trackArtworkOpened({ paintedCells: initialProgress.paintedCount, puzzle, source: artworkSource, totalCells });
   }, [artworkSource, initialProgress, puzzle, totalCells]);
 
   useEffect(() => progressSaver.connect(), [progressSaver]);
@@ -213,7 +213,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
     paintedCellsRef.current = nextSummary.paintedCount;
 
     if (previousPaintedCells === 0 && nextSummary.paintedCount > 0) {
-      trackPuzzleStarted(puzzle, artworkSource, nextSummary.paintedCount);
+      trackPuzzleStarted({ paintedCells: nextSummary.paintedCount, puzzle, source: artworkSource });
     }
     trackProgressMilestones({
       paintedCells: nextSummary.paintedCount,
@@ -267,7 +267,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
       await clearPuzzleProgress(puzzle);
 
       const emptyProgress = createPuzzleProgress(puzzle);
-      trackPuzzleReset(puzzle, artworkSource, paintedCellsBeforeReset, "board");
+      trackPuzzleReset({ paintedCellsBeforeReset, puzzle, source: artworkSource, surface: "board" });
       paintedCellsRef.current = 0;
       completedRef.current = false;
       setCelebrateCompletion(false);

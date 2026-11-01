@@ -90,7 +90,7 @@ export function ImportArtworkRow() {
     }
 
     checkAndShowAchievementUnlocks(evaluateImportedPuzzleAchievements);
-    trackCustomArtworkImported(puzzle, importSource.width, importSource.height);
+    trackCustomArtworkImported({ puzzle, sourceHeight: importSource.height, sourceWidth: importSource.width });
 
     const filters = { queryKey: artworkQueryKeys.descriptions, refetchType: "none" as const };
     const invalidationResult = await tryCatch(queryClient.invalidateQueries(filters));

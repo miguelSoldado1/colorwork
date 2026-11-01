@@ -85,17 +85,19 @@ export function getArtworkAnalyticsProperties(puzzle: PuzzleDefinition, source: 
   return properties;
 }
 
-export function trackArtworkOpened(
-  puzzle: PuzzleDefinition,
-  source: LevelSource,
-  paintedCells: number,
-  totalCells: number
-) {
+interface ArtworkOpened {
+  paintedCells: number;
+  puzzle: PuzzleDefinition;
+  source: LevelSource;
+  totalCells: number;
+}
+
+export function trackArtworkOpened(props: ArtworkOpened) {
   capture("artwork_opened", {
-    ...getArtworkAnalyticsProperties(puzzle, source),
-    painted_cells: paintedCells,
-    progress_state: getProgressState(paintedCells, totalCells),
-    total_cells: totalCells,
+    ...getArtworkAnalyticsProperties(props.puzzle, props.source),
+    painted_cells: props.paintedCells,
+    progress_state: getProgressState(props.paintedCells, props.totalCells),
+    total_cells: props.totalCells,
   });
 }
 
@@ -103,21 +105,33 @@ export function trackArtistInvitation(action: "dismissed" | "email_clicked") {
   capture(`artist_invitation_${action}`, {});
 }
 
-export function trackCustomArtworkImported(puzzle: PuzzleDefinition, sourceWidth: number, sourceHeight: number) {
+interface CustomArtworkImported {
+  puzzle: PuzzleDefinition;
+  sourceHeight: number;
+  sourceWidth: number;
+}
+
+export function trackCustomArtworkImported(props: CustomArtworkImported) {
   capture("custom_artwork_imported", {
-    cell_count: puzzle.width * puzzle.height,
-    grid_height: puzzle.height,
-    grid_width: puzzle.width,
-    palette_size: puzzle.palette.length,
-    source_height: sourceHeight,
-    source_width: sourceWidth,
+    cell_count: props.puzzle.width * props.puzzle.height,
+    grid_height: props.puzzle.height,
+    grid_width: props.puzzle.width,
+    palette_size: props.puzzle.palette.length,
+    source_height: props.sourceHeight,
+    source_width: props.sourceWidth,
   });
 }
 
-export function trackPuzzleStarted(puzzle: PuzzleDefinition, source: LevelSource, paintedCells: number) {
+interface PuzzleStarted {
+  paintedCells: number;
+  puzzle: PuzzleDefinition;
+  source: LevelSource;
+}
+
+export function trackPuzzleStarted(props: PuzzleStarted) {
   capture("puzzle_started", {
-    ...getArtworkAnalyticsProperties(puzzle, source),
-    painted_cells: paintedCells,
+    ...getArtworkAnalyticsProperties(props.puzzle, props.source),
+    painted_cells: props.paintedCells,
   });
 }
 
@@ -148,16 +162,18 @@ export function trackPuzzleCompleted(puzzle: PuzzleDefinition, source: LevelSour
   });
 }
 
-export function trackPuzzleReset(
-  puzzle: PuzzleDefinition,
-  source: LevelSource,
-  paintedCells: number,
-  surface: ResetSurface
-) {
+interface PuzzleReset {
+  paintedCellsBeforeReset: number;
+  puzzle: PuzzleDefinition;
+  source: LevelSource;
+  surface: ResetSurface;
+}
+
+export function trackPuzzleReset(props: PuzzleReset) {
   capture("puzzle_reset", {
-    ...getArtworkAnalyticsProperties(puzzle, source),
-    painted_cells_before_reset: paintedCells,
-    reset_surface: surface,
+    ...getArtworkAnalyticsProperties(props.puzzle, props.source),
+    painted_cells_before_reset: props.paintedCellsBeforeReset,
+    reset_surface: props.surface,
   });
 }
 
