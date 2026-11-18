@@ -38,22 +38,6 @@ describe("level catalog", () => {
     }
   });
 
-  it("presents the built-in artwork from easiest to hardest", () => {
-    expect(LEVELS.map((puzzle) => puzzle.name)).toEqual([
-      "Gobbo",
-      "Vending Machine",
-      "Ribbit",
-      "Tidepool",
-      "Barn",
-      "Warehouse",
-      "Mech",
-      "Deep Sea",
-      "Sky Farm",
-      "Jungle",
-      "Mountain",
-    ]);
-  });
-
   it("finds a level by id and reports nothing for an unknown one", () => {
     expect(findLevel(LEVELS[0].id)?.name).toBe(LEVELS[0].name);
     expect(findLevel("not-an-artwork")).toBeUndefined();

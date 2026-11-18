@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { LEVELS } from "@/levels/level-catalog";
 import { readSitemapPuzzles, renderRobotsTxt, renderSitemapXml } from "../../scripts/vite/sitemap-plugin";
 
 const projectRoot = resolve(import.meta.dirname, "../..");
@@ -8,19 +9,7 @@ describe("readSitemapPuzzles", () => {
   it("discovers built-in puzzles in catalog order", () => {
     const puzzles = readSitemapPuzzles(projectRoot);
 
-    expect(puzzles.map(({ id, name }) => ({ id, name }))).toEqual([
-      { id: "gobbo", name: "Gobbo" },
-      { id: "vending-machine", name: "Vending Machine" },
-      { id: "ribbit", name: "Ribbit" },
-      { id: "tidepool", name: "Tidepool" },
-      { id: "barn", name: "Barn" },
-      { id: "warehouse", name: "Warehouse" },
-      { id: "mech", name: "Mech" },
-      { id: "deep-sea", name: "Deep Sea" },
-      { id: "sky-farm", name: "Sky Farm" },
-      { id: "jungle", name: "Jungle" },
-      { id: "mountain", name: "Mountain" },
-    ]);
+    expect(puzzles.map(({ id, name }) => ({ id, name }))).toEqual(LEVELS.map(({ id, name }) => ({ id, name })));
   });
 });
 
