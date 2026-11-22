@@ -34,7 +34,7 @@ import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
 import { renameImportedPuzzle } from "@/levels/imported-levels";
 import { saveLastPaintedArtworkId } from "@/levels/last-painted-artwork";
-import { findLevel } from "@/levels/level-catalog";
+import { findLevel, LEVELS } from "@/levels/level-catalog";
 import {
   artworkDefinitionQueryOptions,
   artworkDescriptionsQueryOptions,
@@ -48,6 +48,16 @@ import type { PuzzleCompletionFact } from "@/achievements/process-achievements";
 import type { ColoringTool, ProgressSummary, PuzzleDefinition, PuzzleProgress } from "@/coloring/types";
 
 export const Route = createFileRoute("/play/$levelId")({ component: PlayRoute });
+
+function playMetadata({ height, id, width }: PuzzleDefinition, name: string) {
+  return {
+    description: `Color ${name}, a ${width} by ${height} pixel art color-by-number puzzle, in your browser.`,
+    path: `/play/${encodeURIComponent(id)}`,
+    title: `${name} - Colorwork`,
+  };
+}
+
+export const prerenderPages = LEVELS.map((level) => playMetadata(level, level.name));
 
 function PlayRoute() {
   const { levelId } = Route.useParams();
@@ -124,11 +134,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
     ),
   }));
 
-  usePageMetadata({
-    description: `Color ${artworkName}, a ${puzzle.width} by ${puzzle.height} pixel art color-by-number puzzle, in your browser.`,
-    path: `/play/${encodeURIComponent(puzzle.id)}`,
-    title: `${artworkName} - Colorwork`,
-  });
+  usePageMetadata(playMetadata(puzzle, artworkName));
 
   const artworkSource = findLevel(puzzle.id) ? "catalog" : "imported";
   const totalCells = puzzle.width * puzzle.height;

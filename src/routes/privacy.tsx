@@ -6,12 +6,16 @@ export const Route = createFileRoute("/privacy")({ component: PrivacyRoute });
 
 const POSTHOG_PRIVACY_URL = "https://posthog.com/privacy";
 
+const metadata = {
+  description: "How Colorwork stores data on your device and what it sends for product analytics.",
+  path: "/privacy",
+  title: "Privacy - Colorwork",
+};
+
+export const prerenderPages = [metadata];
+
 function PrivacyRoute() {
-  usePageMetadata({
-    description: "How Colorwork stores data on your device and what it sends for product analytics.",
-    path: "/privacy",
-    title: "Privacy - Colorwork",
-  });
+  usePageMetadata(metadata);
 
   return (
     <main className="min-h-svh px-4 py-6 text-foreground sm:px-6 sm:py-10">

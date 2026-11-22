@@ -1,5 +1,5 @@
-import { readFile, rm, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Plugin } from "vite";
 
@@ -16,8 +16,7 @@ interface PrerenderedPage {
 }
 
 interface ServerEntry {
-  prerenderedPages: PrerenderedPage[];
-  render: (path: string) => Promise<string>;
+  prerenderPages: () => Promise<(PrerenderedPage & { html: string })[]>;
 }
 
 export function renderPageHtml(template: string, page: PrerenderedPage, appHtml: string) {
@@ -60,9 +59,10 @@ export function prerenderPlugin() {
           const template = await readFile(resolve(outDir, "index.html"), "utf8");
 
           await Promise.all(
-            entry.prerenderedPages.map(async (page) => {
-              const html = renderPageHtml(template, page, await entry.render(page.path));
-              await writeFile(resolve(outDir, `.${page.path}.html`), html);
+            (await entry.prerenderPages()).map(async (page) => {
+              const file = resolve(outDir, `.${page.path}.html`);
+              await mkdir(dirname(file), { recursive: true });
+              await writeFile(file, renderPageHtml(template, page, page.html));
             })
           );
         } finally {
