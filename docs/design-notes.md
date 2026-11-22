@@ -50,6 +50,14 @@ Clicking the email link and closing the strip each send a product event with no 
 
 Import starts from the menu, because the board is for painting one artwork. The image becomes a puzzle, is stored in IndexedDB, appears after the built-in catalog, and opens through the normal board route. Its definition and progress survive reloads. Menu components get stored progress through `describeLevel` and never read storage or pixel arrays directly.
 
+### Photo landing page
+
+`/photo-to-pixel-art` is there for search. Most imports are photos, and the searches that already bring people to Colorwork are worded around pixels, so the page uses that wording and opens the same import flow as the menu. The sitemap lists it and the footer links to it.
+
+The hero is a working board, not a screenshot. Boo starts with its background painted and fills itself in once on load, the way a player would. It goes most-used color first, in pencil strokes that drift to the nearest unpainted cell, pause when the pencil lifts, and skip the odd cell to come back for later. It stops partway through, with the next color highlighted as if selected. There are no numbers, on the board or in the copy, because numbers are off by default on the real board. Boo is small on purpose, so each cell is big enough to see every stroke. With reduced motion it just shows the end state.
+
+The whole page accepts a dropped image. A dashed inset frame appears only while a file is dragged over it.
+
 ### Cropping
 
 Cropping is optional. The normal path shows the processed puzzle first, and "Adjust crop" opens the editor only when the player wants it.

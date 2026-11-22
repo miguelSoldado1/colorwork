@@ -7,9 +7,12 @@ const FOOTER_LINK =
 
 export function SiteFooter() {
   return (
-    <footer className="flex items-center justify-between gap-4 border-border border-t pt-4 text-muted-foreground text-xs">
+    <footer className="flex flex-col gap-4 border-border border-t pt-4 text-muted-foreground text-xs sm:flex-row sm:items-center sm:justify-between">
       <p className="min-w-0">Your work stays on this device.</p>
-      <nav aria-label="Site" className="flex shrink-0 items-center gap-5">
+      <nav aria-label="Site" className="flex flex-wrap items-center gap-x-5">
+        <Link className={FOOTER_LINK} to="/photo-to-pixel-art">
+          Photo to Pixel Art
+        </Link>
         <Link className={FOOTER_LINK} to="/achievements">
           <Sparkle aria-hidden className="text-primary" height={12} width={12} />
           Achievements

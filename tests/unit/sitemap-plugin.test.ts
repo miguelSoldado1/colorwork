@@ -24,6 +24,7 @@ describe("renderSitemapXml", () => {
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(xml).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">');
     expect(xml).toContain("<loc>https://example.com/</loc>");
+    expect(xml).toContain("<loc>https://example.com/photo-to-pixel-art</loc>");
     expect(xml).toContain("<loc>https://example.com/achievements</loc>");
     expect(xml).toContain("<loc>https://example.com/privacy</loc>");
     expect(xml).toContain("<loc>https://example.com/play/test</loc>");
@@ -36,7 +37,7 @@ describe("renderSitemapXml", () => {
     const puzzles = readSitemapPuzzles(projectRoot);
     const xml = renderSitemapXml(puzzles, "https://example.com", {});
 
-    expect(xml.match(/<lastmod>2026-09-06<\/lastmod>/g)).toHaveLength(puzzles.length + 3);
+    expect(xml.match(/<lastmod>2026-09-06<\/lastmod>/g)).toHaveLength(puzzles.length + 4);
   });
 
   it("uses the baseline for pages without an override", () => {

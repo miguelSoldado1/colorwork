@@ -18,6 +18,7 @@ const sitemapBaselineDate = "2026-09-06";
 // Dates use YYYY-MM-DD, for example: "/play/new-puzzle": "2026-09-10".
 const sitemapDates: Readonly<Record<string, string>> = {
   "/": "2026-10-13",
+  "/photo-to-pixel-art": "2026-11-22",
   "/play/barn": "2026-10-13",
   "/play/tidepool": "2026-10-11",
 };
@@ -48,7 +49,7 @@ export function readSitemapPuzzles(root: string) {
 }
 
 export function renderSitemapXml(puzzles: SitemapPuzzle[], siteUrl: string, dates: Readonly<Record<string, string>>) {
-  const paths = ["/", "/achievements", "/privacy", ...puzzles.map((puzzle) => puzzle.path)];
+  const paths = ["/", "/photo-to-pixel-art", "/achievements", "/privacy", ...puzzles.map((puzzle) => puzzle.path)];
   const urls = paths
     .map((path) => {
       const lastmod = dates[path] ?? sitemapBaselineDate;

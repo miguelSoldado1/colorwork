@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AchievementsRouteImport } from './routes/achievements'
+import { Route as PhotoToPixelArtRouteImport } from './routes/photo-to-pixel-art'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PlayLevelIdRouteImport } from './routes/play.$levelId'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const AchievementsRoute = AchievementsRouteImport.update({
   id: '/achievements',
   path: '/achievements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhotoToPixelArtRoute = PhotoToPixelArtRouteImport.update({
+  id: '/photo-to-pixel-art',
+  path: '/photo-to-pixel-art',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -38,12 +44,14 @@ const PlayLevelIdRoute = PlayLevelIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/achievements': typeof AchievementsRoute
+  '/photo-to-pixel-art': typeof PhotoToPixelArtRoute
   '/privacy': typeof PrivacyRoute
   '/play/$levelId': typeof PlayLevelIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/achievements': typeof AchievementsRoute
+  '/photo-to-pixel-art': typeof PhotoToPixelArtRoute
   '/privacy': typeof PrivacyRoute
   '/play/$levelId': typeof PlayLevelIdRoute
 }
@@ -51,20 +59,38 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/achievements': typeof AchievementsRoute
+  '/photo-to-pixel-art': typeof PhotoToPixelArtRoute
   '/privacy': typeof PrivacyRoute
   '/play/$levelId': typeof PlayLevelIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/achievements' | '/privacy' | '/play/$levelId'
+  fullPaths:
+    | '/'
+    | '/achievements'
+    | '/photo-to-pixel-art'
+    | '/privacy'
+    | '/play/$levelId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/achievements' | '/privacy' | '/play/$levelId'
-  id: '__root__' | '/' | '/achievements' | '/privacy' | '/play/$levelId'
+  to:
+    | '/'
+    | '/achievements'
+    | '/photo-to-pixel-art'
+    | '/privacy'
+    | '/play/$levelId'
+  id:
+    | '__root__'
+    | '/'
+    | '/achievements'
+    | '/photo-to-pixel-art'
+    | '/privacy'
+    | '/play/$levelId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AchievementsRoute: typeof AchievementsRoute
+  PhotoToPixelArtRoute: typeof PhotoToPixelArtRoute
   PrivacyRoute: typeof PrivacyRoute
   PlayLevelIdRoute: typeof PlayLevelIdRoute
 }
@@ -83,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/achievements'
       fullPath: '/achievements'
       preLoaderRoute: typeof AchievementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/photo-to-pixel-art': {
+      id: '/photo-to-pixel-art'
+      path: '/photo-to-pixel-art'
+      fullPath: '/photo-to-pixel-art'
+      preLoaderRoute: typeof PhotoToPixelArtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -105,6 +138,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AchievementsRoute: AchievementsRoute,
+  PhotoToPixelArtRoute: PhotoToPixelArtRoute,
   PrivacyRoute: PrivacyRoute,
   PlayLevelIdRoute: PlayLevelIdRoute,
 }
