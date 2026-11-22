@@ -60,6 +60,10 @@ The hero is the real board with progress that never gets saved. Boo starts with 
 
 The whole page accepts a dropped image. A dashed inset frame appears only while a file is dragged over it.
 
+It's the only page rendered to HTML at build time, so crawlers and link previews get its copy and head tags without JavaScript. `src/entry-server.tsx` renders it into `dist/photo-to-pixel-art.html`. When the root already has markup, `main.tsx` hydrates instead of rendering, and sets `router.ssr` so TanStack Router doesn't add a Suspense boundary the build never rendered.
+
+A canvas can't be drawn at build time, so the hero also renders the board's first frame as an inline SVG. The canvas covers it, at the same size, once the board draws.
+
 ### Cropping
 
 Cropping is optional. The normal path shows the processed puzzle first, and "Adjust crop" opens the editor only when the player wants it.

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { createColoringBoard } from "@/coloring/create-coloring-board";
+import { createColoringBoard, SELECTION_ALPHA, TARGET_GUIDE_MAX_ALPHA } from "@/coloring/create-coloring-board";
+import { mutedTargetGray, parseHexColor } from "@/coloring/pixel-raster";
 import { createPuzzleProgress } from "@/coloring/progress";
 import type { PuzzleDefinition } from "@/coloring/types";
 
@@ -15,6 +16,8 @@ interface PaintStep {
 }
 
 const START_DELAY_MS = 400;
+const PREPAINTED_COLOR = 0;
+const FIRST_COLOR = 1;
 
 export function PaintingDemo({ duration, puzzle }: PaintingDemoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,10 +32,10 @@ export function PaintingDemo({ duration, puzzle }: PaintingDemoProps) {
 
     const progress = createPuzzleProgress(puzzle);
     puzzle.targetPixels.forEach((color, index) => {
-      if (color === 0) {
-        progress.paintedPixels[index] = 0;
+      if (color === PREPAINTED_COLOR) {
+        progress.paintedPixels[index] = color;
         progress.paintedCount += 1;
-        progress.paintedByColor[0] += 1;
+        progress.paintedByColor[color] += 1;
       }
     });
 
@@ -47,7 +50,7 @@ export function PaintingDemo({ duration, puzzle }: PaintingDemoProps) {
       overviewCanvas: document.createElement("canvas"),
       progress,
       puzzle,
-      selectedColor: 1,
+      selectedColor: FIRST_COLOR,
       tool: "pencil",
     });
 
@@ -85,13 +88,66 @@ export function PaintingDemo({ duration, puzzle }: PaintingDemoProps) {
       ref={containerRef}
       style={{ aspectRatio: `${puzzle.width} / ${puzzle.height}` }}
     >
-      <canvas
-        aria-hidden
-        className="block touch-manipulation select-none bg-canvas shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border"
-        ref={canvasRef}
-      />
+      <FirstFrame puzzle={puzzle} />
+      <canvas aria-hidden className="col-start-1 row-start-1 block touch-manipulation select-none" ref={canvasRef} />
     </div>
   );
+}
+
+interface FirstFrameProps {
+  puzzle: PuzzleDefinition;
+}
+
+function FirstFrame({ puzzle }: FirstFrameProps) {
+  const { height, palette, targetPixels, width } = puzzle;
+  const prepainted = targetPixels.filter((color) => color === PREPAINTED_COLOR).length;
+  const guideAlpha = TARGET_GUIDE_MAX_ALPHA * (1 - prepainted / targetPixels.length);
+  const grid = [
+    ...Array.from({ length: width + 1 }, (_, x) => `M${x} 0V${height}`),
+    ...Array.from({ length: height + 1 }, (_, y) => `M0 ${y}H${width}`),
+  ].join("");
+
+  return (
+    <svg
+      aria-hidden="true"
+      className="col-start-1 row-start-1 size-full shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] ring-1 ring-border"
+      shapeRendering="crispEdges"
+      viewBox={`0 0 ${width} ${height}`}
+    >
+      <rect className="fill-muted" height={height} width={width} />
+      <g opacity={guideAlpha}>
+        {palette.map((hex, color) => {
+          const gray = mutedTargetGray(parseHexColor(hex));
+          return (
+            <path d={cellRuns(puzzle, (target) => target === color)} fill={`rgb(${gray} ${gray} ${gray})`} key={hex} />
+          );
+        })}
+      </g>
+      <path
+        className="fill-foreground"
+        d={cellRuns(puzzle, (target) => target === FIRST_COLOR)}
+        opacity={SELECTION_ALPHA}
+      />
+      <path className="stroke-foreground/12" d={grid} fill="none" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      <path d={cellRuns(puzzle, (target) => target === PREPAINTED_COLOR)} fill={palette[PREPAINTED_COLOR]} />
+    </svg>
+  );
+}
+
+function cellRuns({ targetPixels, width }: PuzzleDefinition, matches: (target: number) => boolean) {
+  let d = "";
+  for (let start = 0; start < targetPixels.length; start += 1) {
+    if (!matches(targetPixels[start])) {
+      continue;
+    }
+    let end = start + 1;
+    while (end % width !== 0 && matches(targetPixels[end])) {
+      end += 1;
+    }
+    d += `M${start % width} ${Math.floor(start / width)}h${end - start}v1h${start - end}z`;
+    start = end - 1;
+  }
+  return d;
 }
 
 interface Stroke {

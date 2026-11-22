@@ -11,6 +11,13 @@ import { usePageMetadata } from "@/seo/use-page-metadata";
 
 export const Route = createFileRoute("/photo-to-pixel-art")({ component: PhotoToPixelArtRoute });
 
+export const photoToPixelArtMetadata = {
+  description:
+    "Turn any photo into pixel art you can color, free in your browser. Choose the grid size and colors, then paint it one color at a time. Your photo never leaves your device.",
+  path: "/photo-to-pixel-art",
+  title: "Turn a Photo into Pixel Art to Color - Colorwork",
+};
+
 const DEMO_ARTWORK_ID = "boo";
 const DEMO_DURATION_MS = 6600;
 
@@ -18,12 +25,7 @@ function PhotoToPixelArtRoute() {
   const { chooseImage, dialog, error, input, openImage } = useImageImport();
   const dragging = useFileDrop(openImage, dialog === null);
   const demoArtwork = findLevel(DEMO_ARTWORK_ID);
-  usePageMetadata({
-    description:
-      "Turn any photo into pixel art you can color, free in your browser. Choose the grid size and colors, then paint it one color at a time. Your photo never leaves your device.",
-    path: "/photo-to-pixel-art",
-    title: "Turn a Photo into Pixel Art to Color - Colorwork",
-  });
+  usePageMetadata(photoToPixelArtMetadata);
 
   return (
     <main className="min-h-svh px-4 pt-6 pb-10 text-foreground sm:px-6 sm:pt-10">

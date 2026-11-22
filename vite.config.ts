@@ -5,6 +5,7 @@ import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig, loadEnv } from "vite";
 import svgr from "vite-plugin-svgr";
 import { debugFillPlugin } from "./scripts/vite/debug-fill-plugin";
+import { prerenderPlugin } from "./scripts/vite/prerender-plugin";
 import { sitemapPlugin } from "./scripts/vite/sitemap-plugin";
 
 // https://vite.dev/config/
@@ -23,6 +24,7 @@ export default defineConfig(({ command, mode }) => {
       babel({ presets: [reactCompilerPreset()] }),
       tailwindcss(),
       sitemapPlugin({}),
+      prerenderPlugin(),
     ],
     resolve: {
       tsconfigPaths: true,
