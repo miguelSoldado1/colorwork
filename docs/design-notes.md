@@ -8,6 +8,8 @@ Colorwork has two main views, the artwork menu at `/` and the coloring board at 
 
 The interface is a near-colorless warm graphite so the artwork gets every saturated pixel. Muted sage is the only accent, and it's reserved for selection, progress and focus.
 
+Any other unknown address gets the not-found page. It's text only, laid out like the error fallback: what happened, a reassurance that saved work is untouched, and one action back to the artworks. It's marked `noindex`. An earlier version had a paintable "404" board, and it was more than a dead end needs.
+
 Text about completion uses painted and total cell counts, never a rounded percentage. On a large board `100%` can be on screen while cells are still unpainted. A meter can use a percentage, because it only shows a proportion.
 
 ## Artwork menu
