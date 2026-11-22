@@ -285,8 +285,8 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   }
 
   return (
-    <main className="relative h-svh overflow-hidden p-3 text-foreground sm:p-5">
-      <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-4">
+    <main className="relative h-svh overflow-hidden p-3 text-foreground sm:px-5 sm:py-4">
+      <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-3.5">
         {/* Stacked so the start-over confirmation opens over the board, not under it. */}
         <header className="relative z-10 flex min-w-0 items-end justify-between gap-3 border-border border-b px-1 pb-3 sm:gap-4 sm:pb-4">
           <div className="min-w-0 flex-1">
