@@ -1,11 +1,13 @@
+import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, extname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Plugin } from "vite";
 
 const SERVER_ENTRY = "src/entry-server.tsx";
 const SERVER_OUT_DIR = "dist-ssr";
 const SITE_URL = "https://www.playcolorwork.com";
+const SHELL_FILE = "_shell.html";
 const ROOT_ELEMENT = '<div id="root"></div>';
 const TITLE_ELEMENT = /<title>[^<]*<\/title>/;
 
@@ -47,7 +49,7 @@ export function prerenderPlugin() {
   let outDir = "";
 
   return {
-    apply: "build",
+    apply: (_, { command, isPreview }) => command === "build" || Boolean(isPreview),
     buildApp: {
       async handler(builder) {
         await builder.build(builder.environments.client);
@@ -57,10 +59,11 @@ export function prerenderPlugin() {
         try {
           const entry: ServerEntry = await import(pathToFileURL(resolve(serverDir, "entry-server.js")).href);
           const template = await readFile(resolve(outDir, "index.html"), "utf8");
+          await writeFile(resolve(outDir, SHELL_FILE), template);
 
           await Promise.all(
             (await entry.prerenderPages()).map(async (page) => {
-              const file = resolve(outDir, `.${page.path}.html`);
+              const file = resolve(outDir, page.path === "/" ? "index.html" : `.${page.path}.html`);
               await mkdir(dirname(file), { recursive: true });
               await writeFile(file, renderPageHtml(template, page, page.html));
             })
@@ -85,6 +88,15 @@ export function prerenderPlugin() {
     configResolved(config) {
       ({ root } = config);
       outDir = resolve(root, config.environments.client.build.outDir);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, _res, next) => {
+        const pathname = req.url?.split("?")[0] ?? "/";
+        if (pathname !== "/" && !extname(pathname) && !existsSync(resolve(outDir, `.${pathname}.html`))) {
+          req.url = `/${SHELL_FILE}`;
+        }
+        next();
+      });
     },
     name: "prerender",
   } satisfies Plugin;

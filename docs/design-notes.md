@@ -60,7 +60,7 @@ The hero is the real board with progress that never gets saved. Boo starts with 
 
 The whole page accepts a dropped image. A dashed inset frame appears only while a file is dragged over it.
 
-It's rendered to HTML at build time, along with `/privacy` and each catalog artwork under `/play`, so crawlers and link previews get their copy and head tags without JavaScript. Each of those routes exports `prerenderPages`, and `src/entry-server.tsx` renders them. When the root already has markup, `main.tsx` hydrates instead of rendering, and sets `router.ssr` so TanStack Router doesn't add a Suspense boundary the build never rendered.
+It's rendered to HTML at build time, along with `/`, `/privacy` and each catalog artwork under `/play`, so crawlers and link previews get their copy and head tags without JavaScript. Each of those routes exports `prerenderPages`, and `src/entry-server.tsx` renders them. The menu's HTML is its loading state, with the header, intro and footer but no catalog rows. Since `/` takes `index.html`, other routes fall back to an empty `_shell.html`. When the root already has markup, `main.tsx` hydrates instead of rendering, and sets `router.ssr` so TanStack Router doesn't add a Suspense boundary the build never rendered.
 
 A canvas can't be drawn at build time, so the hero also renders the board's first frame as an inline SVG. The canvas covers it, at the same size, once the board draws.
 

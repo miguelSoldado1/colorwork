@@ -46,7 +46,7 @@ Read [docs/design-notes.md](docs/design-notes.md) before changing product behavi
 
 - `/` is the artwork menu and `/play/$levelId` is the board. Redirect unknown ids home.
 - `/photo-to-pixel-art` is the search landing page for importing. It shares the menu's import flow through `useImageImport`.
-- `/photo-to-pixel-art`, `/privacy` and catalog `/play` pages are prerendered at build time, so their first render can't read storage or the window.
+- `/`, `/photo-to-pixel-art`, `/privacy` and catalog `/play` pages are prerendered at build time, so their first render can't read storage or the window.
 - Keep artwork selection on the menu in client state; selecting a row must not change the URL.
 - Always select an artwork when the catalog is nonempty. Do not add a no-selection state or close button to the preview.
 - Use completed-cell counts in text. Percentages are allowed only for proportional meters.
