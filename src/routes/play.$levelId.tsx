@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { reconcileAchievements } from "@/achievements/process-achievements";
 import { checkAndShowAchievementUnlocks } from "@/achievements/show-achievement-toast";
@@ -10,7 +10,6 @@ import {
   trackPuzzleReset,
   trackPuzzleStarted,
 } from "@/analytics/posthog";
-import ArrowLeft from "@/assets/icons/arrow-left.svg?react";
 import { clonePuzzleProgress, createProgressSummary, createPuzzleProgress } from "@/coloring/progress";
 import {
   clearPuzzleProgress,
@@ -20,6 +19,7 @@ import {
 import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { ArtworkLoadError, ArtworkLoading } from "@/components/artwork/artwork-load-state";
 import { BoardOverview } from "@/components/board/board-overview";
+import { BoardHeader, BoardHeading, BoardShell, BoardTitle, BoardTitleRow } from "@/components/board/board-shell";
 import { ColoringBoard } from "@/components/board/coloring-board";
 import { ControlsSheet } from "@/components/board/controls-sheet";
 import { DownloadArtworkButton } from "@/components/board/download-artwork-button";
@@ -87,7 +87,21 @@ function StoredColoringApp({ puzzle }: { puzzle: PuzzleDefinition }) {
   const progressQuery = useQuery(artworkProgressQueryOptions(puzzle));
 
   if (progressQuery.isPending || progressQuery.isFetching) {
-    return <ArtworkLoading puzzle={puzzle} />;
+    return (
+      <BoardShell>
+        <BoardHeader>
+          <BoardHeading>
+            <BoardTitleRow>
+              <BoardTitle>{puzzle.name}</BoardTitle>
+            </BoardTitleRow>
+            <ArtworkCredit artist={puzzle.artist} />
+          </BoardHeading>
+        </BoardHeader>
+        <div className="grid min-h-0 place-items-center text-muted-foreground text-sm" role="status">
+          Loading artwork…
+        </div>
+      </BoardShell>
+    );
   }
   if (progressQuery.isError) {
     return <ArtworkLoadError onRetry={retry} puzzle={puzzle} />;
@@ -291,119 +305,109 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   }
 
   return (
-    <main className="relative h-svh overflow-hidden p-3 text-foreground sm:px-5 sm:py-4">
-      <div className="mx-auto grid h-full max-w-384 grid-rows-[auto_minmax(0,1fr)_auto] gap-3 sm:gap-3.5">
-        {/* Stacked so the start-over confirmation opens over the board, not under it. */}
-        <header className="relative z-10 flex min-w-0 items-end justify-between gap-3 border-border border-b px-1 pb-3 sm:gap-4 sm:pb-4">
-          <div className="min-w-0 flex-1">
-            <Link
-              className="-mx-1 inline-flex items-center gap-1.5 rounded px-1 py-0.5 text-[10px] text-muted-foreground uppercase tracking-[0.24em] transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
-              to="/"
-            >
-              <ArrowLeft height={13} width={13} />
-              All artworks
-            </Link>
-            <div className="mt-1 flex min-w-0 items-center gap-2">
-              {artworkSource === "imported" ? (
-                <RenameArtworkTitle
-                  editing={renaming}
-                  name={artworkName}
-                  onEditingChange={setRenaming}
-                  onRename={renameArtwork}
-                />
-              ) : (
-                <h1 className="min-w-0 truncate font-semibold text-xl leading-none sm:text-2xl">{artworkName}</h1>
-              )}
-              <div className={renaming ? "hidden" : undefined}>
-                <SaveStatus status={saveStatus} />
-              </div>
+    <BoardShell>
+      <BoardHeader>
+        <BoardHeading>
+          <BoardTitleRow>
+            {artworkSource === "imported" ? (
+              <RenameArtworkTitle
+                editing={renaming}
+                name={artworkName}
+                onEditingChange={setRenaming}
+                onRename={renameArtwork}
+              />
+            ) : (
+              <BoardTitle>{artworkName}</BoardTitle>
+            )}
+            <div className={renaming ? "hidden" : undefined}>
+              <SaveStatus status={saveStatus} />
             </div>
-            <ArtworkCredit artist={puzzle.artist} />
-          </div>
-          {/* Below `lg` the rename form and the board actions cannot share a row, so the name wins. */}
-          <div className={`${renaming ? "hidden lg:flex" : "flex"} min-h-11 shrink-0 items-center gap-2 sm:gap-4`}>
-            <DebugFillControl
-              key={`${puzzle.id}-${resetVersion}`}
-              onProgress={replaceDebugProgress}
-              onSummary={updateProgressSummary}
-              progress={progress}
-              puzzle={puzzle}
-            />
-            <div className="flex items-center gap-2">
-              {artworkSource === "imported" ? (
-                <div className="hidden sm:block">
-                  <DownloadArtworkButton complete={complete} name={artworkName} puzzle={puzzle} />
-                </div>
-              ) : null}
-              <StartOverPopover onStartOver={resetBoard} painted={summary.paintedCount > 0} />
-            </div>
-            <div aria-hidden className="h-6 w-px shrink-0 self-center bg-border" />
-            <div className="w-20 sm:w-56">
-              <ProgressDisplay summary={summary} />
-            </div>
-          </div>
-        </header>
-
-        <div className="flex min-h-0 min-w-0 flex-col gap-3 sm:flex-row sm:gap-4">
-          {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. */}
-          <aside className="scrollbar-none min-h-0 w-full min-w-0 self-start overflow-x-auto overscroll-contain rounded-xl border border-border bg-card/80 p-2 sm:max-h-full sm:w-auto sm:shrink-0 sm:self-center sm:overflow-y-auto">
-            <ToolPicker
-              gridVisible={preferences.showGrid}
-              highlightMissing={highlightMissing}
-              numbersVisible={preferences.showNumbers}
-              onSelect={setSelectedTool}
-              onToggleGrid={toggleGrid}
-              onToggleMissing={toggleMissingHighlight}
-              onToggleNumbers={toggleNumbers}
-              selectedTool={selectedTool}
-            />
-          </aside>
-
-          {/* The page shell clips viewport overflow; this stays visible so Safari does not crop the burst. */}
-          <section className="min-h-0 min-w-0 flex-1 overflow-visible">
-            <ColoringBoard
-              celebrateCompletion={celebrateCompletion}
-              colorSelection={colorSelection}
-              highlightMissing={highlightMissing}
-              onProgress={updateBoardProgress}
-              onSelectColor={setSelectedColor}
-              overviewCanvasRef={overviewCanvasRef}
-              progress={progress}
-              puzzle={puzzle}
-              showGrid={preferences.showGrid}
-              showNumbers={preferences.showNumbers}
-              tool={selectedTool}
-            />
-          </section>
-        </div>
-
-        <aside className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card/80 p-2.5 sm:gap-5 sm:p-3">
-          <BoardOverview
-            canvasRef={overviewCanvasRef}
-            celebrateCompletion={celebrateCompletion}
-            puzzleHeight={puzzle.height}
-            puzzleWidth={puzzle.width}
+          </BoardTitleRow>
+          <ArtworkCredit artist={puzzle.artist} />
+        </BoardHeading>
+        {/* Below `lg` the rename form and the board actions cannot share a row, so the name wins. */}
+        <div className={`${renaming ? "hidden lg:flex" : "flex"} min-h-11 shrink-0 items-center gap-2 sm:gap-4`}>
+          <DebugFillControl
+            key={`${puzzle.id}-${resetVersion}`}
+            onProgress={replaceDebugProgress}
+            onSummary={updateProgressSummary}
+            progress={progress}
+            puzzle={puzzle}
           />
-          {artworkSource === "imported" ? (
-            <div className="shrink-0 sm:hidden">
-              <DownloadArtworkButton complete={complete} name={artworkName} puzzle={puzzle} />
-            </div>
-          ) : null}
-          <div className="min-w-0 flex-1">
-            <Palette
-              complete={complete}
-              onSelect={setSelectedColor}
-              puzzle={puzzle}
-              selectedColor={selectedColor}
-              summary={summary}
-            />
+          <div className="flex items-center gap-2">
+            {artworkSource === "imported" ? (
+              <div className="hidden sm:block">
+                <DownloadArtworkButton complete={complete} name={artworkName} puzzle={puzzle} />
+              </div>
+            ) : null}
+            <StartOverPopover onStartOver={resetBoard} painted={summary.paintedCount > 0} />
           </div>
-          <div className="shrink-0 max-sm:hidden">
-            <ControlsSheet colorCount={puzzle.palette.length} />
+          <div aria-hidden className="h-6 w-px shrink-0 self-center bg-border" />
+          <div className="w-20 sm:w-56">
+            <ProgressDisplay summary={summary} />
           </div>
+        </div>
+      </BoardHeader>
+
+      <div className="flex min-h-0 min-w-0 flex-col gap-3 sm:flex-row sm:gap-4">
+        {/* Scrolls horizontally above the board on phones; a fixed rail beside it on desktop. */}
+        <aside className="scrollbar-none min-h-0 w-full min-w-0 self-start overflow-x-auto overscroll-contain rounded-xl border border-border bg-card/80 p-2 sm:max-h-full sm:w-auto sm:shrink-0 sm:self-center sm:overflow-y-auto">
+          <ToolPicker
+            gridVisible={preferences.showGrid}
+            highlightMissing={highlightMissing}
+            numbersVisible={preferences.showNumbers}
+            onSelect={setSelectedTool}
+            onToggleGrid={toggleGrid}
+            onToggleMissing={toggleMissingHighlight}
+            onToggleNumbers={toggleNumbers}
+            selectedTool={selectedTool}
+          />
         </aside>
+
+        {/* The page shell clips viewport overflow; this stays visible so Safari does not crop the burst. */}
+        <section className="min-h-0 min-w-0 flex-1 overflow-visible">
+          <ColoringBoard
+            celebrateCompletion={celebrateCompletion}
+            colorSelection={colorSelection}
+            highlightMissing={highlightMissing}
+            onProgress={updateBoardProgress}
+            onSelectColor={setSelectedColor}
+            overviewCanvasRef={overviewCanvasRef}
+            progress={progress}
+            puzzle={puzzle}
+            showGrid={preferences.showGrid}
+            showNumbers={preferences.showNumbers}
+            tool={selectedTool}
+          />
+        </section>
       </div>
-    </main>
+
+      <aside className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card/80 p-2.5 sm:gap-5 sm:p-3">
+        <BoardOverview
+          canvasRef={overviewCanvasRef}
+          celebrateCompletion={celebrateCompletion}
+          puzzleHeight={puzzle.height}
+          puzzleWidth={puzzle.width}
+        />
+        {artworkSource === "imported" ? (
+          <div className="shrink-0 sm:hidden">
+            <DownloadArtworkButton complete={complete} name={artworkName} puzzle={puzzle} />
+          </div>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <Palette
+            complete={complete}
+            onSelect={setSelectedColor}
+            puzzle={puzzle}
+            selectedColor={selectedColor}
+            summary={summary}
+          />
+        </div>
+        <div className="shrink-0 max-sm:hidden">
+          <ControlsSheet colorCount={puzzle.palette.length} />
+        </div>
+      </aside>
+    </BoardShell>
   );
 }
 

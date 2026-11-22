@@ -13,7 +13,7 @@ export const Route = createFileRoute("/photo-to-pixel-art")({ component: PhotoTo
 
 const metadata = {
   description:
-    "Turn any photo into pixel art you can color, free in your browser. Choose the grid size and colors, then paint it one color at a time. Your photo never leaves your device.",
+    "Turn any photo into pixel art you can color, free in your browser. Pick a grid size and colors, then paint it in. Your photo never leaves your device.",
   path: "/photo-to-pixel-art",
   title: "Turn a Photo into Pixel Art to Color - Colorwork",
 };
