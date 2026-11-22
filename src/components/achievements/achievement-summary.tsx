@@ -5,7 +5,6 @@ interface AchievementSummaryProps {
   achievements: readonly AchievementDefinition[];
   action?: ReactNode;
   failed: boolean;
-  // Undefined until the stored history is read. The count is never guessed at.
   unlockedIds: ReadonlySet<string> | undefined;
 }
 
@@ -41,16 +40,7 @@ export function AchievementSummary({ action, achievements, failed, unlockedIds }
         aria-label={unlockedCount === undefined ? "Achievements" : undefined}
         className="mt-1 font-semibold text-3xl leading-none sm:text-5xl"
       >
-        <span
-          aria-hidden={unlockedCount === undefined ? true : undefined}
-          className={
-            unlockedCount === undefined
-              ? "animate-pulse rounded-sm bg-foreground/8 text-transparent motion-reduce:animate-none"
-              : undefined
-          }
-        >
-          {unlockedCount ?? 0} of {achievements.length} unlocked
-        </span>
+        {unlockedCount ?? 0} of {achievements.length} unlocked
       </h1>
     );
   }
