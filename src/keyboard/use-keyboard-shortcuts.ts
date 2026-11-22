@@ -34,7 +34,7 @@ export function normalizeShortcutKey(key: string) {
 }
 
 function hasModifier(event: KeyboardEvent) {
-  return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+  return event.altKey || event.ctrlKey || event.metaKey || (event.shiftKey && event.key !== "?");
 }
 
 function isEditingTarget(target: EventTarget | null) {

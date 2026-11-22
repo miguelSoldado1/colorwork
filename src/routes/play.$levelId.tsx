@@ -21,6 +21,7 @@ import { ArtworkCredit } from "@/components/artwork/artwork-credit";
 import { ArtworkLoadError, ArtworkLoading } from "@/components/artwork/artwork-load-state";
 import { BoardOverview } from "@/components/board/board-overview";
 import { ColoringBoard } from "@/components/board/coloring-board";
+import { ControlsSheet } from "@/components/board/controls-sheet";
 import { DownloadArtworkButton } from "@/components/board/download-artwork-button";
 import { RenameArtworkTitle } from "@/components/board/rename-artwork-title";
 import { StartOverPopover } from "@/components/board/start-over-popover";
@@ -390,6 +391,9 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
               selectedColor={selectedColor}
               summary={summary}
             />
+          </div>
+          <div className="shrink-0 max-sm:hidden">
+            <ControlsSheet colorCount={puzzle.palette.length} />
           </div>
         </aside>
       </div>

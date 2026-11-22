@@ -78,6 +78,14 @@ Numbers are off by default because they make a full board noisy. Once turned on,
 
 Pencil strokes stop at the Canvas edge and never bridge a gap while the pointer is outside. Bucket fill only reaches cells inside the visible rectangle captured when the fill starts. Zoom steps are fixed and centered on the cursor, and panning is its own tool. Middle-click picks a cell's target color without painting or switching tools.
 
+### Controls
+
+`?` opens a card listing the keyboard shortcuts and the pointer gestures that have no button. We considered a first-time tutorial and dropped it. The board's guide and the selected-color wash already teach the main idea.
+
+The card's button sits at the right end of the palette bar. In the header it looked like an action on the artwork. Under the tool rail it either scrolled out of view or pushed the last tool off an 800-pixel-tall window. Phones don't get it. They have no keyboard, and pinch is the only hidden gesture.
+
+The board's arrow keys and Enter are left off on purpose. They only work once the board has focus, so next to shortcuts that work anywhere they look broken. They stay as the keyboard-only way to paint, and the board's accessible description covers them.
+
 ### Starting over
 
 "Start over" clears stored progress through `clearPuzzleProgress` and is disabled on an untouched board. It's in the menu preview and in the board header, so resetting never means leaving the artwork. The board drops pending autosaves before removing the stored record, then rebuilds its live progress from empty. Neither control opens a modal. The artwork around it already shows what will be cleared, and a modal would cover that up and say it again.
