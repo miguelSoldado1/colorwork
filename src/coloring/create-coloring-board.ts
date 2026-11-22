@@ -1254,6 +1254,9 @@ export function createColoringBoard({
         cancelAnimationFrame(progressFrameId);
       }
     },
+    paintCell(index: number) {
+      paintCell({ x: index % puzzle.width, y: Math.floor(index / puzzle.width) });
+    },
     setHighlightMissing(highlighted: boolean) {
       highlightMissing = highlighted;
       scheduleRender();
