@@ -1,16 +1,11 @@
 import type { PuzzleDefinition } from "@/coloring/types";
 
-interface ArtworkLoadingProps {
-  puzzle?: PuzzleDefinition;
-}
-
-export function ArtworkLoading({ puzzle }: ArtworkLoadingProps) {
+export function ArtworkLoading() {
   return (
     <main className="grid h-svh place-items-center p-5 text-foreground">
-      <div className="text-center" role="status">
-        {puzzle ? <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">{puzzle.name}</p> : null}
-        <p className="mt-2 text-muted-foreground text-sm">Loading artwork…</p>
-      </div>
+      <p className="text-muted-foreground text-sm" role="status">
+        Loading artwork…
+      </p>
     </main>
   );
 }

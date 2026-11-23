@@ -14,15 +14,19 @@ import { usePageMetadata } from "@/seo/use-page-metadata";
 
 export const Route = createFileRoute("/achievements")({ component: AchievementsRoute });
 
+const metadata = {
+  description: "See every Colorwork achievement and your progress toward unlocking it.",
+  path: "/achievements",
+  title: "Achievements - Colorwork",
+};
+
+export const prerenderPages = [metadata];
+
 function AchievementsRoute() {
   const queryClient = useQueryClient();
   const achievementsQuery = useQuery(achievementStateQueryOptions());
 
-  usePageMetadata({
-    description: "See every Colorwork achievement and your progress toward unlocking it.",
-    path: "/achievements",
-    title: "Achievements - Colorwork",
-  });
+  usePageMetadata(metadata);
 
   useEffect(
     () =>

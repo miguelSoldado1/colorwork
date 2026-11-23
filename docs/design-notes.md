@@ -60,6 +60,10 @@ The hero is the real board with progress that never gets saved. Boo starts with 
 
 The whole page accepts a dropped image. A dashed inset frame appears only while a file is dragged over it.
 
+It's rendered to HTML at build time, along with `/`, `/achievements`, `/privacy` and each catalog artwork under `/play`, so crawlers and link previews get their copy and head tags without JavaScript. Each of those routes exports `prerenderPages`, and `src/entry-server.tsx` renders them. The menu's HTML is its loading state, with the header, intro and footer but no catalog rows. Since `/` takes `index.html`, other routes fall back to an empty `_shell.html`. When the root already has markup, `main.tsx` hydrates instead of rendering, and sets `router.ssr` so TanStack Router doesn't add a Suspense boundary the build never rendered.
+
+A canvas can't be drawn at build time, so the hero also renders the board's first frame as an inline SVG. The canvas covers it, at the same size, once the board draws.
+
 ### Cropping
 
 Cropping is optional. The normal path shows the processed puzzle first, and "Adjust crop" opens the editor only when the player wants it.
@@ -156,7 +160,7 @@ Every card gets a meter. We tried dropping it from the single-step achievements 
 
 The header is type and nothing else. The cards below have the marks, and a fifth framed mark above them would only water them down. A strip of cells restating the count went too, since the meters already show that count four times.
 
-The summary holds its place through loading and failure, and the page never rebuilds itself while someone is reading. Achievement names and descriptions show right away while the stored history loads. Only the summary count and progress details use placeholders, and the cards reserve the size they'll have once history arrives. A failed read has no honest count to show. The heading falls back to the page's own name, the sage eyebrow above it goes away with the count it labelled, and the error says what couldn't be opened and that artwork and progress are untouched.
+The summary holds its place through loading and failure, and the page never rebuilds itself while someone is reading. Achievement names and descriptions show right away while the stored history loads. Until it loads, the summary count and progress details read zero, and the cards already have their final size. A failed read has no honest count to show. The heading falls back to the page's own name, the sage eyebrow above it goes away with the count it labelled, and the error says what couldn't be opened and that artwork and progress are untouched.
 
 ## Analytics
 

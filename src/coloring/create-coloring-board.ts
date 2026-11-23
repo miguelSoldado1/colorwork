@@ -45,8 +45,8 @@ const TOUCH_PAINT_THRESHOLD = 6;
 const ZOOM_STEP = 1.8;
 const CELL_EDGE_EPSILON = 0.000_001;
 
-const TARGET_GUIDE_MAX_ALPHA = 0.42;
-const SELECTION_ALPHA = 0.3;
+export const TARGET_GUIDE_MAX_ALPHA = 0.42;
+export const SELECTION_ALPHA = 0.3;
 
 export function createColoringBoard({
   canvas,

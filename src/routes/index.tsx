@@ -13,16 +13,20 @@ import type { LevelDescription } from "@/levels/describe-level";
 
 export const Route = createFileRoute("/")({ component: IndexRoute });
 
+const metadata = {
+  description:
+    "Play a free pixel art color-by-number game in your browser. Choose an artwork or turn your own image into a numbered coloring board.",
+  path: "/",
+  title: "Colorwork - Pixel Art Coloring",
+};
+
+export const prerenderPages = [metadata];
+
 function IndexRoute() {
   const levelsQuery = useQuery(artworkDescriptionsQueryOptions());
   const [previewId, setPreviewId] = useState<string>();
   const [lastPaintedId] = useState(loadLastPaintedArtworkId);
-  usePageMetadata({
-    description:
-      "Play a free pixel art color-by-number game in your browser. Choose an artwork or turn your own image into a numbered coloring board.",
-    path: "/",
-    title: "Colorwork - Pixel Art Coloring",
-  });
+  usePageMetadata(metadata);
 
   if (levelsQuery.isPending) {
     return <LevelsMenuLoading />;

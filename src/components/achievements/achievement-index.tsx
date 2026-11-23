@@ -75,7 +75,7 @@ function AchievementCard({ achievement, state, targeted = false }: AchievementCa
           unlock ? "border-primary/35 bg-primary/12 text-primary" : "border-border bg-muted/40 text-muted-foreground"
         }`}
       >
-        <Sparkle aria-hidden className={state ? undefined : "invisible"} height={24} width={24} />
+        <Sparkle aria-hidden height={24} width={24} />
       </span>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -102,10 +102,7 @@ function AchievementCard({ achievement, state, targeted = false }: AchievementCa
         <p className="mt-1.5 text-muted-foreground text-xs leading-5">{achievement.description}</p>
 
         {/* Unconditional on purpose. A finished achievement should read as a full bar. */}
-        <div
-          aria-hidden={!state || undefined}
-          className={`mt-3.5 flex items-center gap-3 ${state ? "" : "animate-pulse motion-reduce:animate-none"}`}
-        >
+        <div aria-hidden={!state || undefined} className="mt-3.5 flex items-center gap-3">
           <div
             aria-label={`${achievement.name} progress`}
             aria-valuemax={progress.target}
@@ -120,11 +117,7 @@ function AchievementCard({ achievement, state, targeted = false }: AchievementCa
               style={{ width: `${(progress.current / progress.target) * 100}%` }}
             />
           </div>
-          <span
-            className={`shrink-0 text-xs tabular-nums ${state ? "text-muted-foreground" : "rounded-sm bg-foreground/6 text-transparent"}`}
-          >
-            {progressLabel}
-          </span>
+          <span className="shrink-0 text-muted-foreground text-xs tabular-nums">{progressLabel}</span>
         </div>
       </div>
     </li>

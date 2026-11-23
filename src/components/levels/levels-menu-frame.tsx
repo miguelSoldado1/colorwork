@@ -9,8 +9,8 @@ interface LevelsMenuFrameProps {
 
 export function LevelsMenuFrame({ children, summary }: LevelsMenuFrameProps) {
   return (
-    <main className="min-h-svh px-3 pt-5 pb-24 text-foreground sm:px-6 sm:pt-8 lg:pb-8">
-      <div className="mx-auto flex min-w-0 max-w-384 flex-col gap-6 sm:gap-8">
+    <main className="flex min-h-svh flex-col px-3 pt-5 pb-24 text-foreground sm:px-6 sm:pt-8 lg:pb-8">
+      <div className="mx-auto flex w-full min-w-0 max-w-384 flex-1 flex-col gap-6 sm:gap-8">
         <header className="min-w-0 border-border border-b pb-4 sm:pb-6">
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em]">Colorwork</p>
           <h1 className="mt-1 font-semibold text-xl leading-none sm:text-2xl">Color pixel art by number</h1>
@@ -34,7 +34,7 @@ export function LevelsMenuLoading() {
   return (
     <LevelsMenuFrame summary="Your local artwork collection">
       <div
-        className="grid min-h-48 place-items-center rounded-xl border border-border text-muted-foreground text-sm"
+        className="grid min-h-48 flex-1 place-items-center rounded-xl border border-border text-muted-foreground text-sm"
         role="status"
       >
         Loading artworks…
