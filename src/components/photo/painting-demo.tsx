@@ -89,7 +89,7 @@ export function PaintingDemo({ duration, puzzle }: PaintingDemoProps) {
       style={{ aspectRatio: `${puzzle.width} / ${puzzle.height}`, width: `round(down, 100%, ${puzzle.width}px)` }}
     >
       <FirstFrame puzzle={puzzle} />
-      <canvas aria-hidden className="col-start-1 row-start-1 block touch-manipulation select-none" ref={canvasRef} />
+      <canvas aria-hidden className="col-start-1 row-start-1 block touch-none select-none" ref={canvasRef} />
     </div>
   );
 }
