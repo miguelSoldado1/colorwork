@@ -84,9 +84,9 @@ export function PaintingDemo({ duration, puzzle }: PaintingDemoProps) {
 
   return (
     <div
-      className="grid w-full place-items-center"
+      className="mx-auto grid place-items-center"
       ref={containerRef}
-      style={{ aspectRatio: `${puzzle.width} / ${puzzle.height}` }}
+      style={{ aspectRatio: `${puzzle.width} / ${puzzle.height}`, width: `round(down, 100%, ${puzzle.width}px)` }}
     >
       <FirstFrame puzzle={puzzle} />
       <canvas aria-hidden className="col-start-1 row-start-1 block touch-manipulation select-none" ref={canvasRef} />
