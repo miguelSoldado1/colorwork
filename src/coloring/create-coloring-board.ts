@@ -44,6 +44,7 @@ const MIN_ZOOM = 1;
 const TOUCH_PAINT_THRESHOLD = 6;
 const ZOOM_STEP = 1.8;
 const CELL_EDGE_EPSILON = 0.000_001;
+const MAX_CELL_SNAP_LOSS = 0.1;
 
 export const TARGET_GUIDE_MAX_ALPHA = 0.42;
 export const SELECTION_ALPHA = 0.3;
@@ -186,7 +187,7 @@ export function createColoringBoard({
   }
 
   function resizeCanvasViewport() {
-    const cellSize = fitScale * zoom;
+    const cellSize = getCellSize();
     const zoomedViewportWidth = Math.min(availableViewportWidth, puzzle.width * cellSize);
     const zoomedViewportHeight = Math.min(availableViewportHeight, puzzle.height * cellSize);
     viewportWidth = Math.max(cellSize, Math.floor(zoomedViewportWidth / cellSize + CELL_EDGE_EPSILON) * cellSize);
@@ -194,7 +195,7 @@ export function createColoringBoard({
     canvas.style.width = `${viewportWidth}px`;
     canvas.style.height = `${viewportHeight}px`;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const dpr = getDevicePixelRatio();
     const displayWidth = Math.max(1, Math.round(viewportWidth * dpr));
     const displayHeight = Math.max(1, Math.round(viewportHeight * dpr));
 
@@ -204,8 +205,15 @@ export function createColoringBoard({
     }
   }
 
-  function updateGeometry() {
+  function getCellSize() {
+    const dpr = getDevicePixelRatio();
     const cellSize = fitScale * zoom;
+    const snappedCellSize = Math.floor(cellSize * dpr + CELL_EDGE_EPSILON) / dpr;
+    return snappedCellSize >= cellSize * (1 - MAX_CELL_SNAP_LOSS) ? snappedCellSize : cellSize;
+  }
+
+  function updateGeometry() {
+    const cellSize = getCellSize();
     const halfVisibleWidth = viewportWidth / cellSize / 2;
     const halfVisibleHeight = viewportHeight / cellSize / 2;
 
@@ -222,8 +230,8 @@ export function createColoringBoard({
       cellSize,
       height: cellSize * puzzle.height,
       width: cellSize * puzzle.width,
-      x: viewportWidth / 2 - cameraX * cellSize,
-      y: viewportHeight / 2 - cameraY * cellSize,
+      x: snapToDevicePixels(viewportWidth / 2 - cameraX * cellSize),
+      y: snapToDevicePixels(viewportHeight / 2 - cameraY * cellSize),
     };
   }
 
@@ -256,7 +264,7 @@ export function createColoringBoard({
     resizeCanvasViewport();
     const resizedScreenX = screenX + (viewportWidth - previousViewportWidth) / 2;
     const resizedScreenY = screenY + (viewportHeight - previousViewportHeight) / 2;
-    const nextCellSize = fitScale * zoom;
+    const nextCellSize = getCellSize();
     cameraX = worldX - (resizedScreenX - viewportWidth / 2) / nextCellSize;
     cameraY = worldY - (resizedScreenY - viewportHeight / 2) / nextCellSize;
     updateGeometry();
@@ -299,7 +307,7 @@ export function createColoringBoard({
     const resizedBounds = canvas.getBoundingClientRect();
     const nextScreenX = nextGesture.center.x - resizedBounds.left;
     const nextScreenY = nextGesture.center.y - resizedBounds.top;
-    const nextCellSize = fitScale * zoom;
+    const nextCellSize = getCellSize();
     cameraX = worldX - (nextScreenX - viewportWidth / 2) / nextCellSize;
     cameraY = worldY - (nextScreenY - viewportHeight / 2) / nextCellSize;
     updateGeometry();
@@ -375,7 +383,7 @@ export function createColoringBoard({
       return;
     }
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const dpr = getDevicePixelRatio();
     const displayWidth = Math.max(1, Math.round(bounds.width * dpr));
     const displayHeight = Math.max(1, Math.round(bounds.height * dpr));
     if (overviewCanvas.width !== displayWidth || overviewCanvas.height !== displayHeight) {
@@ -1283,6 +1291,15 @@ export function createColoringBoard({
 }
 
 // Low-level canvas and pixel helpers.
+function getDevicePixelRatio() {
+  return Math.min(window.devicePixelRatio || 1, 3);
+}
+
+function snapToDevicePixels(value: number) {
+  const dpr = getDevicePixelRatio();
+  return Math.round(value * dpr) / dpr;
+}
+
 function getColoringTheme(element: HTMLElement) {
   const styles = getComputedStyle(element);
   function getColor(name: string) {
