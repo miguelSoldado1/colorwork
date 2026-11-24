@@ -36,8 +36,23 @@ describe("renderSitemapXml", () => {
   it("includes a fixed date for every current sitemap URL", () => {
     const puzzles = readSitemapPuzzles(projectRoot);
     const xml = renderSitemapXml(puzzles, "https://example.com", {});
+    const undatedPuzzles = puzzles.filter((puzzle) => puzzle.addedOn === undefined);
 
-    expect(xml.match(/<lastmod>2026-09-06<\/lastmod>/g)).toHaveLength(puzzles.length + 4);
+    expect(xml.match(/<lastmod>2026-09-06<\/lastmod>/g)).toHaveLength(undatedPuzzles.length + 4);
+  });
+
+  it("dates puzzle pages by addedOn unless an override exists", () => {
+    const xml = renderSitemapXml(
+      [
+        { addedOn: "2026-11-24", catalogOrder: 1, id: "added", name: "Added", path: "/play/added" },
+        { addedOn: "2026-11-24", catalogOrder: 2, id: "updated", name: "Updated", path: "/play/updated" },
+      ],
+      "https://example.com",
+      { "/play/updated": "2026-12-01" }
+    );
+
+    expect(xml).toContain("<loc>https://example.com/play/added</loc>\n    <lastmod>2026-11-24</lastmod>");
+    expect(xml).toContain("<loc>https://example.com/play/updated</loc>\n    <lastmod>2026-12-01</lastmod>");
   });
 
   it("uses the baseline for pages without an override", () => {

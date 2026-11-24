@@ -11,7 +11,7 @@ const CATALOG_ORDER_PATTERN = /^\s*catalogOrder:\s*(\d+)[ \t]*,?[ \t]*$/m;
 const URL_PROTOCOL_PATTERN = /^[a-z][a-z\d+.-]*:\/\//i;
 const LOCAL_SITE_URL = "http://localhost:4173";
 
-// Keep this baseline fixed; add overrides for new or significantly updated pages.
+// Keep this baseline fixed; add overrides for undated new pages or significantly updated ones.
 // Adding or removing artwork also needs a homepage override.
 const sitemapBaselineDate = "2026-09-06";
 
@@ -22,6 +22,7 @@ const sitemapDates: Readonly<Record<string, string>> = {
 };
 
 export interface SitemapPuzzle {
+  addedOn?: string;
   catalogOrder: number;
   id: string;
   name: string;
@@ -48,9 +49,10 @@ export function readSitemapPuzzles(root: string) {
 
 export function renderSitemapXml(puzzles: SitemapPuzzle[], siteUrl: string, dates: Readonly<Record<string, string>>) {
   const paths = ["/", "/photo-to-pixel-art", "/achievements", "/privacy", ...puzzles.map((puzzle) => puzzle.path)];
+  const addedOn = new Map(puzzles.map((puzzle) => [puzzle.path, puzzle.addedOn]));
   const urls = paths
     .map((path) => {
-      const lastmod = dates[path] ?? sitemapBaselineDate;
+      const lastmod = dates[path] ?? addedOn.get(path) ?? sitemapBaselineDate;
       return `  <url>\n    <loc>${escapeXml(new URL(path, siteUrl).toString())}</loc>\n    <lastmod>${escapeXml(lastmod)}</lastmod>\n  </url>`;
     })
     .join("\n");
@@ -116,6 +118,7 @@ function parsePuzzleSource(fileName: string, source: string): SitemapPuzzle {
   const nameMatch =
     idMatch?.index === undefined ? undefined : defaultExport.slice(idMatch.index).match(QUOTED_PROPERTY("name"));
   const orderMatch = CATALOG_ORDER_PATTERN.exec(defaultExport);
+  const addedOnMatch = defaultExport.match(QUOTED_PROPERTY("addedOn"));
 
   if (!(idMatch && nameMatch)) {
     throw new Error(`[sitemap] Could not read id and name from ${fileName}.`);
@@ -126,6 +129,7 @@ function parsePuzzleSource(fileName: string, source: string): SitemapPuzzle {
   const catalogOrder = orderMatch ? Number.parseInt(orderMatch[1], 10) : Number.MAX_SAFE_INTEGER;
 
   return {
+    addedOn: addedOnMatch ? parseQuotedProperty(addedOnMatch[1], "addedOn", fileName) : undefined,
     catalogOrder,
     id,
     name,
