@@ -22,6 +22,8 @@ Each row has its own `Play →` link, in a column between the artwork and its pi
 
 With the counts in the last column, they're no longer inside the row button. The button reaches across the row with a stretched overlay and the link sits above it, so pressing the counts still selects the artwork. Hovering the button tints the whole row and hovering the link doesn't, which is how you can tell the two targets apart. Both right-hand columns have fixed minimum widths. Each row is its own grid, so content-sized columns drift a few pixels from row to row and the links stop lining up with each other and with their caption.
 
+New catalog artwork gets an `addedOn` date, and its row shows a `New` badge for a week. New pieces land mid-list by `catalogOrder`, so the badge is how a returning player spots them. It uses the column labels' 10px type, the size where the pixel font stays crisp. On phones it moves under the name, since beside it the name gets cut to a few letters. Painting any pixel of the artwork clears it, because the player has found it by then. Opening the board without painting doesn't count, same as for the last-painted artwork. Every visitor sees the same badge, and nothing new goes to storage. The week is checked in the browser, not at build time, so a late deploy can't keep the badge up.
+
 The preview panel keeps its main painting action at every viewport size. On phones there's also a fixed action bar, as a shortcut while the player scrolls the list.
 
 ### Preview states

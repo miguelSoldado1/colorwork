@@ -45,6 +45,7 @@ const encodedPixels = [
 ].join("");
 
 export default {
+  addedOn: "2026-11-24",
   artist: {
     name: "CursedLake",
     url: "https://cursedlake.itch.io/free-rabbit-cultist",

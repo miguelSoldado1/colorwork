@@ -1,4 +1,5 @@
 export interface PuzzleDefinition {
+  addedOn?: string;
   artist?: {
     name: string;
     url?: string;

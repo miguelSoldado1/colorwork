@@ -35,7 +35,7 @@ interface IndexRowProps {
 }
 
 export function IndexRow({ level, onSelect, selected }: IndexRowProps) {
-  const { completedColors, finished, paintedCount, puzzle, totalPixels } = level;
+  const { completedColors, finished, isNew, paintedCount, puzzle, totalPixels } = level;
 
   return (
     <li
@@ -44,7 +44,7 @@ export function IndexRow({ level, onSelect, selected }: IndexRowProps) {
     >
       {/* The counts sit outside the button, so it reaches the row's edges through a stretched overlay. */}
       <button
-        aria-label={`${puzzle.name}${puzzle.artist ? `, artwork by ${puzzle.artist.name}` : ""}, ${puzzle.width} by ${puzzle.height} cells, ${completedColors} of ${puzzle.palette.length} colors finished, ${paintedCount} of ${totalPixels} pixels painted`}
+        aria-label={`${puzzle.name}${isNew ? ", new" : ""}${puzzle.artist ? `, artwork by ${puzzle.artist.name}` : ""}, ${puzzle.width} by ${puzzle.height} cells, ${completedColors} of ${puzzle.palette.length} colors finished, ${paintedCount} of ${totalPixels} pixels painted`}
         aria-pressed={selected}
         className="col-span-2 grid cursor-pointer grid-cols-subgrid items-center py-3.5 text-left after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-2"
         onClick={() => onSelect(puzzle.id)}
@@ -52,7 +52,14 @@ export function IndexRow({ level, onSelect, selected }: IndexRowProps) {
       >
         <LevelPreview className="size-12 overflow-hidden rounded-[3px] bg-canvas" colored={finished} puzzle={puzzle} />
 
-        <span className="min-w-0 truncate text-sm">{puzzle.name}</span>
+        <span className="flex min-w-0 flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
+          <span className="min-w-0 max-w-full truncate text-sm">{puzzle.name}</span>
+          {isNew ? (
+            <span className="shrink-0 rounded-[3px] border border-primary/30 bg-primary/10 py-[3px] pr-[4px] pl-[6px] text-[10px] text-primary uppercase leading-none tracking-[0.2em]">
+              New
+            </span>
+          ) : null}
+        </span>
       </button>
 
       {/* Positioned above the overlay; the hidden name keeps nine links from all reading as "Play". */}

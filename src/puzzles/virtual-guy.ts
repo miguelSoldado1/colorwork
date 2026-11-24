@@ -19,6 +19,7 @@ const encodedPixels = [
 ].join("");
 
 export default {
+  addedOn: "2026-11-24",
   artist: {
     name: "Pixel Frog",
     url: "https://pixelfrog-assets.itch.io/pixel-adventure-1",
