@@ -122,7 +122,7 @@ A failed save keeps the form open and answers in place. The hairline turns red, 
 
 ## Palette and completion
 
-Painting the last missing cell of the selected color moves selection, after a 250 ms pause, to the next unfinished color in palette order, wrapping around. It reuses the selection indicator and doesn't move the camera or reorder swatches. Picking any swatch by hand cancels the pending move, even the same swatch again. Opening saved progress selects the first unfinished color right away. Finishing the artwork keeps the last color selected and celebrates immediately.
+Painting the last missing cell of the selected color moves selection, after a 250 ms pause, to the next unfinished color in palette order, wrapping around. The pause starts when the pointer lifts, so a stroke that keeps going past the last cell never starts painting the next color. The switch only happens between strokes. It reuses the selection indicator and doesn't move the camera or reorder swatches. Picking any swatch by hand cancels the pending move, even the same swatch again. Opening saved progress selects the first unfinished color right away. Finishing the artwork keeps the last color selected and celebrates immediately.
 
 A used-up swatch dims so the player can find the colors that are left. When every color is used up, none of them dim. A fully gray palette would make the finished artwork feel drained without pointing anywhere useful.
 

@@ -141,6 +141,48 @@ for (const input of ["mouse", "touch"] as const) {
   });
 }
 
+test("holds the advance until the stroke lifts", async ({ page }) => {
+  await openPuzzle(page);
+  const canvas = page.getByRole("img", { name: BOARD_LABEL });
+  const palette = page.getByRole("button", { name: COLOR_BUTTON });
+  await page.getByRole("button", { name: "Pencil tool" }).click();
+  await paintCell(canvas, "mouse", 0, 0);
+  await paintCell(canvas, "mouse", 0, 1);
+  await paintCell(canvas, "mouse", 0, 2);
+  await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+  await page.clock.pauseAt(new Date("2026-01-01T00:00:01Z"));
+
+  const start = await cellPoint(canvas, 0, 3);
+  const end = await cellPoint(canvas, 1, 3);
+  await page.mouse.move(start.x, start.y);
+  await page.mouse.down();
+  await page.clock.runFor(300);
+  await expect(palette.nth(0)).toHaveAttribute("aria-pressed", "true");
+  await page.mouse.move(end.x, end.y, { steps: 4 });
+  await page.clock.runFor(300);
+  await expect(palette.nth(0)).toHaveAttribute("aria-pressed", "true");
+  await expect(palette.nth(1)).toHaveAccessibleName("Color 2: 0 of 4 cells painted");
+
+  await page.mouse.up();
+  await page.clock.runFor(249);
+  await expect(palette.nth(0)).toHaveAttribute("aria-pressed", "true");
+  await page.clock.runFor(1);
+  await expect(palette.nth(1)).toHaveAttribute("aria-pressed", "true");
+
+  await paintCell(canvas, "mouse", 1, 0);
+  await paintCell(canvas, "mouse", 1, 1);
+  await paintCell(canvas, "mouse", 1, 2);
+  const last = await cellPoint(canvas, 1, 3);
+  await page.mouse.move(last.x, last.y);
+  await page.mouse.down();
+  await page.clock.runFor(200);
+  await page.mouse.up();
+  await page.clock.runFor(249);
+  await expect(palette.nth(1)).toHaveAttribute("aria-pressed", "true");
+  await page.clock.runFor(1);
+  await expect(palette.nth(2)).toHaveAttribute("aria-pressed", "true");
+});
+
 async function openPuzzle(page: Page) {
   await page.goto("/");
   await expect(page.getByRole("list", { name: "Built-in artwork" })).toBeVisible();
@@ -173,6 +215,14 @@ async function openPuzzle(page: Page) {
   });
   await page.goto("/play/auto-color-fixture");
   await expect(page.getByRole("img", { name: BOARD_LABEL })).toBeVisible();
+}
+
+async function cellPoint(canvas: Locator, x: number, y: number) {
+  const box = await canvas.boundingBox();
+  if (!box) {
+    throw new Error("The board canvas has no layout box.");
+  }
+  return { x: box.x + ((x + 0.5) / 4) * box.width, y: box.y + ((y + 0.5) / 4) * box.height };
 }
 
 async function paintCell(canvas: Locator, input: "mouse" | "touch", x: number, y: number) {

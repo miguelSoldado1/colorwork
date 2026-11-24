@@ -141,6 +141,7 @@ export function createColoringBoard({
   let frameId: number | undefined;
   let progressFrameId: number | undefined;
   let colorAdvanceTimer: ReturnType<typeof setTimeout> | undefined;
+  let colorAdvanceHeld = false;
   let activePointerId: number | undefined;
   let activeOverviewPointerId: number | undefined;
   const activeTouchPointers = new Map<number, PointerPosition>();
@@ -576,6 +577,18 @@ export function createColoringBoard({
   function cancelColorAdvance() {
     clearTimeout(colorAdvanceTimer);
     colorAdvanceTimer = undefined;
+    colorAdvanceHeld = false;
+  }
+
+  function isPointerDown() {
+    return activePointerId !== undefined || activeTouchPointers.size > 0;
+  }
+
+  function releaseColorAdvance() {
+    if (colorAdvanceHeld && !isPointerDown()) {
+      colorAdvanceHeld = false;
+      selectNextUnfinishedColor();
+    }
   }
 
   function selectNextUnfinishedColor() {
@@ -585,12 +598,20 @@ export function createColoringBoard({
     ) {
       return;
     }
+    if (isPointerDown()) {
+      colorAdvanceHeld = true;
+      return;
+    }
 
     for (let offset = 1; offset < puzzle.palette.length; offset += 1) {
       const colorIndex = (selectedColor + offset) % puzzle.palette.length;
       if (progress.paintedByColor[colorIndex] < totalByColor[colorIndex]) {
         colorAdvanceTimer = setTimeout(() => {
           colorAdvanceTimer = undefined;
+          if (isPointerDown()) {
+            colorAdvanceHeld = true;
+            return;
+          }
           selectedColor = colorIndex;
           rebuildSelectionLayer();
           scheduleRender();
@@ -894,15 +915,14 @@ export function createColoringBoard({
   }
 
   function beginPaintingPointer(event: PointerEvent, cell: Cell) {
+    activePointerId = event.pointerId;
+    previousCell = cell;
+    canvas.setPointerCapture(event.pointerId);
     if (selectedTool === "bucket") {
       fillConnectedArea(cell);
     } else {
       paintCell(cell);
     }
-
-    activePointerId = event.pointerId;
-    previousCell = cell;
-    canvas.setPointerCapture(event.pointerId);
   }
 
   function beginPinchGesture() {
@@ -1150,6 +1170,7 @@ export function createColoringBoard({
     activePointerId = undefined;
     pendingTouch = undefined;
     releasePointerCapture(event);
+    releaseColorAdvance();
   }
 
   function finishTouchPointer(event: PointerEvent) {
@@ -1164,6 +1185,7 @@ export function createColoringBoard({
     }
     if (event.pointerId !== activePointerId) {
       releasePointerCapture(event);
+      releaseColorAdvance();
       return true;
     }
     if (pendingTouch && event.type === "pointerup") {
@@ -1181,6 +1203,7 @@ export function createColoringBoard({
     previousPointerPosition = undefined;
     updateCursor();
     releasePointerCapture(event);
+    releaseColorAdvance();
     return true;
   }
 
@@ -1203,6 +1226,7 @@ export function createColoringBoard({
     previousPointerPosition = undefined;
     updateCursor();
     releasePointerCapture(event);
+    releaseColorAdvance();
   }
 
   function updateCursor() {
