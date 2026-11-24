@@ -9,31 +9,31 @@ const RIBBIT_URL = /\/play\/ribbit$/;
 const RIBBIT_BUTTON = /^Ribbit/;
 const GOBBO_BUTTON = /^Gobbo/;
 const WIDE_FIXTURE_BUTTON = /^Wide Fixture/;
-const TIDEPOOL_BUTTON = /^Tidepool/;
+const VIRTUAL_GUY_BUTTON = /^Virtual Guy/;
 const COLOR_BUTTON = /^Color \d+:/;
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("artwork catalog", () => {
-  test("offers Tidepool with its artist source in the menu and on the board", async ({ page }) => {
+  test("offers Virtual Guy with its artist source in the menu and on the board", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: TIDEPOOL_BUTTON }).click();
+    await page.getByRole("button", { name: VIRTUAL_GUY_BUTTON }).click();
 
     const preview = page.getByRole("complementary", { name: "Artwork preview" });
-    await expect(preview.getByRole("heading", { name: "Tidepool" })).toBeVisible();
-    await expect(preview.getByRole("link", { name: "Tray Simpson (Shifty the Dev)" })).toHaveAttribute(
+    await expect(preview.getByRole("heading", { name: "Virtual Guy" })).toBeVisible();
+    await expect(preview.getByRole("link", { name: "Pixel Frog" })).toHaveAttribute(
       "href",
-      "https://blog.shiftythedev.com/posts/30DaysOfPixelArt/"
+      "https://pixelfrog-assets.itch.io/pixel-adventure-1"
     );
     await preview.getByRole("link", { name: "Start painting" }).click();
-    await expect(page).toHaveURL("/play/tidepool");
-    await expect(page.getByRole("heading", { name: "Tidepool" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Tray Simpson (Shifty the Dev)" })).toHaveAttribute(
+    await expect(page).toHaveURL("/play/virtual-guy");
+    await expect(page.getByRole("heading", { name: "Virtual Guy" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Pixel Frog" })).toHaveAttribute(
       "href",
-      "https://blog.shiftythedev.com/posts/30DaysOfPixelArt/"
+      "https://pixelfrog-assets.itch.io/pixel-adventure-1"
     );
-    await expect(page.getByRole("button", { name: COLOR_BUTTON })).toHaveCount(8);
-    await expect(page.getByRole("group", { name: "0 of 16,384 pixels painted" })).toBeVisible();
+    await expect(page.getByRole("button", { name: COLOR_BUTTON })).toHaveCount(12);
+    await expect(page.getByRole("group", { name: "0 of 900 pixels painted" })).toBeVisible();
   });
 
   test("shows a default preview and keeps selection client-side", async ({ page }) => {
@@ -76,8 +76,8 @@ test.describe("artwork catalog", () => {
     await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible();
 
     // Opening another board without painting must not displace the artwork in progress.
-    await page.goto("/play/tidepool");
-    await expect(page.getByRole("heading", { name: "Tidepool" })).toBeVisible();
+    await page.goto("/play/boo");
+    await expect(page.getByRole("heading", { name: "Boo" })).toBeVisible();
 
     await page.goto("/");
     const preview = page.getByRole("complementary", { name: "Artwork preview" });
