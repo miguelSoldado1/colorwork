@@ -130,6 +130,8 @@ A failed save keeps the form open and answers in place. The hairline turns red, 
 
 Painting the last missing cell of the selected color moves selection, after a 250 ms pause, to the next unfinished color in palette order, wrapping around. The pause starts when the pointer lifts, so a stroke that keeps going past the last cell never starts painting the next color. The switch only happens between strokes. It reuses the selection indicator and doesn't move the camera or reorder swatches. Picking any swatch by hand cancels the pending move, even the same swatch again. Opening saved progress selects the first unfinished color right away. Finishing the artwork keeps the last color selected and celebrates immediately.
 
+Phones that can vibrate give a short buzz when a color is finished. It comes with the last cell rather than the switch to the next color, so it lands under the thumb that painted it. Finishing the artwork replaces the buzz with a pattern timed to the confetti. There's a firm pop, a beat when the overview pings at 160 ms, then taps that thin out as the last particles launch. If either one is retuned, check the other. iPhones stay silent because Safari has no vibration API.
+
 A used-up swatch dims so the player can find the colors that are left. When every color is used up, none of them dim. A fully gray palette would make the finished artwork feel drained without pointing anywhere useful.
 
 Completion is the one deliberately colorful moment in the interface. Every particle takes a color from the artwork's palette, so the effect belongs to that artwork and there's no fixed celebration color. Particles start at the board edge and fly outward, so the finished artwork stays uncovered.

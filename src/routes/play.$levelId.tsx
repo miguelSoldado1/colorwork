@@ -140,6 +140,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const resettingRef = useRef(false);
   const completedRef = useRef(isPuzzleComplete(summary));
   const paintedCellsRef = useRef(initialProgress.paintedCount);
+  const paintedByColorRef = useRef(summary.paintedByColor);
   // Painting, not opening, is what the menu resumes.
   const rememberedRef = useRef(false);
   // A repeated selection must still reach the board to cancel pending color advancement.
@@ -235,6 +236,8 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
 
     const previousPaintedCells = paintedCellsRef.current;
     paintedCellsRef.current = nextSummary.paintedCount;
+    const previousPaintedByColor = paintedByColorRef.current;
+    paintedByColorRef.current = nextSummary.paintedByColor;
 
     if (previousPaintedCells === 0 && nextSummary.paintedCount > 0) {
       trackPuzzleStarted({ paintedCells: nextSummary.paintedCount, puzzle, source: artworkSource });
@@ -247,16 +250,26 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
       totalCells,
     });
 
+    const finishedColor = nextSummary.paintedByColor.some(
+      (painted, colorIndex) =>
+        painted === nextSummary.totalByColor[colorIndex] && previousPaintedByColor[colorIndex] < painted
+    );
+
     if (nextComplete !== completedRef.current) {
       completedRef.current = nextComplete;
       setCelebrateCompletion(nextComplete);
 
       if (nextComplete) {
+        navigator.vibrate?.(PUZZLE_FINISHED_VIBRATION);
         trackPuzzleCompleted(puzzle, artworkSource);
         checkAndShowAchievementUnlocks(() =>
           reconcilePuzzleCompletionAchievements(queryClient, { artworkId: puzzle.id, source: artworkSource })
         );
       }
+    }
+
+    if (finishedColor && !nextComplete) {
+      navigator.vibrate?.(COLOR_FINISHED_VIBRATION);
     }
 
     setSummary(nextSummary);
@@ -294,9 +307,11 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
       trackPuzzleReset({ paintedCellsBeforeReset, puzzle, source: artworkSource, surface: "board" });
       paintedCellsRef.current = 0;
       completedRef.current = false;
+      const emptySummary = createProgressSummary(puzzle, emptyProgress);
+      paintedByColorRef.current = emptySummary.paintedByColor;
       setCelebrateCompletion(false);
       setProgress(emptyProgress);
-      setSummary(createProgressSummary(puzzle, emptyProgress));
+      setSummary(emptySummary);
       setResetVersion((version) => version + 1);
     } catch (error) {
       // Discard removes the pending snapshot; restore it if deleting the stored record fails.
@@ -413,6 +428,9 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
     </BoardShell>
   );
 }
+
+const COLOR_FINISHED_VIBRATION = 20;
+const PUZZLE_FINISHED_VIBRATION = [40, 120, 30, 100, 25, 130, 20, 170, 15, 220, 15];
 
 function isPuzzleComplete(summary: ProgressSummary) {
   return summary.totalPixels > 0 && summary.paintedCount >= summary.totalPixels;
