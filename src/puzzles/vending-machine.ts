@@ -108,7 +108,7 @@ export default {
     name: "Karsiori",
     url: "https://karsiori.itch.io/pixel-art-vending-machines",
   },
-  catalogOrder: 16,
+  catalogOrder: 17,
   height: 114,
   id: "vending-machine",
   name: "Vending Machine",

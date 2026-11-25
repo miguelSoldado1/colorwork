@@ -17,7 +17,7 @@ const sitemapBaselineDate = "2026-09-06";
 
 // Dates use YYYY-MM-DD, for example: "/play/new-puzzle": "2026-09-10".
 const sitemapDates: Readonly<Record<string, string>> = {
-  "/": "2026-11-24",
+  "/": "2026-11-25",
   "/photo-to-pixel-art": "2026-11-22",
 };
 
