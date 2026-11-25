@@ -9,8 +9,10 @@ import { constrainImageCrop, DEFAULT_IMAGE_CROP, type ImageCrop } from "@/colori
 import {
   createImageImportPreview,
   createImportedPuzzleId,
+  DEFAULT_IMPORT_CELL_COUNT,
   getCropGridSize,
   getImportName,
+  getLargestGridSize,
   getMaximumImportGridSide,
   getRecommendedGridSize,
   type ImageImportSource,
@@ -39,19 +41,22 @@ export function ImageImportDialog({ onCancel, onConfirm, saveError, source }: Im
   const cropTriggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const previewRef = useRef<HTMLCanvasElement>(null);
-  const recommendedSize = getRecommendedGridSize(source.width, source.height);
-  const initialName = getImportName(source.fileName);
-  const [name, setName] = useState(initialName);
-  const [width, setWidth] = useState(recommendedSize.width);
-  const [height, setHeight] = useState(recommendedSize.height);
+  const draftCropRef = useRef<ImageCrop>(DEFAULT_IMAGE_CROP);
+  const [name, setName] = useState(() => getImportName(source.fileName));
+  const [width, setWidth] = useState(
+    () => getRecommendedGridSize(source.width, source.height, DEFAULT_IMPORT_CELL_COUNT).width
+  );
+  const [height, setHeight] = useState(
+    () => getRecommendedGridSize(source.width, source.height, DEFAULT_IMPORT_CELL_COUNT).height
+  );
   const [detectedColorCount, setDetectedColorCount] = useState(source.detectedColorCount);
   const [requestedPaletteSize, setRequestedPaletteSize] = useState(DEFAULT_PALETTE_SIZE);
   const [crop, setCrop] = useState<ImageCrop>();
   const [dimensionsLinked, setDimensionsLinked] = useState(true);
   const [editingCrop, setEditingCrop] = useState(false);
-  const draftCropRef = useRef<ImageCrop>(DEFAULT_IMAGE_CROP);
   const [puzzle, setPuzzle] = useState<PuzzleDefinition | null>(null);
   const [processingError, setProcessingError] = useState("");
+  const initialName = getImportName(source.fileName);
   const paletteMaximum = Math.min(MAX_PALETTE_SIZE, Math.max(MIN_PALETTE_SIZE, detectedColorCount));
   const paletteSize = Math.min(requestedPaletteSize, paletteMaximum);
 
@@ -351,6 +356,10 @@ interface GridSizeFieldProps {
 
 /** Grid size with an optional ratio lock, so the linked and free cases stay in one place. */
 function GridSizeField({ dimensionsLinked, onChange, onToggleLink, source, value }: GridSizeFieldProps) {
+  const largestSize = dimensionsLinked
+    ? getRecommendedGridSize(source.width, source.height)
+    : getLargestGridSize(value.width, value.height);
+
   function updateWidth(nextWidth: number) {
     const safeWidth = clampGridSize(nextWidth);
     if (dimensionsLinked) {
@@ -408,8 +417,13 @@ function GridSizeField({ dimensionsLinked, onChange, onToggleLink, source, value
           value={value.height}
         />
       </div>
-      <p className="mt-2 text-muted-foreground text-xs">
-        Source: {source.width} × {source.height}px
+      <p className="mt-2 grid gap-1 text-muted-foreground text-xs">
+        <span>
+          Source: {source.width} × {source.height}px
+        </span>
+        <span>
+          Max: {largestSize.width} × {largestSize.height}
+        </span>
       </p>
     </fieldset>
   );

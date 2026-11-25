@@ -237,7 +237,7 @@ const QUESTIONS = [
   },
   {
     answer:
-      "As big as Colorwork allows, up to 65,536 cells, so faces and textures hold up. If you'd rather finish sooner, turn the grid down. 100 × 100 is 10,000 cells.",
+      "About 10,000 cells to start, roughly 100 × 100, so it doesn't take forever to finish. Turn the grid up for sharper faces and textures. It goes as high as 65,536 cells.",
     question: "How big is the board?",
   },
   {

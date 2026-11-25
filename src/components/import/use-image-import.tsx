@@ -6,6 +6,7 @@ import { checkAndShowAchievementUnlocks } from "@/achievements/show-achievement-
 import { trackCustomArtworkImported } from "@/analytics/posthog";
 import {
   countRenderedImageColors,
+  DEFAULT_IMPORT_CELL_COUNT,
   getRecommendedGridSize,
   IMPORT_ACCEPT,
   isSourceImageSizeSupported,
@@ -60,7 +61,7 @@ export function useImageImport() {
     }
 
     try {
-      const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height);
+      const recommendedSize = getRecommendedGridSize(bitmap.width, bitmap.height, DEFAULT_IMPORT_CELL_COUNT);
       const detectedColorCount = countRenderedImageColors(bitmap, recommendedSize.width, recommendedSize.height);
 
       source?.bitmap.close();

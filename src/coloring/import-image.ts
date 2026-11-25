@@ -5,6 +5,7 @@ import { readThemeColor } from "./pixel-raster";
 import type { PuzzleDefinition } from "./types";
 
 export const MAX_IMPORT_CELL_COUNT = 65_536;
+export const DEFAULT_IMPORT_CELL_COUNT = 10_000;
 export const MAX_IMPORT_GRID_SIDE = 512;
 export const MAX_IMPORT_FILE_BYTES = 12 * 1024 * 1024;
 export const MAX_SOURCE_PIXEL_COUNT = 25_000_000;
@@ -79,16 +80,28 @@ export function isSourceImageSizeSupported(width: number, height: number) {
 }
 
 // Import defaults and source metadata.
-export function getRecommendedGridSize(sourceWidth: number, sourceHeight: number) {
+export function getRecommendedGridSize(sourceWidth: number, sourceHeight: number, cellBudget = MAX_IMPORT_CELL_COUNT) {
   const scale = Math.min(
     1,
     MAX_IMPORT_GRID_SIDE / Math.max(sourceWidth, sourceHeight),
-    Math.sqrt(MAX_IMPORT_CELL_COUNT / (sourceWidth * sourceHeight))
+    Math.sqrt(cellBudget / (sourceWidth * sourceHeight))
   );
 
   return {
     height: Math.max(1, Math.floor(sourceHeight * scale)),
     width: Math.max(1, Math.floor(sourceWidth * scale)),
+  };
+}
+
+export function getLargestGridSize(width: number, height: number) {
+  const scale = Math.min(
+    MAX_IMPORT_GRID_SIDE / Math.max(width, height),
+    Math.sqrt(MAX_IMPORT_CELL_COUNT / (width * height))
+  );
+
+  return {
+    height: Math.max(1, Math.floor(height * scale)),
+    width: Math.max(1, Math.floor(width * scale)),
   };
 }
 

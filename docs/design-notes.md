@@ -54,6 +54,8 @@ Clicking the email link and closing the strip each send a product event with no 
 
 Import starts from the menu, because the board is for painting one artwork. The image becomes a puzzle, is stored in IndexedDB, appears after the built-in catalog, and opens through the normal board route. Its definition and progress survive reloads. Menu components get stored progress through `describeLevel` and never read storage or pixel arrays directly.
 
+A new import starts at about 10,000 cells. It used to start at the 65,536-cell limit, and most players never changed it. Those boards rarely got finished. In November 2026 about one started import in six was finished. Small catalog pieces almost always were. Anyone who wants more detail can still turn the grid up, and the caption under the grid fields shows the largest width and height the aspect ratio allows. With the ratio locked it stops at the source image's own size, because going past it only splits each source pixel into identical cells. Cropping and grid edits answer only to the limit, so a grid someone turned up stays up when they crop.
+
 ### Photo landing page
 
 `/photo-to-pixel-art` is there for search. Most imports are photos, and the searches that already bring people to Colorwork are worded around pixels, so the page uses that wording and opens the same import flow as the menu. The sitemap lists it and the footer links to it.

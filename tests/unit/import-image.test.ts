@@ -3,8 +3,10 @@ import {
   countPixelColors,
   createImportedPuzzleId,
   createIndexedPixelData,
+  DEFAULT_IMPORT_CELL_COUNT,
   getCropGridSize,
   getImportName,
+  getLargestGridSize,
   getMaximumImportGridSide,
   getRecommendedGridSize,
   isSourceImageSizeSupported,
@@ -62,9 +64,23 @@ describe("getRecommendedGridSize", () => {
     }
   });
 
+  it("fits a smaller cell budget when one is given", () => {
+    expect(getRecommendedGridSize(1000, 1000, DEFAULT_IMPORT_CELL_COUNT)).toEqual({ height: 100, width: 100 });
+    expect(getRecommendedGridSize(1600, 900, DEFAULT_IMPORT_CELL_COUNT)).toEqual({ height: 75, width: 133 });
+    expect(getRecommendedGridSize(64, 32, DEFAULT_IMPORT_CELL_COUNT)).toEqual({ height: 32, width: 64 });
+  });
+
   it("keeps both dimensions usable for extremely wide or tall images", () => {
     expect(getRecommendedGridSize(10_000, 1)).toEqual({ height: 1, width: 512 });
     expect(getRecommendedGridSize(1, 10_000)).toEqual({ height: 512, width: 1 });
+  });
+});
+
+describe("getLargestGridSize", () => {
+  it("scales to the largest grid that keeps the aspect ratio", () => {
+    expect(getLargestGridSize(1600, 900)).toEqual({ height: 192, width: 341 });
+    expect(getLargestGridSize(64, 64)).toEqual({ height: 256, width: 256 });
+    expect(getLargestGridSize(10_000, 1)).toEqual({ height: 1, width: 512 });
   });
 });
 
