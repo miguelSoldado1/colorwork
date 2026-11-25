@@ -40,6 +40,7 @@
     "ultracite": "7.9.4",
     "vite": "^8",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "workbox-build": "7.4.1"
   }
 }

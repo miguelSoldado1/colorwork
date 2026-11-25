@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { generateSW } from "workbox-build";
 import type { Plugin } from "vite";
 
 const SERVER_ENTRY = "src/entry-server.tsx";
@@ -10,6 +11,8 @@ const SITE_URL = "https://www.playcolorwork.com";
 const SHELL_FILE = "_shell.html";
 const ROOT_ELEMENT = '<div id="root"></div>';
 const TITLE_ELEMENT = /<title>[^<]*<\/title>/;
+const HASHED_ASSET = /^assets\//;
+const FILE_PATH = /\.\w+$/;
 
 interface PrerenderedPage {
   description: string;
@@ -68,6 +71,18 @@ export function prerenderPlugin() {
               await writeFile(file, renderPageHtml(template, page, page.html));
             })
           );
+
+          await generateSW({
+            dontCacheBustURLsMatching: HASHED_ASSET,
+            globDirectory: outDir,
+            globIgnores: ["social-preview.png"],
+            globPatterns: ["**/*.{css,html,ico,js,png,svg,webmanifest,woff2}"],
+            inlineWorkboxRuntime: true,
+            navigateFallback: `/${SHELL_FILE}`,
+            navigateFallbackDenylist: [FILE_PATH],
+            sourcemap: false,
+            swDest: resolve(outDir, "sw.js"),
+          });
         } finally {
           await rm(serverDir, { force: true, recursive: true });
         }
