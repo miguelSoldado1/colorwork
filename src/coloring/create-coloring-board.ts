@@ -119,6 +119,7 @@ export function createColoringBoard({
   // Mutable interaction state stays inside this controller rather than React.
   let selectedColor = initialSelectedColor;
   let selectedTool = initialTool;
+  let deferredTool: ColoringTool | undefined;
   let geometry = {
     cellSize: 1,
     height: puzzle.height,
@@ -848,7 +849,7 @@ export function createColoringBoard({
       return;
     }
 
-    if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+    if (event.key === "Enter") {
       event.preventDefault();
       performKeyboardAction();
     }
@@ -1171,6 +1172,7 @@ export function createColoringBoard({
     pendingTouch = undefined;
     releasePointerCapture(event);
     releaseColorAdvance();
+    applyDeferredTool();
   }
 
   function finishTouchPointer(event: PointerEvent) {
@@ -1186,6 +1188,7 @@ export function createColoringBoard({
     if (event.pointerId !== activePointerId) {
       releasePointerCapture(event);
       releaseColorAdvance();
+      applyDeferredTool();
       return true;
     }
     if (pendingTouch && event.type === "pointerup") {
@@ -1204,6 +1207,7 @@ export function createColoringBoard({
     updateCursor();
     releasePointerCapture(event);
     releaseColorAdvance();
+    applyDeferredTool();
     return true;
   }
 
@@ -1227,6 +1231,16 @@ export function createColoringBoard({
     updateCursor();
     releasePointerCapture(event);
     releaseColorAdvance();
+    applyDeferredTool();
+  }
+
+  function applyDeferredTool() {
+    if (deferredTool === undefined || activePointerId !== undefined) {
+      return;
+    }
+    selectedTool = deferredTool;
+    deferredTool = undefined;
+    updateCursor();
   }
 
   function updateCursor() {
@@ -1308,6 +1322,11 @@ export function createColoringBoard({
       scheduleRender();
     },
     setTool(tool: ColoringTool) {
+      if (activePointerId !== undefined) {
+        deferredTool = tool;
+        return;
+      }
+      deferredTool = undefined;
       selectedTool = tool;
       updateCursor();
     },

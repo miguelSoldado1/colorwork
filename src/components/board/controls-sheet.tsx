@@ -81,6 +81,7 @@ export function ControlsSheet({ colorCount }: ControlsSheetProps) {
               <Row keys={[TOOL_SHORTCUTS["zoom-in"]]} label="Zoom in" />
               <Row keys={[TOOL_SHORTCUTS["zoom-out"]]} label="Zoom out" />
               <Row keys={[TOOL_SHORTCUTS.pan]} label="Pan" />
+              <Row keys={["Space"]} label="Hold to pan" />
             </Group>
             <Group title="Colors">
               <Row keys={lastColor > 1 ? ["1", "–", String(lastColor)] : ["1"]} label="Choose a color" />

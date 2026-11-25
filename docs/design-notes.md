@@ -102,6 +102,10 @@ The card's button sits at the right end of the palette bar. In the header it loo
 
 The board's arrow keys and Enter are left off on purpose. They only work once the board has focus, so next to shortcuts that work anywhere they look broken. They stay as the keyboard-only way to paint, and the board's accessible description covers them.
 
+Holding Space pans until it's let go, as in most drawing apps, and the rail shows pan as pressed in the meantime. Space used to paint next to Enter. A key that pans or paints depending on what has focus is a trap, so only Enter paints now. A button reached with Tab still gets Space as usual. A button that only has focus because it was clicked doesn't, or letting go of Space after a pan would press it again.
+
+Tool changes from Space or a shortcut wait for the current stroke to end. Without that, pressing Space halfway through a pencil drag turns the rest of it into a pan.
+
 ### Starting over
 
 "Start over" clears stored progress through `clearPuzzleProgress` and is disabled on an untouched board. It's in the menu preview and in the board header, so resetting never means leaving the artwork. The board drops pending autosaves before removing the stored record, then rebuilds its live progress from empty. Neither control opens a modal. The artwork around it already shows what will be cleared, and a modal would cover that up and say it again.

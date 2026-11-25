@@ -95,7 +95,8 @@ export function ColoringBoard({
   return (
     <div className="grid h-full min-h-0 w-full min-w-0 place-items-center" ref={containerRef}>
       <p className="sr-only" id={boardInstructionsId}>
-        Focus the board, then use the arrow keys to move the active cell. Press Enter or Space to use the selected tool.
+        Focus the board, then use the arrow keys to move the active cell. Press Enter to use the selected tool. Hold
+        Space to pan.
       </p>
       {/* Shrink-wraps the canvas so the confetti can fill this box instead of measuring the board. */}
       <div className="relative">

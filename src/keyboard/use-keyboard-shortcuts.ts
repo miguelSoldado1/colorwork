@@ -37,7 +37,7 @@ function hasModifier(event: KeyboardEvent) {
   return event.altKey || event.ctrlKey || event.metaKey || (event.shiftKey && event.key !== "?");
 }
 
-function isEditingTarget(target: EventTarget | null) {
+export function isEditingTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) {
     return false;
   }

@@ -32,6 +32,7 @@ import { SaveStatus } from "@/components/progress/save-status";
 import { ToolPicker } from "@/components/toolbar/tool-picker";
 import { TOOL_SHORTCUTS, TOOLBAR_SHORTCUTS } from "@/keyboard/game-shortcuts";
 import { useKeyboardShortcuts } from "@/keyboard/use-keyboard-shortcuts";
+import { useSpaceHeld } from "@/keyboard/use-space-held";
 import { renameImportedPuzzle } from "@/levels/imported-levels";
 import { saveLastPaintedArtworkId } from "@/levels/last-painted-artwork";
 import { findLevel, LEVELS } from "@/levels/level-catalog";
@@ -126,6 +127,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
   const [artworkName, setArtworkName] = useState(puzzle.name);
   const [renaming, setRenaming] = useState(false);
   const [selectedTool, setSelectedTool] = useState<ColoringTool>("pencil");
+  const spaceHeld = useSpaceHeld();
   const [preferences, setPreferences] = useState(loadUserPreferences);
   const [highlightMissing, setHighlightMissing] = useState(false);
   // The Canvas controller mutates progress in place, so never hand it TanStack Query's cached value.
@@ -152,6 +154,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
 
   const artworkSource = findLevel(puzzle.id) ? "catalog" : "imported";
   const totalCells = puzzle.width * puzzle.height;
+  const activeTool = spaceHeld ? "pan" : selectedTool;
 
   useEffect(() => {
     trackArtworkOpened({ paintedCells: initialProgress.paintedCount, puzzle, source: artworkSource, totalCells });
@@ -360,7 +363,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
             onToggleGrid={toggleGrid}
             onToggleMissing={toggleMissingHighlight}
             onToggleNumbers={toggleNumbers}
-            selectedTool={selectedTool}
+            selectedTool={activeTool}
           />
         </aside>
 
@@ -377,7 +380,7 @@ function ColoringApp({ initialProgress, puzzle }: ColoringAppProps) {
             puzzle={puzzle}
             showGrid={preferences.showGrid}
             showNumbers={preferences.showNumbers}
-            tool={selectedTool}
+            tool={activeTool}
           />
         </section>
       </div>
