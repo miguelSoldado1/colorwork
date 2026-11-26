@@ -172,6 +172,12 @@ The header is type and nothing else. The cards below have the marks, and a fifth
 
 The summary holds its place through loading and failure, and the page never rebuilds itself while someone is reading. Achievement names and descriptions show right away while the stored history loads. Until it loads, the summary count and progress details read zero, and the cards already have their final size. A failed read has no honest count to show. The heading falls back to the page's own name, the sage eyebrow above it goes away with the count it labelled, and the error says what couldn't be opened and that artwork and progress are untouched.
 
+## Installing and updates
+
+Colorwork installs as an app and plays offline. The service worker is built after prerendering so it can cache every page. Imported artwork and unknown routes fall back to the shell.
+
+A new version waits for the player. Taking over mid-session could pull code out from under an open board. While it waits, a toast offers Reload. The toast has no timer, and swiping it away is harmless because the update applies on the next launch anyway. Its mark stays neutral, since sage means something was earned. The app checks for a new version whenever the player comes back to it, because an installed app can stay open for days.
+
 ## Analytics
 
 Analytics only run in production. Achievement events record newly saved unlocks by their authored award ids. They never include imported artwork names or ids.

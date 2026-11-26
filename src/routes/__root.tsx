@@ -3,8 +3,11 @@ import { useEffect } from "react";
 import { initializeAnalytics } from "@/analytics/posthog";
 import { NotFoundPage } from "@/components/app/not-found-page";
 import { Toaster } from "@/components/ui/toaster";
+import { useServiceWorkerUpdates } from "@/pwa/use-service-worker-updates";
 
 function RootRoute() {
+  useServiceWorkerUpdates();
+
   useEffect(() => {
     initializeAnalytics();
   }, []);

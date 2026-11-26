@@ -43,7 +43,12 @@ describe("search and social metadata", () => {
     expect(html).toContain('href="/apple-touch-icon.png"');
     expect(html).toContain('name="apple-mobile-web-app-title"');
     expect(html).toContain('href="/site.webmanifest"');
-    expect(manifest.icons).toHaveLength(2);
+    expect(manifest.icons.map((icon: { purpose: string; sizes: string }) => `${icon.purpose} ${icon.sizes}`)).toEqual([
+      "any 192x192",
+      "any 512x512",
+      "maskable 192x192",
+      "maskable 512x512",
+    ]);
     for (const [png, size] of [
       [favicon, 96],
       [appleTouchIcon, 180],
