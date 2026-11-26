@@ -22,19 +22,15 @@ export interface AchievementRepository {
 export const indexedDbAchievementRepository: AchievementRepository = {
   async update<Result>(operation: (transaction: AchievementTransaction) => Result) {
     const database = await getColorworkDatabase();
-    const transaction = database.transaction(["achievementUnlocks", "artworks", "puzzleCompletions"], "readwrite");
+    const importedPuzzleIds = await database.getAllKeys("artworks");
+    const transaction = database.transaction(["achievementUnlocks", "puzzleCompletions"], "readwrite");
     const writes: Promise<unknown>[] = [];
 
     try {
       const unlockStore = transaction.objectStore("achievementUnlocks");
-      const artworkStore = transaction.objectStore("artworks");
       const completionStore = transaction.objectStore("puzzleCompletions");
 
-      const [storedUnlocks, importedPuzzleIds, storedCompletions] = await Promise.all([
-        unlockStore.getAll(),
-        artworkStore.getAllKeys(),
-        completionStore.getAll(),
-      ]);
+      const [storedUnlocks, storedCompletions] = await Promise.all([unlockStore.getAll(), completionStore.getAll()]);
 
       const unlockedAchievements = new Map(
         storedUnlocks.filter(isStoredAchievementUnlock).map((record) => [record.achievementId, record])

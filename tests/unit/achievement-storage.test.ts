@@ -68,9 +68,6 @@ function useStoredRecords({ achievementUnlocks = [], artworkIds = [], puzzleComp
       getAll: vi.fn().mockResolvedValue(achievementUnlocks),
       put: vi.fn().mockResolvedValue(undefined),
     },
-    artworks: {
-      getAllKeys: vi.fn().mockResolvedValue(artworkIds),
-    },
     puzzleCompletions: {
       clear: vi.fn().mockResolvedValue(undefined),
       getAll: vi.fn().mockResolvedValue(puzzleCompletions),
@@ -84,6 +81,7 @@ function useStoredRecords({ achievementUnlocks = [], artworkIds = [], puzzleComp
   };
 
   databaseMocks.getColorworkDatabase.mockResolvedValue({
+    getAllKeys: vi.fn().mockResolvedValue(artworkIds),
     transaction: vi.fn(() => transaction),
   });
 
@@ -350,14 +348,13 @@ describe("achievement storage", () => {
     expect(onChange).toHaveBeenCalledOnce();
   });
 
-  it("clears completion and unlock history without clearing artwork", async () => {
+  it("clears completion and unlock history", async () => {
     const { stores } = useStoredRecords();
 
     await clearAchievementHistory();
 
     expect(stores.achievementUnlocks.clear).toHaveBeenCalledOnce();
     expect(stores.puzzleCompletions.clear).toHaveBeenCalledOnce();
-    expect(stores.artworks).not.toHaveProperty("clear");
   });
 
   it("settles queued writes when an achievement operation fails", async () => {

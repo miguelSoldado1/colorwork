@@ -35,7 +35,10 @@ const indexedDbProgressRepository: ProgressRepository = {
   },
   async put(record) {
     const database = await getColorworkDatabase();
-    await database.put("progress", record);
+    const transaction = database.transaction("progress", "readwrite");
+    const write = transaction.store.put(record);
+    transaction.commit?.();
+    await Promise.all([write, transaction.done]);
   },
 };
 
