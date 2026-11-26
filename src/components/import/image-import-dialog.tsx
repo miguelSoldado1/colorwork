@@ -422,7 +422,7 @@ function GridSizeField({ dimensionsLinked, onChange, onToggleLink, source, value
           Source: {source.width} × {source.height}px
         </span>
         <span>
-          Max: {largestSize.width} × {largestSize.height}
+          Max: {largestSize.width} × {largestSize.height}px
         </span>
       </p>
     </fieldset>
