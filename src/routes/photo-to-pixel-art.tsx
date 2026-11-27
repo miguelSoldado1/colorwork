@@ -232,6 +232,11 @@ const QUESTIONS = [
   },
   {
     answer:
+      "Into your artwork list on the home page, next to the other artworks. It's saved on this device, so you can close the tab and pick it up later. Clearing your browser data deletes it.",
+    question: "Where does my board go?",
+  },
+  {
+    answer:
       "One clear subject with strong lights and darks. Crop in close. A face that fills the frame turns out much better than someone standing across the room, and busy backgrounds mostly become noise.",
     question: "Which photos work best?",
   },
