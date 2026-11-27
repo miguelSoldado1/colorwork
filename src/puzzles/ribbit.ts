@@ -177,7 +177,7 @@ export default {
     name: "Not Jam",
     url: "https://not-jam.itch.io/pixels",
   },
-  catalogOrder: 20,
+  catalogOrder: 100,
   height: 112,
   id: "ribbit",
   name: "Ribbit",

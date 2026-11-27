@@ -22,7 +22,7 @@ export default {
     name: "GrafxKid",
     url: "https://opengameart.org/content/various-creatures",
   },
-  catalogOrder: 13,
+  catalogOrder: 30,
   height: 28,
   id: "bleep",
   name: "Bleep",

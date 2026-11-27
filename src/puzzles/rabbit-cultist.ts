@@ -50,7 +50,7 @@ export default {
     name: "CursedLake",
     url: "https://cursedlake.itch.io/free-rabbit-cultist",
   },
-  catalogOrder: 16,
+  catalogOrder: 70,
   height: 64,
   id: "rabbit-cultist",
   name: "Rabbit Cultist",

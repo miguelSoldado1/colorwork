@@ -41,7 +41,7 @@ export default {
     name: "Atari Boy",
     url: "https://atari-boy.itch.io/oldherocharacter",
   },
-  catalogOrder: 15,
+  catalogOrder: 60,
   height: 40,
   id: "jotem",
   name: "Jotem",

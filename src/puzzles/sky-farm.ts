@@ -577,7 +577,7 @@ export default {
     name: "Not Jam",
     url: "https://not-jam.itch.io/sky-farms-asset-pack",
   },
-  catalogOrder: 50,
+  catalogOrder: 130,
   height: 133,
   id: "sky-farm",
   name: "Sky Farm",

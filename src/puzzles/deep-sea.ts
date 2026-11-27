@@ -640,7 +640,7 @@ export default {
     name: "CraftPix.net",
     url: "https://free-game-assets.itch.io/free-underwater-world-pixel-art-backgrounds",
   },
-  catalogOrder: 40,
+  catalogOrder: 120,
   height: 163,
   id: "deep-sea",
   name: "Deep Sea",

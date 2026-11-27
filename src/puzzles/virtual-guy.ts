@@ -24,7 +24,7 @@ export default {
     name: "Pixel Frog",
     url: "https://pixelfrog-assets.itch.io/pixel-adventure-1",
   },
-  catalogOrder: 14,
+  catalogOrder: 40,
   height: 30,
   id: "virtual-guy",
   name: "Virtual Guy",

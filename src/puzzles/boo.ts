@@ -19,7 +19,7 @@ export default {
     name: "GrafxKid",
     url: "https://opengameart.org/content/various-creatures",
   },
-  catalogOrder: 12,
+  catalogOrder: 20,
   height: 24,
   id: "boo",
   name: "Boo",

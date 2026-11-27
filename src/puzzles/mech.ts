@@ -451,7 +451,7 @@ export default {
     name: "Not Jam",
     url: "https://not-jam.itch.io/pixels",
   },
-  catalogOrder: 30,
+  catalogOrder: 110,
   height: 182,
   id: "mech",
   name: "Mech",
